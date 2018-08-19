@@ -22,11 +22,11 @@ mongoose.connect(mongoDB)
 // mongoose.connect("mongodb://<arssonist>:<eleven11>@ds121262.mlab.com:21262/placepuppy")
 
 console.log('db connected')
-// var db = mongoose.connection;
-// db.on('error', console.error.bind(console, 'MongoDB connection error'));
-// db.once('open', function() {
-//   // we're connected!
-// });
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error'));
+db.once('open', function() {
+  // we're connected!
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -49,6 +49,7 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
+app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));
 
 // error handler
 app.use(function(err, req, res, next) {

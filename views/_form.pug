@@ -1,0 +1,16 @@
+// register form
+.form
+    form(method='POST' action='/register')
+      div.form-group
+        label(for=title) Title:
+        input(id=title).form-control(type='text', placeholder=title_of_work, name=title)
+      div.form-group
+        label(for=photographer) Photographer:
+        input(id=photographer).form-control(type='text', placeholder=photographers_name name=photographer)
+      div.form-group
+        label(for=image_description) Description:
+        input(id=image_description).form-control(type='textarea', placeholder=describe_image name=image_description)
+      div.form-group
+        label(for='file') Upload File:
+        input(id=upload).form-control(type='file' name='image' accepts='image/*')
+      button.btn.btn-primary(type='submit') Save Image

@@ -9,4 +9,6 @@ router.get('/', function(req, res, next) {
 
 router.post('/', imageController.addImmage)
 
+router.get('/add', imageController.addFile)
+
 module.exports = router;
