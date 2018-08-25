@@ -6,4 +6,7 @@ block content
         .row 
             .col-md-6.col-md-offset-3
             h2.display-4.m-b-2 Add Photo
+            - if(messages.info)
+                .message.info.alert-success
+                    span= messages.info
             include _form.pug

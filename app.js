@@ -5,6 +5,15 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+// var formidable = require('formidable');
+// const upload = require('express-fileupload')
+const multer = require('multer')
+const upload = multer({dest:'uploads'})
+var flash = require('express-flash')
+var session = require('express-session')
+
+
+
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -36,10 +45,21 @@ app.set('view engine', 'pug');
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(cookieParser('secret'));
+app.use(session({
+    secret: 'keyboard cat',
+    name: 'my cookie',
+    // store: mongoDB, // connect-mongo session store
+    proxy: true,
+    resave: true,
+    saveUninitialized: true
+}));
+app.use(flash());
+
+app.use(express.static(path.join(__dirname, 'public')));
+// app.use(upload())
 app.use('/', index);
 app.use('/users', users);
 
@@ -49,7 +69,7 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
-app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));
+// app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));
 
 // error handler
 app.use(function(err, req, res, next) {
