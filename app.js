@@ -8,7 +8,7 @@ var bodyParser = require('body-parser');
 // var formidable = require('formidable');
 // const upload = require('express-fileupload')
 const multer = require('multer')
-const upload = multer({dest:'uploads'})
+var upload = multer({ dest: 'uploads/' })
 var flash = require('express-flash')
 var session = require('express-session')
 

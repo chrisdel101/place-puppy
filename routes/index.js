@@ -10,10 +10,18 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-// router.post('/', imageController.addImmage)
 
+
+// admin routes
 router.get('/add', imageController.addFile)
+// needs to match form val and name
+router.post('/add', upload.single('file'), imageController.uploadFile)
+// 
+// router.get('/images', imageController.showImages)
 
-router.post('/add', upload.single('productImage'), imageController.uploadFile)
+
+router.get('/100x100', imageController.showImage)
+
+
 
 module.exports = router;

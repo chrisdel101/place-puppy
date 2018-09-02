@@ -1,17 +1,51 @@
 const Image = require('../models/images.model.js')
-const db = process.env.DB_URI
-// var formidable = require('formidable');
-// const util = require('util');
-var express = require('express')
+const url = require('url')
 var multer  = require('multer')
-var upload = multer({ dest: '.public/uploads/' })
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, '/uploads')
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + file.originalname)
+  }
+})
+var upload = multer({ storage: storage})
+const pica = require('pica')();
 
-var app = express()
+// var app = express()
 
 
 
 // console.log(Image)
 module.exports = {
+    showImages: (req, res) => {
+        // show all images
+        Image.find(function(err, image) {
+            if (err) return console.log(err)
+            res.send(image)
+        })
+    },
+    showImage: (req,res) => {
+        let pageUrl = req.url
+        let newUrl = url.parse(pageUrl)
+        // all nums before x
+        var ahead = /\d+(?=\x)/g
+        // look behind doesn't work
+        // var behind = /(?<=\x)\d+/g
+
+        // get first num
+        var first = newUrl.pathname.match(ahead)
+        // reverse String
+        var newStr = Array.from(newUrl).reverse().join('')
+        console.log(newStr)
+        var second = newStr.match(ahead)
+        // second = Array.from(second).reverse().join('')
+        // console.log(first)
+        console.log(second)
+
+
+        res.sendFile("/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG")
+    },
     uploadFile: (req,res) => {
         console.log('req body', req.body)
         let file = req.body.file

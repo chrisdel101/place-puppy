@@ -1,6 +1,6 @@
 // register form
 .form
-    form(method='POST' action='/add')
+    form(method='POST' action='/add' enctype='multipart/form-data')
       div.form-group
         label(for=title) Title:
         input(id=title).form-control(type='text', placeholder=title_of_work, name=title)
