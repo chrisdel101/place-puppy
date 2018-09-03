@@ -10,10 +10,23 @@ var storage = multer.diskStorage({
   }
 })
 var upload = multer({ storage: storage})
-const pica = require('pica')();
+const sharp = require('sharp')
+const fs = require('fs')
 
-// var app = express()
+// /Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG
+// var image = fs.readFile('/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG', function(err, data) {
+//     fs.writeFile('outputImage.jpg', data, 'binary', function (err) {
+//         if (err) {
+//             console.log("There was an error writing the image")
+//         }
+//
+//         else {
+//             console.log("There file was written")
+//         }
+//     });
+// });
 
+// console.log(image)
 
 
 // console.log(Image)
@@ -25,26 +38,103 @@ module.exports = {
             res.send(image)
         })
     },
-    showImage: (req,res) => {
-        let pageUrl = req.url
+    extractDims: function(inputUrl){
+        let pageUrl = inputUrl
         let newUrl = url.parse(pageUrl)
         // all nums before x
-        var ahead = /\d+(?=\x)/g
+        var re = /\d+(?=\x)/g
         // look behind doesn't work
         // var behind = /(?<=\x)\d+/g
 
         // get first num
-        var first = newUrl.pathname.match(ahead)
+        var width = newUrl.pathname.match(re).join('')
+        console.log()
         // reverse String
-        var newStr = Array.from(newUrl).reverse().join('')
-        console.log(newStr)
-        var second = newStr.match(ahead)
+        var reverseUrl = Array.from(newUrl.pathname).reverse().join('')
+        // extract digits -
+        var height = reverseUrl.match(re).join('')
+        // un-reverse back to normal
+        height = Array.from(height).reverse().join('')
+        // var height = newStr.match(re)
         // second = Array.from(second).reverse().join('')
-        // console.log(first)
-        console.log(second)
+        return {
+            width:width,
+            height:height
+        }
+    },
+    // resize: (path, format, width, height) => {
+    //     let transform = sharp();
+    //     if (format) {
+    //         transform = transform.toFormat(format);
+    //     }
+    //
+    //     if (width || height) {
+    //         transform = transform.resize(width, height)
+    //         console.log(transform)
+    //     }
+    //
+    //     const readStream = fs.createReadStream(path)
+    //     // console.log(readStream)
+    //     return readStream
+    // },
+    imageFormat: (input) => {
 
+        // convert to lower
+        if(typeof input === 'string'){
+            input = input.toLowerCase()
+        }
 
-        res.sendFile("/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG")
+        if(input.includes('jpeg') || input.includes('jpg')){
+            return 'jpg'
+        } else if(input.includes('png')){
+            return 'png'
+        } else {
+            return 'jpg'
+        }
+    },
+    showImage: (req,res) => {
+        // console.log()
+        // var fullUrl = `${req.protocol}://${req.get('host')}${ req.originalUrl}`
+        // // console.log('fullUrl', fullUrl)
+        // let format = module.exports.imageFormat(fullUrl)
+        // let dims = module.exports.extractDims(req.path)
+        var image = "/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG"
+
+        // let width = parseInt(dims.width)
+        // let height = parseInt(dims.height)
+        // if (!width || ! height) {
+        //     console.log('width or height is null')
+        //     return
+        // }
+            res.type(`image/jpg`);
+            res.sendFile("/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/IMG_8010--2--NS.jpg")
+            // // console.log(image)
+            // // console.log(format)
+            // // console.log(width)
+            // // console.log(height)
+            // module.exports.resize(image,format, 20, 20)
+            // .pipe(res)
+        // var body=new Buffer(0);
+        //
+        // res.on('data', function(chunk) {
+        //   body=Buffer.concat([body, chunk]);
+        // });
+        //
+        // res.on('end', function() {
+        //   imageBuffer=body;
+        // });
+            // sharp(image)
+            //     .resize(200, 200)
+            //     .toFile('output.jpg', (err, done) => {
+            //         console.log(done)
+            //     })
+            //
+            // sharp(image)
+            //   .rotate()
+            //   .resize(200)
+            //   .toBuffer()
+            //   .then( data =>  console.log(data) )
+            //   .catch( err =>  console.log(err) );
     },
     uploadFile: (req,res) => {
         console.log('req body', req.body)
