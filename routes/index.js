@@ -13,9 +13,9 @@ router.get('/', function(req, res, next) {
 
 
 // admin routes
-router.get('/add', imageController.addFile)
-// needs to match form val and name
-router.post('/add', upload.single('file'), imageController.uploadFile)
+// router.get('/add', imageController.addFile)
+// // needs to match form val and name
+// router.post('/add', upload.single('file'), imageController.uploadFile)
 //
 // router.get('/images', imageController.showImages)
 

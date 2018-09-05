@@ -1,17 +1,18 @@
-const Image = require('../models/images.model.js')
+// const Image = require('../models/images.model.js')
 const url = require('url')
-var multer  = require('multer')
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, '/uploads')
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + file.originalname)
-  }
-})
-var upload = multer({ storage: storage})
+// var multer  = require('multer')
+// var storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, '/uploads')
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, file.fieldname + '-' + Date.now() + file.originalname)
+//   }
+// })
+// var upload = multer({ storage: storage})
 const sharp = require('sharp')
 const fs = require('fs')
+// console.log(sharp.format);
 
 // /Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG
 // var image = fs.readFile('/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG', function(err, data) {
@@ -62,21 +63,23 @@ module.exports = {
             height:height
         }
     },
-    // resize: (path, format, width, height) => {
-    //     let transform = sharp();
-    //     if (format) {
-    //         transform = transform.toFormat(format);
-    //     }
-    //
-    //     if (width || height) {
-    //         transform = transform.resize(width, height)
-    //         console.log(transform)
-    //     }
-    //
-    //     const readStream = fs.createReadStream(path)
-    //     // console.log(readStream)
-    //     return readStream
-    // },
+    resize: (path, format, width, height) => {
+        const readStream = fs.createReadStream(path)
+        let transform = sharp();
+
+        if (format) {
+            transform = transform.toFormat(format);
+        }
+
+        if (width || height) {
+            transform = transform.resize(width, height)
+            console.log(transform)
+        }
+
+        // console.log(readStream)
+        return readStream.pipe(transform);
+
+    },
     imageFormat: (input) => {
 
         // convert to lower
@@ -98,22 +101,26 @@ module.exports = {
         // // console.log('fullUrl', fullUrl)
         // let format = module.exports.imageFormat(fullUrl)
         // let dims = module.exports.extractDims(req.path)
-        var image = "/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG"
-
+        // var image = "IMG_8010--2--NS.jpg"
+//
         // let width = parseInt(dims.width)
         // let height = parseInt(dims.height)
         // if (!width || ! height) {
         //     console.log('width or height is null')
         //     return
         // }
+        // let image
+        let src =  `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
+        // let image = fs.readFileSync(src)
+        // console.log(typeof src)
             res.type(`image/jpg`);
-            res.sendFile("/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/IMG_8010--2--NS.jpg")
+            // res.sendFile("/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/IMG_8010--2--NS.jpg")
             // // console.log(image)
             // // console.log(format)
             // // console.log(width)
             // // console.log(height)
-            // module.exports.resize(image,format, 20, 20)
-            // .pipe(res)
+            module.exports.resize(src,'jpg', 300, 300)
+            .pipe(res)
         // var body=new Buffer(0);
         //
         // res.on('data', function(chunk) {
@@ -128,65 +135,66 @@ module.exports = {
             //     .toFile('output.jpg', (err, done) => {
             //         console.log(done)
             //     })
-            //
-            // sharp(image)
-            //   .rotate()
+
+            // sharp("JPEG_example_JPG_RIP_100.jepg")
+            //   // .rotate()
             //   .resize(200)
-            //   .toBuffer()
-            //   .then( data =>  console.log(data) )
-            //   .catch( err =>  console.log(err) );
+            //   .toFile('hello.png')
+            //   .then(data => console.log(data))
+            //   .catch(err => console.error(err))
+
     },
-    uploadFile: (req,res) => {
-        console.log('req body', req.body)
-        let file = req.body.file
-
-        let image = new Image({
-            title:req.body.title,
-            photographer:req.body.photographer,
-            description:req.body.description,
-            location_taken:req.body.location_taken,
-            file: file
-
-        })
-        console.log('image', image)
-        image.save(function(err, f){
-            if(err) return console.error(err)
-            if(image.save){
-                console.log('saved')
-            } else {
-                console.log('not saved')
-            }
-        })
-        req.flash('info', 'Image Saved');
-        res.render('add')
-    },
-    // show view
-    addFile: (req,res) => {
-        var dog = {
-            color:'white',
-            fluffy: true
-        }
-        let myImage = new Image({
-            photographer: 'no photographer',
-            title: 'no title',
-            location_taken: 'no location_taken',
-            tags:[]
-        })
-        // console.log(res)
-        // myImage.save(function(err, image){
-        //     if(err) return console.error(err)
-        //     console.log('saved')
-        // })
-        res.render('add', {
-            title: 'title',
-            title_of_work:'Title of work',
-            photographer: 'photographer',
-            photographers_name: "Photographer's name",
-            image_description: 'description',
-            describe_image: 'Describe Image',
-            location_taken:'location_taken',
-            place_taken:'Place where image taken'
-
-        })
-    }
+    // uploadFile: (req,res) => {
+    //     console.log('req body', req.body)
+    //     let file = req.body.file
+    //
+    //     let image = new Image({
+    //         title:req.body.title,
+    //         photographer:req.body.photographer,
+    //         description:req.body.description,
+    //         location_taken:req.body.location_taken,
+    //         file: file
+    //
+    //     })
+    //     console.log('image', image)
+    //     image.save(function(err, f){
+    //         if(err) return console.error(err)
+    //         if(image.save){
+    //             console.log('saved')
+    //         } else {
+    //             console.log('not saved')
+    //         }
+    //     })
+    //     req.flash('info', 'Image Saved');
+    //     res.render('add')
+    // },
+    // // show view
+    // addFile: (req,res) => {
+    //     var dog = {
+    //         color:'white',
+    //         fluffy: true
+    //     }
+    //     let myImage = new Image({
+    //         photographer: 'no photographer',
+    //         title: 'no title',
+    //         location_taken: 'no location_taken',
+    //         tags:[]
+    //     })
+    //     // console.log(res)
+    //     // myImage.save(function(err, image){
+    //     //     if(err) return console.error(err)
+    //     //     console.log('saved')
+    //     // })
+    //     res.render('add', {
+    //         title: 'title',
+    //         title_of_work:'Title of work',
+    //         photographer: 'photographer',
+    //         photographers_name: "Photographer's name",
+    //         image_description: 'description',
+    //         describe_image: 'Describe Image',
+    //         location_taken:'location_taken',
+    //         place_taken:'Place where image taken'
+    //
+    //     })
+    // }
 }
