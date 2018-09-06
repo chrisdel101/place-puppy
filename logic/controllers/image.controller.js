@@ -1,15 +1,15 @@
-// const Image = require('../models/images.model.js')
+const Image = require('../models/images.model.js')
 const url = require('url')
-// var multer  = require('multer')
-// var storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, '/uploads')
-//   },
-//   filename: function (req, file, cb) {
-//     cb(null, file.fieldname + '-' + Date.now() + file.originalname)
-//   }
-// })
-// var upload = multer({ storage: storage})
+var multer  = require('multer')
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, '/uploads')
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + file.originalname)
+  }
+})
+var upload = multer({ storage: storage})
 const sharp = require('sharp')
 const fs = require('fs')
 // console.log(sharp.format);
@@ -132,58 +132,76 @@ module.exports = {
             //   .catch(err => console.error(err))
 
     },
-    outReq: [],
-    // uploadFile: (req,res) => {
-    //     console.log('req body', req.body)
-    //     let file = req.body.file
-    //
-    //     let image = new Image({
-    //         title:req.body.title,
-    //         photographer:req.body.photographer,
-    //         description:req.body.description,
-    //         location_taken:req.body.location_taken,
-    //         file: file
-    //
-    //     })
-    //     console.log('image', image)
-    //     image.save(function(err, f){
-    //         if(err) return console.error(err)
-    //         if(image.save){
-    //             console.log('saved')
-    //         } else {
-    //             console.log('not saved')
-    //         }
-    //     })
-    //     req.flash('info', 'Image Saved');
-    //     res.render('add')
-    // },
-    // // show view
-    // addFile: (req,res) => {
-    //     var dog = {
-    //         color:'white',
-    //         fluffy: true
-    //     }
-    //     let myImage = new Image({
-    //         photographer: 'no photographer',
-    //         title: 'no title',
-    //         location_taken: 'no location_taken',
-    //         tags:[]
-    //     })
-    //     // console.log(res)
-    //     // myImage.save(function(err, image){
-    //     //     if(err) return console.error(err)
-    //     //     console.log('saved')
-    //     // })
-    //     res.render('add', {
-    //         title: 'title',
-    //         title_of_work:'Title of work',
-    //         photographer: 'photographer',
-    //         photographers_name: "Photographer's name",
-    //         image_description: 'description',
-    //         describe_image: 'Describe Image',
-    //         location_taken:'location_taken',
-    //         place_taken:'Place where image taken'
-    //
-    //     })
-    // }
+    uploadFile: (req,res) => {
+        console.log('req body', req.body)
+        let file = req.body.file
+
+        let image = new Image({
+            title:req.body.title,
+            photographer:req.body.photographer,
+            description:req.body.description,
+            location_taken:req.body.location_taken,
+            file: file
+
+        })
+        console.log('image', image)
+        image.save(function(err, f){
+            if(err) return console.error(err)
+            if(image.save){
+                console.log('saved')
+            } else {
+                console.log('not saved')
+            }
+        })
+        req.flash('info', 'Image Saved');
+        res.render('add')
+    },
+    // show view
+    addFile: (req,res) => {
+        var dog = {
+            color:'white',
+            fluffy: true
+        }
+        let myImage = new Image({
+            photographer: 'no photographer',
+            title: 'no title',
+            location_taken: 'no location_taken',
+            tags:[]
+        })
+        // console.log(res)
+        // myImage.save(function(err, image){
+        //     if(err) return console.error(err)
+        //     console.log('saved')
+        // })
+        res.render('add', {
+            fieldOne: 'Title',
+            fieldTwo: 'Photographer',
+            fieldThree: 'Description',
+            fieldFour: 'Image Location',
+            fieldFive: 'Upload',
+            buttonField: 'Submit',
+            field_one_for: 'title',
+            field_two_for: 'photographer',
+            field_three_for: 'description',
+            field_four_for: 'location-taken',
+            field_five_for: 'upload',
+            field_one_id: 'title',
+            field_two_id: 'photographer',
+            field_three_id: 'description',
+            field_four_id: 'location-taken',
+            field_five_id: 'upload',
+            field_one_placeholder:'Title of work',
+            field_two_placeholder: "Photographer's name",
+            field_three_placeholder: 'Describe Image',
+            field_four_placeholder:'Place where image taken',
+            field_five_placeholder: 'Upload',
+            field_one_type: 'text',
+            field_two_type: 'text',
+            field_three_type: 'text',
+            field_four_type: 'text',
+            field_five_type: 'file',
+            routeName: req.path
+
+        })
+    }
 }

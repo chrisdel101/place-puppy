@@ -1,19 +1,21 @@
 // register form
 .form
     form(method='POST' action='/add' enctype='multipart/form-data')
-      div.form-group
-        label(for=title) Title:
-        input(id=title).form-control(type='text', placeholder=title_of_work, name=title)
-      div.form-group
-        label(for=photographer) Photographer:
-        input(id=photographer).form-control(type='text', placeholder=photographers_name name=photographer)
-      div.form-group
-        label(for=image_description) Description:
-        input(id=image_description).form-control(type='textarea', placeholder=describe_image name=image_description)
-      div.form-group
-        label(for=location_taken) Location Taken:
-        input(id=location_taken).form-control(type='text', placeholder=place_taken name=location_taken)
-      div.form-group
-        label(for='file') Upload File:
-        input(id=upload).form-control(type='file' name='file')
-      button.btn.btn-primary(type='submit' value='upload') Save Image
+        div.form-group
+            label(for=field_one_for) #{fieldOne}:
+            input(id=field_one_id).form-control(type=field_one_type, placeholder=field_one_placeholder, name=field_one_name)
+        div.form-group
+            label(for=field_two_for) #{fieldTwo}:
+            input(id=field_two_id).form-control(type=field_two_type, placeholder=field_two_placeholder name=field_two_name)
+        if (routeName === '/add' || routeName === '/register')   
+            div.form-group
+                label(for=field_three_for) #{fieldThree}:
+                input(id=field_three_id).form-control(type=field_three_type, placeholder=field_three_placeholder name=fielf_three_name)
+        if routeName === '/add' 
+            div.form-group
+                label(for=field_four_for) #{fieldFour}
+                input(id=field_four_id).form-control(type=field_for_text, placeholder=field_four_placeholder name=field_four_name)
+            div.form-group
+                label(for=field_five_for) #{fieldFive}
+                input(id=field_five_id).form-control(type=field_five_type name=field_five_name)
+        button.btn.btn-primary(type=button_type value=button_value) #{buttonField}
