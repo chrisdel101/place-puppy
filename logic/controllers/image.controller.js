@@ -49,7 +49,6 @@ module.exports = {
 
         // get first num
         var width = newUrl.pathname.match(re).join('')
-        console.log()
         // reverse String
         var reverseUrl = Array.from(newUrl.pathname).reverse().join('')
         // extract digits -
@@ -73,10 +72,9 @@ module.exports = {
 
         if (width || height) {
             transform = transform.resize(width, height)
-            console.log(transform)
+            // console.log(transform)
         }
 
-        // console.log(readStream)
         return readStream.pipe(transform);
 
     },
@@ -96,40 +94,30 @@ module.exports = {
         }
     },
     showImage: (req,res) => {
-        // console.log()
-        // var fullUrl = `${req.protocol}://${req.get('host')}${ req.originalUrl}`
+        console.log(req.path)
+        var fullUrl = `${req.protocol}://${req.get('host')}${ req.originalUrl}`
         // // console.log('fullUrl', fullUrl)
-        // let format = module.exports.imageFormat(fullUrl)
-        // let dims = module.exports.extractDims(req.path)
+        let format = module.exports.imageFormat(fullUrl)
+        let dims = module.exports.extractDims(req.path)
         // var image = "IMG_8010--2--NS.jpg"
 //
-        // let width = parseInt(dims.width)
-        // let height = parseInt(dims.height)
-        // if (!width || ! height) {
-        //     console.log('width or height is null')
-        //     return
-        // }
-        // let image
+        let width = parseInt(dims.width)
+        let height = parseInt(dims.height)
+        if (!width || ! height) {
+            console.log('width or height is null')
+            return
+        }
         let src =  `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
-        // let image = fs.readFileSync(src)
-        // console.log(typeof src)
-            res.type(`image/jpg`);
-            // res.sendFile("/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/IMG_8010--2--NS.jpg")
-            // // console.log(image)
-            // // console.log(format)
-            // // console.log(width)
-            // // console.log(height)
-            module.exports.resize(src,'jpg', 300, 300)
+
+            res.type(`image/${format || 'jpg'}`);
+            // console.log(format)
+            // console.log(width)
+            // console.log(height)
+            module.exports.resize(src,'jpg', width, height)
             .pipe(res)
-        // var body=new Buffer(0);
-        //
-        // res.on('data', function(chunk) {
-        //   body=Buffer.concat([body, chunk]);
-        // });
-        //
-        // res.on('end', function() {
-        //   imageBuffer=body;
-        // });
+        // module.exports.outReq.push(req.path)
+        return '100x100'
+        // console.log('outreq', outReq.path)
             // sharp(image)
             //     .resize(200, 200)
             //     .toFile('output.jpg', (err, done) => {
@@ -144,6 +132,7 @@ module.exports = {
             //   .catch(err => console.error(err))
 
     },
+    outReq: [],
     // uploadFile: (req,res) => {
     //     console.log('req body', req.body)
     //     let file = req.body.file

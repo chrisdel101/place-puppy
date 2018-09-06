@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const imageController = require('../logic/controllers/image.controller')
+const sessionsController = require('../logic/controllers/sessions.controller')
 const multer = require('multer')
 const upload = multer({dest:'uploads/'})
 var app = express()
@@ -10,6 +11,13 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
+// router.get('/:id', function(req, res, next) {
+//   res.send('hello')
+// });
+
+router.get('/login', sessionsController.loginDisplay )
+router.get('/register', sessionsController.registerDisplay )
+
 
 
 // admin routes
@@ -18,10 +26,20 @@ router.get('/', function(req, res, next) {
 // router.post('/add', upload.single('file'), imageController.uploadFile)
 //
 // router.get('/images', imageController.showImages)
-
-
-router.get('/100x100', imageController.showImage)
-
+// var x = imageController.showImage()
+// console.log('x', x  )
+// console.log(imageContoll, imageController.outReq)
+// router.get('/:100x100',imageController.showImage)
+// router.get('/')
+let i = 0
+while(i < 999){
+    let route = `/${i}x${i}`
+    router.get(route, (req, res) => {
+        console.log(route)
+        res.send(`sending ${route}`)
+    })
+    i++
+}
 
 
 module.exports = router;
