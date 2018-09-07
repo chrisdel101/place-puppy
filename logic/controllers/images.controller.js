@@ -161,7 +161,8 @@ module.exports = {
 
         promise.then(image => {
             console.log('saved')
-            console.log(req.flash('info', 'Image Saved'))
+            console.log(req.body)
+            // console.log(req.flash('info', 'Image Saved'))
         }).catch(e => {
             console.log('image not saved')
             req.flash('error', 'Image not Saved');
@@ -175,16 +176,16 @@ module.exports = {
     },
     // show view
     addFile: (req,res) => {
-        var dog = {
-            color:'white',
-            fluffy: true
-        }
-        let myImage = new Image({
-            photographer: 'no photographer',
-            title: 'no title',
-            locationTaken: 'no location_taken',
-            tags:[]
-        })
+        // var dog = {
+        //     color:'white',
+        //     fluffy: true
+        // }
+        // let myImage = new Image({
+        //     photographer: 'no photographer',
+        //     title: 'no title',
+        //     locationTaken: 'no location_taken',
+        //     tags:[]
+        // })
         // console.log(res)
         // myImage.save(function(err, image){
         //     if(err) return console.error(err)

@@ -3,14 +3,14 @@
     form(method=method action=action enctype=enctype)
         div.form-group
             label(for=field_one_for) #{fieldOne}:
-            input(id=field_one_id).form-control(type=field_one_type, placeholder=field_one_placeholder, name='x')
+            input(id=field_one_id).form-control(type=field_one_type, placeholder=field_one_placeholder, name=field_one_name)
         div.form-group
             label(for=field_two_for) #{fieldTwo}:
-            input(id=field_two_id).form-control(type=field_two_type, placeholder=field_two_placeholder name='y')
+            input(id=field_two_id).form-control(type=field_two_type, placeholder=field_two_placeholder name=field_two_name)
         if (routeName === '/add' || routeName === '/register')   
             div.form-group
                 label(for=field_three_for) #{fieldThree}:
-                input(id=field_three_id).form-control(type=field_three_type, placeholder=field_three_placeholder name='z')
+                input(id=field_three_id).form-control(type=field_three_type, placeholder=field_three_placeholder name=field_three_name)
         if routeName === '/add' 
             div.form-group
                 label(for=field_four_for) #{fieldFour}
