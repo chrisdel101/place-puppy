@@ -1,7 +1,8 @@
 var express = require('express');
 var router = express.Router();
-const imageController = require('../logic/controllers/image.controller')
+const imageController = require('../logic/controllers/images.controller')
 const sessionsController = require('../logic/controllers/sessions.controller')
+const usersController = require('../logic/controllers/users.controller')
 const multer = require('multer')
 const upload = multer({dest:'uploads/'})
 var app = express()
@@ -16,14 +17,18 @@ router.get('/', function(req, res, next) {
 // });
 
 router.get('/login', sessionsController.loginDisplay )
-router.get('/register', sessionsController.registerDisplay )
+
+
+
+router.get('/register', usersController.registerDisplay )
+router.post('/register', usersController.createNewUser )
 
 
 
 // admin routes
 router.get('/add', imageController.addFile)
 // // needs to match form val and name
-// router.post('/add', upload.single('file'), imageController.uploadFile)
+router.post('/add', upload.single('file'), imageController.uploadFile)
 //
 // router.get('/images', imageController.showImages)
 // var x = imageController.showImage()

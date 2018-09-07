@@ -1,4 +1,4 @@
-const Image = require('../models/images.model.js')
+const Image = require('../models/image.model.js')
 const url = require('url')
 var multer  = require('multer')
 var storage = multer.diskStorage({
@@ -133,28 +133,45 @@ module.exports = {
 
     },
     uploadFile: (req,res) => {
+        // console.log
         console.log('req body', req.body)
         let file = req.body.file
-
+        console.log(file)
         let image = new Image({
             title:req.body.title,
             photographer:req.body.photographer,
             description:req.body.description,
-            location_taken:req.body.location_taken,
+            locationTaken:req.body.locationTaken,
             file: file
 
         })
-        console.log('image', image)
-        image.save(function(err, f){
-            if(err) return console.error(err)
-            if(image.save){
-                console.log('saved')
-            } else {
-                console.log('not saved')
-            }
+        let saved = false
+        let promise = image.save()
+            // image.save(function(err, f){
+            //     if(err) return console.error(err)
+            //     if(image.save){
+            //         saved = true
+            //         console.log('saved')
+            //     } else {
+            //         saved = false
+            //         console.log('not saved')
+            //     }
+            // })
+
+
+        promise.then(image => {
+            console.log('saved')
+            console.log(req.flash('info', 'Image Saved'))
+        }).catch(e => {
+            console.log('image not saved')
+            req.flash('error', 'Image not Saved');
         })
-        req.flash('info', 'Image Saved');
-        res.render('add')
+        // if(saved) {
+        //     req.flash('info', 'Image Saved');
+        // } else {
+        //     req.flash('error', 'Image not Saved');
+        // }
+        res.redirect('add')
     },
     // show view
     addFile: (req,res) => {
@@ -165,7 +182,7 @@ module.exports = {
         let myImage = new Image({
             photographer: 'no photographer',
             title: 'no title',
-            location_taken: 'no location_taken',
+            locationTaken: 'no location_taken',
             tags:[]
         })
         // console.log(res)
@@ -174,6 +191,9 @@ module.exports = {
         //     console.log('saved')
         // })
         res.render('add', {
+            method:'POST',
+            action: '/add',
+            enctype: 'multipart/form-data',
             fieldOne: 'Title',
             fieldTwo: 'Photographer',
             fieldThree: 'Description',
@@ -200,6 +220,11 @@ module.exports = {
             field_three_type: 'text',
             field_four_type: 'text',
             field_five_type: 'file',
+            field_one_name: 'title',
+            field_two_name: 'photographer',
+            field_three_name: 'description',
+            field_four_name: 'locationTaken',
+            field_five_name: 'file',
             routeName: req.path
 
         })

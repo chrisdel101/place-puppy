@@ -1,3 +1,8 @@
+var bcrypt = require('bcrypt');
+const saltRounds = 10;
+const myPlaintextPassword = 's0/\/\P4$$w0rD';
+const someOtherPlaintextPassword = 'not_bacon';
+
 module.exports = {
     loginDisplay: (req, res) => {
         res.render('login', {
@@ -8,6 +13,9 @@ module.exports = {
             field_two_id: 'password',
             field_one_type: 'text',
             field_two_type: 'password',
+            field_one_name: 'username',
+            field_two_name: 'password',
+            field_two_name: 'password-confrimation',
             fieldOne: 'Username',
             fieldTwo: 'Password',
             field_one_placeholder: 'Enter Username',
@@ -16,29 +24,5 @@ module.exports = {
             button_value: 'submit',
             buttonField: "Sign In"
            })
-    },
-    registerDisplay: (req, res) => {
-        res.render('register', {
-            routeName: req.path,
-            fieldOne: 'Create a username',
-            fieldTwo: 'Create a password',
-            fieldThree: 'Re-enter the password',
-            field_one_for: 'username',
-            field_two_for: 'password',
-            field_three_for: 'password-confrimation',
-            field_one_id: 'username',
-            field_two_id: 'password',
-            field_one_type: 'text',
-            field_two_type: 'password',
-            field_three_type: 'password',
-            field_three_id: 'password-confrimation',
-            field_one_placeholder: 'Enter username',
-            field_two_placeholder: 'Enter password',
-            field_three_placeholder: 'Re-enter password',
-            button_type: 'submit',
-            button_value: 'submit',
-            buttonField: 'Register'
-        })
-
     }
 }

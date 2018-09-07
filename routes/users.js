@@ -1,9 +1,9 @@
 var express = require('express');
+var app = express()
 var router = express.Router();
+const usersController = require('../logic/controllers/users.controller')
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
-
+router.get('/users', (req,res) => {
+    console.log('hello')
+} )
 module.exports = router;

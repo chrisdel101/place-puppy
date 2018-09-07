@@ -49,6 +49,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(cookieParser('secret'));
 app.use(session({
+    maxAge: 60000,
     secret: 'keyboard cat',
     name: 'my cookie',
     // store: mongoDB, // connect-mongo session store

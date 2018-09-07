@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
     title: String,
     photographer:String,
     description: String,
-    location_taken:String,
+    locationTaken:String,
     tags:Array
   });
     const imageModel = mongoose.model('Image', imageSchema)
