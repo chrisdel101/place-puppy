@@ -12,6 +12,8 @@ var storage = multer.diskStorage({
 var upload = multer({ storage: storage})
 var bcrypt = require('bcrypt');
 const saltRounds = 10;
+let cookieParser = require('cookie-parser');
+
 
 // var mongoDB = process.env.DB_URI
 // var db = mongoose.connection;
@@ -25,8 +27,8 @@ module.exports = {
     login: (req, res) => {
         let username = req.body.username
         let password = req.body.password
-        console.log('username', username)
-        console.log('password', password)
+        // console.log('username', username)
+        // console.log('password', password)
         User.find({
             username: String(username)
         }, 'username',
@@ -38,27 +40,38 @@ module.exports = {
             User.find({
                 _id: id
             }, (err, arr) => {
-                // console.log(arr)
             // if username does not exist
             if(arr.length <= 0){
                 console.log('username does not exist')
+                res.redirect('login')
             } else {
                 // make sure only one user by name
                 if(arr.length > 1){
                     console.error('Multiple users detected. Cannnot open')
+                    res.redirect('login')
                 } else {
                     let obj = arr[0]
                     console.log(password)
                     console.log(obj.password)
-                    bcrypt.compare(password, obj.password, function(err, res) {
-                        console.log('res', res)
+                    bcrypt.compare(password, obj.password, function(err, response) {
+                        if(response) {
+                            console.log('res', response)
+                            // add user to session
+                            req.session.user = obj
+                            console.log(req.session.user)
+                            console.log('added to session')
+                            res.redirect('add')
+                        } else {
+                            console.log('incorrect password')
+                            // flash
+                            res.redirect('login')
+                        }
                     });
                 }
             }
 
         })
     })
-        res.redirect('login')
     },
     loginDisplay: (req, res) => {
         res.render('login', {

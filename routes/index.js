@@ -22,7 +22,7 @@ router.post('/login', sessionsController.login )
 
 
 router.get('/register', usersController.registerDisplay )
-router.post('/register', upload.single('file'), usersController.createNewUser )
+router.post('/register', upload.single('file'), usersController.register )
 
 
 

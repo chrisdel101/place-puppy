@@ -16,16 +16,21 @@ const myPlaintextPassword = 's0/\/\P4$$w0rD';
 
 
 module.exports = {
-    //     hashPassword: (password) => {
-    //         let outerHash = ''
-    //         bcrypt.hash(password, saltRounds)
-    //         .then(function(hash) {
-    //             outerHash = hash
-    //             console.log('outerHash', outerHash)
-    //             return outerHash
-    //         });
-    // },
-    createNewUser: (req, res) => {
+    comparePWs: (pw1, pw2) => {
+        return (pw1 === pw2 ? true : false)
+    },
+    register: (req, res) => {
+        console.log('body', req.body.password)
+        console.log('body', req.body['password-confirmation'])
+        // check that both passwords match
+        let bool = module.exports.comparePWs(req.body.password, req.body['password-confirmation'])
+        console.log('bool', bool)
+        // if don't match, kill
+        if(!bool){
+            console.log('passwords do not match')
+            res.redirect('register')
+            return
+        }
         // get hash from pw
         bcrypt.hash(req.body.password, saltRounds)
         .then(function(hash) {
@@ -43,7 +48,7 @@ module.exports = {
                 console.log('user', user)
                 // if user exists
                 if(userArr.length > 0){
-                    console.log('That user already exists')
+                    console.log('That user already exists. Choose another name.')
                     // flash
                 } else {
                     // save user
@@ -60,6 +65,7 @@ module.exports = {
             })
             // redirect to same page
             res.redirect('register')
+            return
         }).catch(err => {
             console.log("There was an err in hashing", err)
         })

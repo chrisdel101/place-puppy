@@ -12,6 +12,8 @@ var storage = multer.diskStorage({
 var upload = multer({ storage: storage})
 const sharp = require('sharp')
 const fs = require('fs')
+var session = require('express-session')
+
 // console.log(sharp.format);
 
 // /Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG
@@ -176,6 +178,7 @@ module.exports = {
     },
     // show view
     addFile: (req,res) => {
+        console.log('session user', req.session.user)
         if(!req.session.user){
             return res.status(401).send()
         }

@@ -55,10 +55,9 @@ app.use(cookieParser('secret'));
 app.use(session({
     maxAge: 60000,
     secret: process.env.SECRET,
-    // store: mongoDB, // connect-mongo session store,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true }
+    // store: db, // connect-mongo session store,
+    resave: true,
+    saveUninitialized: true
 
 }));
 app.use(flash());
