@@ -17,6 +17,7 @@ router.get('/', function(req, res, next) {
 // });
 
 router.get('/login', sessionsController.loginDisplay )
+router.post('/login', sessionsController.login )
 
 
 

@@ -10,16 +10,60 @@ var storage = multer.diskStorage({
 })
 var upload = multer({ storage: storage})
 
+var bcrypt = require('bcrypt');
+const saltRounds = 10;
+const myPlaintextPassword = 's0/\/\P4$$w0rD';
+
 
 module.exports = {
+    //     hashPassword: (password) => {
+    //         let outerHash = ''
+    //         bcrypt.hash(password, saltRounds)
+    //         .then(function(hash) {
+    //             outerHash = hash
+    //             console.log('outerHash', outerHash)
+    //             return outerHash
+    //         });
+    // },
     createNewUser: (req, res) => {
-        console.log('req', req.body)
-        let user = new User({
-            username: req.body.username,
-            password:  req.body.password
+        // get hash from pw
+        bcrypt.hash(req.body.password, saltRounds)
+        .then(function(hash) {
+            console.log('hash', hash)
+            // add user name and hash
+            let user = new User({
+                username: req.body.username,
+                password: hash
+            })
+            // lookup to see if username already exists
+            User.find({
+                username: String(req.body.username).toLowerCase()
+            }, (err, userArr) =>  {
+                if(err) console.error('An error in finding occured')
+                console.log('user', user)
+                // if user exists
+                if(userArr.length > 0){
+                    console.log('That user already exists')
+                    // flash
+                } else {
+                    // save user
+                    // flash
+                    let promise = user.save()
+                    promise
+                    .then(userData => {
+                        console.log('user saved')
+                    })
+                    .catch(err => {
+                        console.log('an error occured', err)
+                    })
+                }
+            })
+            // redirect to same page
+            res.redirect('register')
+        }).catch(err => {
+            console.log("There was an err in hashing", err)
         })
-        console.log('user', user)
-        res.redirect('register')
+
     },
      registerDisplay: (req, res) => {
          console.log('register Displayfired')
@@ -42,7 +86,7 @@ module.exports = {
             field_three_type: 'password',
             field_one_name: 'username',
             field_two_name: 'password',
-            field_three_name: 'password-connfirmation',
+            field_three_name: 'password-confirmation',
             field_one_placeholder: 'Enter username',
             field_two_placeholder: 'Enter password',
             field_three_placeholder: 'Re-enter password',

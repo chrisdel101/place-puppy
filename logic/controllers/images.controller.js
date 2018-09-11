@@ -176,6 +176,9 @@ module.exports = {
     },
     // show view
     addFile: (req,res) => {
+        if(!req.session.user){
+            return res.status(401).send()
+        }
         // var dog = {
         //     color:'white',
         //     fluffy: true
@@ -191,7 +194,7 @@ module.exports = {
         //     if(err) return console.error(err)
         //     console.log('saved')
         // })
-        res.render('add', {
+        return res.render('add', {
             method:'POST',
             action: '/add',
             enctype: 'multipart/form-data',

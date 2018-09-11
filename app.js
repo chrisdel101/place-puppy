@@ -12,7 +12,11 @@ var upload = multer({ dest: 'uploads/' })
 var flash = require('express-flash')
 var session = require('express-session')
 
-
+// var randtoken = require('rand-token');
+//
+// // Generate a 16 character alpha-numeric token:
+// var token = randtoken.generate(32);
+// console.log(token)
 
 
 var index = require('./routes/index');
@@ -50,12 +54,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser('secret'));
 app.use(session({
     maxAge: 60000,
-    secret: 'keyboard cat',
-    name: 'my cookie',
-    // store: mongoDB, // connect-mongo session store
-    proxy: true,
-    resave: true,
-    saveUninitialized: true
+    secret: process.env.SECRET,
+    // store: mongoDB, // connect-mongo session store,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true }
+
 }));
 app.use(flash());
 
