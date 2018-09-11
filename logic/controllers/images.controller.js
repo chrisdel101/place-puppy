@@ -35,10 +35,17 @@ var session = require('express-session')
 // console.log(Image)
 module.exports = {
     showImages: (req, res) => {
+        // if(!req.session.user){
+        //     return res.status(401).send()
+        // }
         // show all images
         Image.find(function(err, image) {
+            console.log('image', image)
+            console.log('image data', image[0].data)
             if (err) return console.log(err)
-            res.send(image)
+            res.render('images', {
+                input: `data:image/png;base64, ${image[0].data}`    
+            })
         })
     },
     extractDims: function(inputUrl){
@@ -134,19 +141,33 @@ module.exports = {
             //   .catch(err => console.error(err))
 
     },
-    uploadFile: (req,res) => {
+    add: (req,res) => {
         // console.log
-        console.log('req body', req.body)
-        let file = req.body.file
-        console.log(file)
+        // console.log('req body', req.body)
+        let file = req.file
+        console.log('file', file)
+        console.log('file path', file.path)
+        console.log('file', file)
+        // console.log('buffer', Buffer.from('hello'))
+        // console.log('buffer', Buffer.from('hello').toString('base64'))
         let image = new Image({
             title:req.body.title,
             photographer:req.body.photographer,
             description:req.body.description,
             locationTaken:req.body.locationTaken,
-            file: file
+            data: file.path,
+            contentType:'image'
 
         })
+        // console.log('image', image.data)
+        let base64 = Buffer.from(image.data, 'base64')
+        // console.log('base64', base64)
+        image.data = base64
+        console.log('image', image.data)
+        // check if converted to base64
+        let re = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/
+        console.log(re.test(image.data))
+
         let saved = false
         let promise = image.save()
             // image.save(function(err, f){
@@ -178,10 +199,10 @@ module.exports = {
     },
     // show view
     addFile: (req,res) => {
-        console.log('session user', req.session.user)
-        if(!req.session.user){
-            return res.status(401).send()
-        }
+        // console.log('session user', req.session.user)
+        // if(!req.session.user){
+        //     return res.status(401).send()
+        // }
         // var dog = {
         //     color:'white',
         //     fluffy: true

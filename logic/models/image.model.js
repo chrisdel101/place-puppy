@@ -6,7 +6,9 @@ const Schema = mongoose.Schema;
     photographer:String,
     description: String,
     locationTaken:String,
-    tags:Array
+    tags:Array,
+    data: Buffer,
+    contentType: String
   });
     const imageModel = mongoose.model('Image', imageSchema)
 

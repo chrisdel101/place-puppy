@@ -29,9 +29,9 @@ router.post('/register', upload.single('file'), usersController.register )
 // admin routes
 router.get('/add', imageController.addFile)
 // // needs to match form val and name
-router.post('/add', upload.single('file'), imageController.uploadFile)
+router.post('/add', upload.single('file'), imageController.add)
 //
-// router.get('/images', imageController.showImages)
+router.get('/images', imageController.showImages)
 // var x = imageController.showImage()
 // console.log('x', x  )
 // console.log(imageContoll, imageController.outReq)
