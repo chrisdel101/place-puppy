@@ -41,10 +41,10 @@ module.exports = {
         // show all images
         Image.find(function(err, image) {
             console.log('image', image)
-            console.log('image data', image[0].data)
+            console.log('image data', image[31].data)
             if (err) return console.log(err)
             res.render('images', {
-                input: `data:image/png;base64, ${image[0].data}`    
+                input: `data:image/png;base64, ${image[31].data}`
             })
         })
     },
@@ -151,22 +151,29 @@ module.exports = {
         // console.log('buffer', Buffer.from('hello'))
         // console.log('buffer', Buffer.from('hello').toString('base64'))
         let image = new Image({
+            filename: file.originalname,
             title:req.body.title,
             photographer:req.body.photographer,
             description:req.body.description,
             locationTaken:req.body.locationTaken,
-            data: file.path,
+            data: new Buffer(fs.readFileSync(file.path).toString('base64')),
             contentType:'image'
 
         })
+        fs.unlink(file.path);
+
+        console.log('File Name : ' + image.filename);
+
+        // console.log('Base 64 : ' + image.data);
+        console.log('base64' + String(image.data).substring(0,50));
         // console.log('image', image.data)
-        let base64 = Buffer.from(image.data, 'base64')
-        // console.log('base64', base64)
-        image.data = base64
-        console.log('image', image.data)
-        // check if converted to base64
-        let re = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/
-        console.log(re.test(image.data))
+        // let base64 = Buffer.from(image.data, 'base64')
+        // // console.log('base64', base64)
+        // image.data = base64
+        // console.log('image', image.data)
+        // // check if converted to base64
+        // let re = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/
+        // console.log(re.test(image.data))
 
         let saved = false
         let promise = image.save()
