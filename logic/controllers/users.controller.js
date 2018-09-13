@@ -20,15 +20,13 @@ module.exports = {
         return (pw1 === pw2 ? true : false)
     },
     register: (req, res) => {
-        console.log('body', req.body)
-        if(req.body.username.length === 0 || user.body.password.length === 0){
+        // check that user and pw not blank
+        if(req.body.username.length === 0 || req.body.password.length === 0){
             console.log('Username or password cannot be blank')
             req.flash('info', 'Username or password cannot be blank')
             res.redirect('register')
             return
         }
-
-
 
         console.log('body', req.body.password)
         console.log('body', req.body['password-confirmation'])

@@ -18,8 +18,15 @@ module.exports = {
 	login: (req, res) => {
 		let username = req.body.username
 		let password = req.body.password
-		// console.log('username', username)
-		// console.log('password', password)
+		console.log('username', username)
+		console.log('password', password)
+
+        if(req.body.username.length === 0 || req.body.password.length === 0){
+            console.log('Username or password cannot be blank')
+            req.flash('info', 'Username or password cannot be blank')
+            res.redirect('register')
+            return
+        }
 		// Look up username - get ID
 		User.find({
 			username: String(username)

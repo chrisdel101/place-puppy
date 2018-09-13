@@ -9,7 +9,7 @@ var app = express()
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: req.app.locals.title });
 });
 
 // router.get('/:id', function(req, res, next) {
