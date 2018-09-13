@@ -9,6 +9,9 @@ block content
             - if(messages.success)
                 .message.success.alert-success
                     span= messages.success
+            - else if(messages.info)
+                .message.info.alert-info
+                    span= messages.info
             - else if(messages.error)
                 .message.error.alert-danger
                     span= messages.error
