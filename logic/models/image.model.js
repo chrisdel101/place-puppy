@@ -23,7 +23,6 @@ const imageModel = mongoose.model('Image', imageSchema)
 module.exports = imageModel
 
 var image = new imageModel();
-console.log(image)
 image.save(function(error) {
 	assert.equal(error.errors['title'].message, 'Path `title` is required.');
 

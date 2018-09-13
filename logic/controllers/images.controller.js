@@ -145,7 +145,14 @@ module.exports = {
 			req.flash('info', 'No file attached')
 			res.redirect('add')
 		}
-		// console.log('file', file)
+		console.log('file', file)
+
+		if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg') {
+			console.log('File type is not an image')
+			req.flash('info', 'File is not a image. Upload images only')
+			res.redirect('add')
+            return
+		}
 		// console.log('file path', file.path)
 		// console.log('file', file)
 		// console.log('buffer', Buffer.from('hello'))
@@ -157,9 +164,10 @@ module.exports = {
 			description: req.body.description,
 			locationTaken: req.body.locationTaken,
 			data: new Buffer(fs.readFileSync(file.path).toString('base64')),
-			contentType: 'image'
+			contentType: file.mimetype
 
 		})
+
 		fs.unlink(file.path);
 
 		console.log('image : ' + image);
@@ -235,32 +243,38 @@ module.exports = {
 			fieldThree: 'Description',
 			fieldFour: 'Image Location',
 			fieldFive: 'Upload',
+			fieldSix: 'Alt Tag',
 			buttonField: 'Submit',
 			field_one_for: 'title',
 			field_two_for: 'photographer',
 			field_three_for: 'description',
 			field_four_for: 'location-taken',
 			field_five_for: 'upload',
+			field_six_for: 'alt',
 			field_one_id: 'title',
 			field_two_id: 'photographer',
 			field_three_id: 'description',
 			field_four_id: 'location-taken',
 			field_five_id: 'upload',
+			field_six_id: 'alt',
 			field_one_placeholder: 'Title of work',
 			field_two_placeholder: "Photographer's name",
 			field_three_placeholder: 'Describe Image',
 			field_four_placeholder: 'Place where image taken',
 			field_five_placeholder: 'Upload',
+			field_six_placeholder: 'Add alt tag',
 			field_one_type: 'text',
 			field_two_type: 'text',
 			field_three_type: 'text',
 			field_four_type: 'text',
 			field_five_type: 'file',
+			field_six_type: 'text',
 			field_one_name: 'title',
 			field_two_name: 'photographer',
 			field_three_name: 'description',
 			field_four_name: 'locationTaken',
 			field_five_name: 'file',
+			field_six_name: 'alt',
 			routeName: req.path
 
 		})
