@@ -3,7 +3,7 @@
 	form(method=method action=action enctype=enctype)
 		div.form-group
 			label(for=field_one_for) #{fieldOne}:
-			input(id=field_one_id).form-control(type=field_one_type, placeholder=field_one_placeholder, name=field_one_name)
+			input(id=field_one_id).form-control(type=field_one_type, placeholder=field_one_placeholder, name=field_one_name maxlength=field_one_maxlength)
 		div.form-group
 			label(for=field_two_for) #{fieldTwo}:
 			input(id=field_two_id).form-control(type=field_two_type, placeholder=field_two_placeholder name=field_two_name)

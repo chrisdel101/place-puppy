@@ -20,6 +20,16 @@ module.exports = {
         return (pw1 === pw2 ? true : false)
     },
     register: (req, res) => {
+        console.log('body', req.body)
+        if(req.body.username.length === 0 || user.body.password.length === 0){
+            console.log('Username or password cannot be blank')
+            req.flash('info', 'Username or password cannot be blank')
+            res.redirect('register')
+            return
+        }
+
+
+
         console.log('body', req.body.password)
         console.log('body', req.body['password-confirmation'])
         // check that both passwords match
@@ -82,6 +92,7 @@ module.exports = {
             action: '/register',
             enctype: 'multipart/form-data',
             routeName: req.path,
+            field_one_maxlength: '15',
             fieldOne: 'Create a username',
             fieldTwo: 'Create a password',
             fieldThree: 'Re-enter the password',
