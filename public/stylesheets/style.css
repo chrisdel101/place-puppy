@@ -6,3 +6,8 @@ body {
 a {
   color: #00B7FF;
 }
+
+.images-show .image{
+    max-width: 100%;
+    margin-bottom: 10px;   
+}

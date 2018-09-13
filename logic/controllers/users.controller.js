@@ -28,6 +28,7 @@ module.exports = {
         // if don't match, kill
         if(!bool){
             console.log('passwords do not match')
+            req.flash('info', 'passwords do not match')
             res.redirect('register')
             return
         }
@@ -49,22 +50,25 @@ module.exports = {
                 // if user exists
                 if(userArr.length > 0){
                     console.log('That user already exists. Choose another name.')
-                    // flash
+                    req.flash('info', 'That user already exists. Choose another name.')
+                    // redirect to same page
+                    res.redirect('register')
                 } else {
                     // save user
-                    // flash
                     let promise = user.save()
                     promise
                     .then(userData => {
                         console.log('user saved')
+                        req.flash('success', 'User successfully saved.')
+                        res.redirect('register')
                     })
                     .catch(err => {
                         console.log('an error occured', err)
+                        req.flash('error', `An Error occurred in saving: ${err}`)
+                        res.redirect('register')
                     })
                 }
             })
-            // redirect to same page
-            res.redirect('register')
             return
         }).catch(err => {
             console.log("There was an err in hashing", err)

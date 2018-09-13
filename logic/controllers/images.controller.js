@@ -35,16 +35,19 @@ var session = require('express-session')
 // console.log(Image)
 module.exports = {
     showImages: (req, res) => {
-        // if(!req.session.user){
-        //     return res.status(401).send()
-        // }
+        if(!req.session.user){
+            return res.status(401).send()
+        }
+        let arr
         // show all images
-        Image.find(function(err, image) {
-            console.log('image', image)
-            console.log('image data', image[31].data)
+        Image.find(function(err, images) {
             if (err) return console.log(err)
+            console.log('image', images)
+            // make arr of strings
+            let arr = images.map(image => image.data)
+            // pass arr to template
             res.render('images', {
-                input: `data:image/png;base64, ${image[31].data}`
+                imagesArr: arr
             })
         })
     },
@@ -145,9 +148,9 @@ module.exports = {
         // console.log
         // console.log('req body', req.body)
         let file = req.file
-        console.log('file', file)
-        console.log('file path', file.path)
-        console.log('file', file)
+        // console.log('file', file)
+        // console.log('file path', file.path)
+        // console.log('file', file)
         // console.log('buffer', Buffer.from('hello'))
         // console.log('buffer', Buffer.from('hello').toString('base64'))
         let image = new Image({
@@ -191,18 +194,20 @@ module.exports = {
 
         promise.then(image => {
             console.log('saved')
-            console.log(req.body)
-            // console.log(req.flash('info', 'Image Saved'))
+            req.flash('success', 'Image Saved')
+            res.redirect('add')
         }).catch(e => {
             console.log('image not saved')
             req.flash('error', 'Image not Saved');
+            res.redirect('add')
         })
         // if(saved) {
         //     req.flash('info', 'Image Saved');
         // } else {
         //     req.flash('error', 'Image not Saved');
         // }
-        res.redirect('add')
+        // req.flash('info', 'Image Saved')
+        //
     },
     // show view
     addFile: (req,res) => {

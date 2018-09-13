@@ -2,6 +2,16 @@ extends layout
 
 
 block content   
-    h2 Sign In  
-    .form
+    .login-container
+        .col-md-6.col-md-offset-3  
+        h2.display-4.m-b-2 Sign In
+        - if(messages.success)
+            .message.success.alert-success
+                span= messages.success
+        - else if(messages.info)
+            .message.info.alert-info
+                span= messages.info
+        - else if(messages.error)
+            .message.error.alert-danger
+                span= messages.error
         include _form.pug

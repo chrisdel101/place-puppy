@@ -43,11 +43,13 @@ module.exports = {
             // if username does not exist
             if(arr.length <= 0){
                 console.log('username does not exist')
+                flash('info', 'Username does not exist')
                 res.redirect('login')
             } else {
                 // make sure only one user by name
                 if(arr.length > 1){
                     console.error('Multiple users detected. Cannnot open')
+                    req.flash('error', 'A error occured')
                     res.redirect('login')
                 } else {
                     let obj = arr[0]
@@ -55,15 +57,17 @@ module.exports = {
                     console.log(obj.password)
                     bcrypt.compare(password, obj.password, function(err, response) {
                         if(response) {
-                            console.log('res', response)
+                            // console.log('res', response)
                             // add user to session
                             req.session.user = obj
-                            console.log(req.session.user)
+                            // console.log(req.session.user)
                             console.log('added to session')
+                            req.flash('success', 'Login successfull')
                             res.redirect('add')
                         } else {
                             console.log('incorrect password')
                             // flash
+                            req.flash('info', 'incorrect password')
                             res.redirect('login')
                         }
                     });
