@@ -12,8 +12,8 @@ const imageSchema = new mongoose.Schema({
 	description: String,
 	locationTaken: String,
 	tags: Array,
-	data: {
-		type: Buffer,
+	imageUrl: {
+		type: String,
 		required: true
 	},
 	contentType: String
@@ -32,8 +32,8 @@ image.save(function(error) {
 
 var image2 = new imageModel({title: 'hello'});
 image2.save(function(error) {
-	assert.equal(error.errors['data'].message, 'Path `data` is required.');
+	assert.equal(error.errors['imageUrl'].message, 'Path `imageUrl` is required.');
 
 	error = image2.validateSync();
-	assert.equal(error.errors['data'].message, 'Path `data` is required.');
+	assert.equal(error.errors['imageUrl'].message, 'Path `imageUrl` is required.');
 });

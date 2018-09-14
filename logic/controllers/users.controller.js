@@ -1,27 +1,32 @@
 const User = require("../models/user.model.js")
-var multer  = require('multer')
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, '/uploads')
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now() + file.originalname)
-  }
-})
-var upload = multer({ storage: storage})
-
-var bcrypt = require('bcrypt');
-const saltRounds = 10;
-const myPlaintextPassword = 's0/\/\P4$$w0rD';
-
+// const multer = require('multer')
+// const storage = multer.diskStorage({
+//     destination: function(req, file, cb) {
+//         cb(null, '/uploads')
+//     },
+//     filename: function(req, file, cb) {
+//         cb(null, file.fieldname + '-' + Date.now() + file.originalname)
+//     }
+// })
+// const upload = multer({storage: storage})
+const bcrypt = require('bcrypt')
+const saltRounds = 10
+// const AWS = require('aws-sdk')
+// const uuid = require('uuid')
+// const bucketName = `placepuppy/users`
+// AWS.config.update({region: 'US EAST'})
 
 module.exports = {
     comparePWs: (pw1, pw2) => {
-        return (pw1 === pw2 ? true : false)
+        return (
+            pw1 === pw2
+            ? true
+            : false)
     },
     register: (req, res) => {
+
         // check that user and pw not blank
-        if(req.body.username.length === 0 || req.body.password.length === 0){
+        if (req.body.username.length === 0 || req.body.password.length === 0) {
             console.log('Username or password cannot be blank')
             req.flash('info', 'Username or password cannot be blank')
             res.redirect('register')
@@ -34,61 +39,59 @@ module.exports = {
         let bool = module.exports.comparePWs(req.body.password, req.body['password-confirmation'])
         console.log('bool', bool)
         // if don't match, kill
-        if(!bool){
+        if (!bool) {
             console.log('passwords do not match')
             req.flash('info', 'passwords do not match')
             res.redirect('register')
             return
         }
         // get hash from pw
-        bcrypt.hash(req.body.password, saltRounds)
-        .then(function(hash) {
+        bcrypt.hash(req.body.password, saltRounds).then(function(hash) {
             console.log('hash', hash)
             // add user name and hash
-            let user = new User({
-                username: req.body.username,
-                password: hash
-            })
+            let user = new User({username: req.body.username, password: hash})
+            console.log('user', user)
+
             // lookup to see if username already exists
-            User.find({
-                username: String(req.body.username).toLowerCase()
-            }, (err, userArr) =>  {
-                if(err) console.error('An error in finding occured')
-                console.log('user', user)
-                // if user exists
-                if(userArr.length > 0){
-                    console.log('That user already exists. Choose another name.')
-                    req.flash('info', 'That user already exists. Choose another name.')
-                    // redirect to same page
-                    res.redirect('register')
-                } else {
-                    // save user
-                    let promise = user.save()
-                    promise
-                    .then(userData => {
-                        console.log('user saved')
-                        req.flash('success', 'User successfully saved.')
+                User.find({
+                    username: String(req.body.username).toLowerCase()
+                }, (err, userArr) =>  {
+                    if(err) console.error('An error in finding occured')
+                    console.log('user', user)
+                     // if user exists
+                    if(userArr.length > 0){
+                        console.log('That user already exists. Choose another name.')
+                        req.flash('info', 'That user already exists. Choose another name.')
+                         // redirect to same page
                         res.redirect('register')
-                    })
-                    .catch(err => {
-                        console.log('an error occured', err)
-                        req.flash('error', `An Error occurred in saving: ${err}`)
-                        res.redirect('register')
-                    })
-                }
-            })
+                    } else {
+                         // save user
+                        let promise = user.save()
+                        promise
+                        .then(userData => {
+                            console.log('user saved')
+                            req.flash('success', 'User successfully saved.')
+                            res.redirect('register')
+                        })
+                        .catch(err => {
+                            console.log('an error occured', err)
+                            req.flash('error', `An Error occurred in saving: ${err}`)
+                            res.redirect('register')
+                        })
+                    }
+        })
             return
         }).catch(err => {
             console.log("There was an err in hashing", err)
         })
 
     },
-     registerDisplay: (req, res) => {
-         console.log('register Displayfired')
+    registerDisplay: (req, res) => {
+        console.log('register Displayfired')
         res.render('register', {
             method: 'POST',
             action: '/register',
-            enctype: 'multipart/form-data',
+            enctype: 'application/x-www-form-urlencoded',
             routeName: req.path,
             field_one_maxlength: '15',
             fieldOne: 'Create a username',

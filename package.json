@@ -6,6 +6,7 @@
     "start": "nodemon ./bin/www"
   },
   "dependencies": {
+    "aws-sdk": "^2.315.0",
     "bcrypt": "^3.0.0",
     "body-parser": "~1.16.0",
     "cloudinary": "^1.11.0",
@@ -24,7 +25,8 @@
     "pug": "~2.0.0-beta10",
     "rand-token": "^0.4.0",
     "serve-favicon": "~2.3.2",
-    "sharp": "^0.20.8"
+    "sharp": "^0.20.8",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "nodemon": "^1.18.4"
