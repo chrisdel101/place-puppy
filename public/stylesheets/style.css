@@ -13,23 +13,13 @@ a {
 }
 
 .index-container {
-    display: flex;
-    /* flex-wrap: wrap; */
-    min-height: 100vh;
-    align-items: center;
-    border: goldenrod 5px solid;
-
+    display: grid;
+    grid-template-columns: 400px 200px 200px;
+    grid-template-rows: 287px 287px;
+    grid-gap: 10px;
 }
 
-.puppy-box {
-    height: 50px;
-    text-align: center;
-    /* display: inline-block; */
-    /* flex: 1; */
-    /* height: 200px; */
-    background-color: green;
-    /* margin: 5px; */
-}
+.puppy-box {}
 
 .puppy-box:nth-child(1) {
     background-color: #1abc9c;
@@ -69,4 +59,8 @@ a {
 
 .puppy-box:nth-child(9) {
     background-color: #2ecc71;
+}
+
+.puppy-box:nth-child(10) {
+    background-color: #2ec;
 }
