@@ -8,6 +8,7 @@
   "dependencies": {
     "bcrypt": "^3.0.0",
     "body-parser": "~1.16.0",
+    "cloudinary": "^1.11.0",
     "cookie-parser": "^1.4.3",
     "debug": "~2.6.0",
     "dotenv": "^6.0.0",

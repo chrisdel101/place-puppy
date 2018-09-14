@@ -1,7 +1,7 @@
 const Image = require('../models/image.model.js')
 const url = require('url')
-var multer = require('multer')
-var storage = multer.diskStorage({
+const multer = require('multer')
+const storage = multer.diskStorage({
 	destination: function(req, file, cb) {
 		cb(null, '/uploads')
 	},
@@ -9,10 +9,11 @@ var storage = multer.diskStorage({
 		cb(null, file.fieldname + '-' + Date.now() + file.originalname)
 	}
 })
-var upload = multer({storage: storage})
+const upload = multer({storage: storage})
 const sharp = require('sharp')
 const fs = require('fs')
-var session = require('express-session')
+const session = require('express-session')
+const cloudinary = require('cloudinary');
 
 // console.log(sharp.format);
 
@@ -140,6 +141,7 @@ module.exports = {
 	},
 	add: (req, res) => {
 		let file = req.file
+        console.log(req.file.path)
 		// if no file, kill
 		if (!file) {
 			req.flash('info', 'No file attached')
@@ -168,7 +170,7 @@ module.exports = {
 
 		})
 
-		fs.unlink(file.path);
+
 
 		console.log('image : ' + image);
 
@@ -183,9 +185,17 @@ module.exports = {
 		// let re = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/
 		// console.log(re.test(image.data))
 
-		let saved = false
-		let promise = image.save()
-		// image.save(function(err, f){
+        cloudinary.v2.uploader.upload(file.path,
+            function(error, result) {console.log(result, error)});
+
+        fs.unlink(file.path);
+            res.redirect('add')
+        // MONGO
+		// let saved = false
+		// let promise = image.save()
+		//
+
+        // image.save(function(err, f){
 		//     if(err) return console.error(err)
 		//     if(image.save){
 		//         saved = true
@@ -196,15 +206,15 @@ module.exports = {
 		//     }
 		// })
 
-		promise.then(image => {
-			console.log('saved')
-			req.flash('success', 'Image Saved')
-			res.redirect('add')
-		}).catch(e => {
-			console.log(`image not saved, ${e}`)
-			req.flash('error', `Image not Saved: ${e}`);
-			res.redirect('add')
-		})
+		// promise.then(image => {
+		// 	console.log('saved')
+		// 	req.flash('success', 'Image Saved')
+		// 	res.redirect('add')
+		// }).catch(e => {
+		// 	console.log(`image not saved, ${e}`)
+		// 	req.flash('error', `Image not Saved: ${e}`);
+		// 	res.redirect('add')
+		// })
 		// if(saved) {
 		//     req.flash('info', 'Image Saved');
 		// } else {
