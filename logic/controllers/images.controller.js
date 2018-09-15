@@ -35,20 +35,14 @@ const cloudinary = require('cloudinary');
 // console.log(Image)
 module.exports = {
     showImages: (req, res) => {
-        if (!req.session.user) {
-            return res.status(401).send()
-        }
-        let arr
-        // show all images
-        Image.find(function(err, images) {
-            if (err)
-                return console.log(err)
-            console.log('image', images)
-            // make arr of strings
-            let arr = images.map(image => image.data)
-            // pass arr to template
-            res.render('images', {imagesArr: arr})
-        })
+        // if (!req.session.user) {
+        //     return res.status(401).send()
+        // }
+        cloudinary.v2.search.expression("resource_type:image").execute(function(error, result) {
+            console.log('result', result)
+            // res.send(result)
+            res.render('images', {imagesArr: result.resources})
+        });
     },
     extractDims: function(inputUrl) {
         let pageUrl = inputUrl
@@ -158,8 +152,7 @@ module.exports = {
         }
         // put image into cloudinary
         let promise = module.exports.cloudinaryUploader(file.path)
-        promise
-        .then(data => {
+        promise.then(data => {
             console.log('data', data)
             // make image with data from cloudinary
             let image = new Image({
@@ -189,8 +182,7 @@ module.exports = {
                 req.flash('error', `Image not Saved: ${e}`);
                 res.redirect('add')
             })
-        })
-        .catch(err => {
+        }).catch(err => {
             console.error('An error occured', err)
             res.redirect('add')
         })

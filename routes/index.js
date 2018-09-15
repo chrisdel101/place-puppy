@@ -3,14 +3,15 @@ var router = express.Router();
 const imageController = require('../logic/controllers/images.controller')
 const sessionsController = require('../logic/controllers/sessions.controller')
 const usersController = require('../logic/controllers/users.controller')
+const indexController = require('../logic/controllers/index.controller')
 const multer = require('multer')
 const upload = multer({dest:'uploads/'})
 var app = express()
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: req.app.locals.title });
-});
+router.get('/',  indexController.showIndex)
+  // res.render('index', { title: req.app.locals.title });
+// });
 
 // router.get('/:id', function(req, res, next) {
 //   res.send('hello')
