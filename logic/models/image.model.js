@@ -10,13 +10,21 @@ const imageSchema = new mongoose.Schema({
 	},
 	photographer: String,
 	description: String,
-	locationTaken: String,
-	tags: Array,
+	tags: [String],
 	imageUrl: {
 		type: String,
 		required: true
 	},
-	contentType: String
+	contentType: String,
+    path: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    created: {
+        type: Date,
+        default: Date.now()
+    }
 });
 const imageModel = mongoose.model('Image', imageSchema)
 

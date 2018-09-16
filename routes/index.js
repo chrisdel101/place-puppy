@@ -42,8 +42,7 @@ let i = 0
 while(i < 999){
     let route = `/${i}x${i}`
     router.get(route, (req, res) => {
-        console.log(route)
-        res.send(`sending ${route}`)
+        imageController.showImage(req,res)
     })
     i++
 }

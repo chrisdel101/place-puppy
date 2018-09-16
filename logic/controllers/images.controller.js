@@ -97,6 +97,10 @@ module.exports = {
     },
     showImage: (req, res) => {
         console.log(req.path)
+        
+        // url matches image from db - needs field
+        //take field, get image from db with field
+        //unless images are random
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
         //  console.log('fullUrl', fullUrl)
         let format = module.exports.imageFormat(fullUrl)
@@ -162,8 +166,8 @@ module.exports = {
                 description: req.body.description,
                 locationTaken: req.body.locationTaken,
                 imageUrl: data.url,
-                contentType: file.mimetype
-
+                contentType: file.mimetype,
+                path: req.body['route-path']
             })
 
             console.log('image : ' + image);
@@ -229,26 +233,26 @@ module.exports = {
             fieldOne: 'Title',
             fieldTwo: 'Photographer',
             fieldThree: 'Description',
-            fieldFour: 'Image Location',
+            fieldFour: 'Path to match',
             fieldFive: 'Upload',
             fieldSix: 'Alt Tag',
             buttonField: 'Submit',
             field_one_for: 'title',
             field_two_for: 'photographer',
             field_three_for: 'description',
-            field_four_for: 'location-taken',
+            field_four_for: 'path-match',
             field_five_for: 'upload',
             field_six_for: 'alt',
             field_one_id: 'title',
             field_two_id: 'photographer',
             field_three_id: 'description',
-            field_four_id: 'location-taken',
+            field_four_id: 'path-match',
             field_five_id: 'upload',
             field_six_id: 'alt',
             field_one_placeholder: 'Title of work',
             field_two_placeholder: "Photographer's name",
             field_three_placeholder: 'Describe Image',
-            field_four_placeholder: 'Place where image taken',
+            field_four_placeholder: 'Route path image should match i.e 100x100',
             field_five_placeholder: 'Upload',
             field_six_placeholder: 'Add alt tag',
             field_one_type: 'text',
@@ -260,7 +264,7 @@ module.exports = {
             field_one_name: 'title',
             field_two_name: 'photographer',
             field_three_name: 'description',
-            field_four_name: 'locationTaken',
+            field_four_name: 'route-path',
             field_five_name: 'file',
             field_six_name: 'alt',
             routeName: req.path
