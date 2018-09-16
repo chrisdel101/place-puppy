@@ -7,8 +7,11 @@ a {
     color: #00B7FF;
 }
 
-.images-show .image {
+.image {
     max-width: 100%;
+}
+
+.images-show .image {
     margin-bottom: 10px;
 }
 

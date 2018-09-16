@@ -6,22 +6,23 @@ block content
 
             h1= title
             p Welcome to #{title}
-
-        div.puppy-box
-            h2 2
-        div.puppy-box
-            h2 3
-        div.puppy-box
-            h2 4
-        div.puppy-box
-            h2 5
-        div.puppy-box
-            h2 6 
-        div.puppy-box
-            h2 7 
-        div.puppy-box
-            h2 8
-        div.puppy-box
-            h2 9
-        div.puppy-box
-            h2 10
+        each dog in dogStrs
+            div.puppy-box
+                p #{dog}
+                img.image(src=dog)
+                //- div.puppy-box
+                //-     h2 3
+                //- div.puppy-box
+                //-     h2 4
+                //- div.puppy-box
+                //-     h2 5
+                //- div.puppy-box
+                //-     h2 6 
+                //- div.puppy-box
+                //-     h2 7 
+                //- div.puppy-box
+                //-     h2 8
+                //- div.puppy-box
+                //-     h2 9
+                //- div.puppy-box
+                //-     h2 10
