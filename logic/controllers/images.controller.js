@@ -13,115 +13,91 @@ const upload = multer({storage: storage})
 const sharp = require('sharp')
 const fs = require('fs')
 const session = require('express-session')
-const cloudinary = require('cloudinary');
+const cloudinary = require('cloudinary')
+const https = require('https')
+const Stream = require('stream').Transform
 
-// console.log(sharp.format);
-
-// /Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG
-// var image = fs.readFile('/Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/public/images/Dog_Pic.JPG', function(err, data) {
-//     fs.writeFile('outputImage.jpg', data, 'binary', function (err) {
-//         if (err) {
-//             console.log("There was an error writing the image")
-//         }
-//
-//         else {
-//             console.log("There file was written")
-//         }
-//     });
-// });
-
-// console.log(image)
-
-// console.log(Image)
 module.exports = {
-    showImages: (req, res) => {
-        // if (!req.session.user) {
-        //     return res.status(401).send()
-        // }
-        cloudinary.v2.search.expression("resource_type:image").execute(function(error, result) {
-            console.log('result', result)
-            // res.send(result)
-            res.render('images', {imagesArr: result.resources})
-        });
-    },
-    extractDims: function(inputUrl) {
-        let pageUrl = inputUrl
-        let newUrl = url.parse(pageUrl)
-        // all nums before x
-        var re = /\d+(?=\x)/g
-        // look behind doesn't work
-        // var behind = /(?<=\x)\d+/g
-
-        // get first num
-        var width = newUrl.pathname.match(re).join('')
-        // reverse String
-        var reverseUrl = Array.from(newUrl.pathname).reverse().join('')
-        // extract digits -
-        var height = reverseUrl.match(re).join('')
-        // un-reverse back to normal
-        height = Array.from(height).reverse().join('')
-        // var height = newStr.match(re)
-        // second = Array.from(second).reverse().join('')
-        return {width: width, height: height}
-    },
-    resize: (path, format, width, height) => {
-        const readStream = fs.createReadStream(path)
-        let transform = sharp();
-
-        if (format) {
-            transform = transform.toFormat(format);
-        }
-
-        if (width || height) {
-            transform = transform.resize(width, height)
-            // console.log(transform)
-        }
-
-        return readStream.pipe(transform);
-
-    },
-    imageFormat: (input) => {
-
-        // convert to lower
-        if (typeof input === 'string') {
-            input = input.toLowerCase()
-        }
-
-        if (input.includes('jpeg') || input.includes('jpg')) {
-            return 'jpg'
-        } else if (input.includes('png')) {
-            return 'png'
-        } else {
-            return 'jpg'
-        }
-    },
-    showImage: (req, res) => {
-        console.log(req.path)
-        
-        // url matches image from db - needs field
-        //take field, get image from db with field
-        //unless images are random
+    showImages: showImages,
+    extractDims: extractDims,
+    resize: resize,
+    imageFormat: imageFormat,
+    processImage: (req, res) => {
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-        //  console.log('fullUrl', fullUrl)
-        let format = module.exports.imageFormat(fullUrl)
-        let dims = module.exports.extractDims(req.path)
-        // var image = "IMG_8010--2--NS.jpg"
-        //
-        let width = parseInt(dims.width)
-        let height = parseInt(dims.height)
-        if (!width || !height) {
-            console.log('width or height is null')
-            return
+        // get pathname from url
+        let pathName = url.parse(fullUrl)
+        // regex checks to see if /
+        let re = /^\//ig
+        // get pathname from url
+        pathName = pathName.pathname
+        if (pathName.match(re)) {
+            // slice out forward slash
+            pathName = pathName.slice(1, pathName.length)
         }
-        let src = `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
+        console.log('pathname', pathName)
+        // url matches image from db - needs field
+        let promise = Image.findOne({path: pathName}).exec()
+        promise.then(img => {
+            console.log(img)
 
-        res.type(`image/${format || 'jpg'}`);
-        // console.log(format)
-        // console.log(width)
-        // console.log(height)
-        module.exports.resize(src, 'jpg', width, height).pipe(res)
+            let format = module.exports.imageFormat(img.contentType)
+            let dims = module.exports.extractDims(pathName)
+            // var image = "IMG_8010--2--NS.jpg"
+            //
+            let width = parseInt(dims.width)
+            let height = parseInt(dims.height)
+            if (!width || !height) {
+                console.log('width or height is null')
+                return
+            }
+            let src = `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
+
+            res.type(`image/${format || 'jpg'}`);
+            // console.log(format)
+            // console.log(width)
+            // console.log(height)
+
+            https.get(img.src, (response) => {
+                var data = new Stream();
+                // res.setEncoding('binary')
+                response.on('data', (chunk) => {
+                    // console.log('chunk', chunk)
+                    data.push(chunk);
+
+                })
+                response.on('end', () => {
+                    data = data.read()
+                    let file = fs.writeFile('./tmp/logo.png', data, 'binary', (err) => {
+                        if (err)
+                            throw err
+                        console.log('image created')
+
+                        return new Promise(function(resolve, reject) {
+                            fs.writeFile('./tmp/logo.png', data, 'binary', (err) =>  {
+                                if (err)
+                                    reject(err);
+                                else
+                                    resolve(data);
+                                }
+                            );
+                        }).then(data => {
+                            module.exports.resize('./tmp/logo.png', format, width, height).pipe(res)
+
+                            fs.unlink('./tmp/logo.png');
+                            console.log('unlinked')
+                        }).catch(err => {
+                            console.error("An error in a promise show image", err)
+                            res.send('An Err', err)
+                        })
+                    });
+                })
+
+            })
+        })
+        //unless images are random
+        //  console.log('fullUrl', fullUrl)
         // module.exports.outReq.push(req.path)
-        return '100x100'
+        // return '100x100'
         // console.log('outreq', outReq.path)
         // sharp(image)
         //     .resize(200, 200)
@@ -136,6 +112,9 @@ module.exports = {
         //   .then(data => console.log(data))
         //   .catch(err => console.error(err))
 
+    },
+    showImage: (req, res) => {
+        module.exports.processImage(req, res)
     },
     add: (req, res) => {
         // get file
@@ -165,13 +144,13 @@ module.exports = {
                 photographer: req.body.photographer,
                 description: req.body.description,
                 locationTaken: req.body.locationTaken,
-                imageUrl: data.url,
+                src: data.secure_url,
                 contentType: file.mimetype,
                 path: req.body['route-path']
             })
 
             console.log('image : ' + image);
-            console.log('base64' + String(image.data).substring(0, 50));
+            // console.log('base64' + String(image.data).substring(0, 50));
             // unlink form /uploads
             fs.unlink(file.path);
             // save to DB
@@ -270,5 +249,67 @@ module.exports = {
             routeName: req.path
 
         })
+    }
+}
+
+function extractDims(urlDims) {
+    let pageUrl = urlDims
+    let newUrl = url.parse(pageUrl)
+    // all nums before x
+    var re = /\d+(?=\x)/g
+    // look behind doesn't work
+    // var behind = /(?<=\x)\d+/g
+
+    // get first num
+    var width = newUrl.pathname.match(re).join('')
+    // reverse String
+    var reverseUrl = Array.from(newUrl.pathname).reverse().join('')
+    // extract digits -
+    var height = reverseUrl.match(re).join('')
+    // un-reverse back to normal
+    height = Array.from(height).reverse().join('')
+    // var height = newStr.match(re)
+    // second = Array.from(second).reverse().join('')
+    return {width: width, height: height}
+}
+
+function showImages(req, res) {
+    // if (!req.session.user) {
+    //     return res.status(401).send()
+    // }
+    cloudinary.v2.search.expression("resource_type:image").execute(function(error, result) {
+        console.log('result', result)
+        // res.send(result)
+        res.render('images', {imagesArr: result.resources})
+    });
+}
+
+function resize(path, format, width, height) {
+    const readStream = fs.createReadStream(path)
+
+    let transform = sharp();
+    if (format) {
+        transform = transform.toFormat(format);
+    }
+
+    if (width || height) {
+        transform = transform.resize(width, height)
+        // console.log(transform)
+    }
+    return readStream.pipe(transform);
+
+}
+function imageFormat(input) {
+    // convert to lower
+    if (typeof input === 'string') {
+        input = input.toLowerCase()
+    }
+
+    if (input.includes('jpeg') || input.includes('jpg')) {
+        return 'jpg'
+    } else if (input.includes('png')) {
+        return 'png'
+    } else {
+        return 'jpg'
     }
 }
