@@ -14,8 +14,25 @@ router.get('/', indexController.showIndex)
 // res.render('index', { title: req.app.locals.title });
 // });
 
-// router.get('/:id', function(req, res, next) {
-//   res.send('hello')
+router.get('/:id',  imageController.showImage)
+// {
+  //   let val
+  //   let valObj
+  //   // if starts with / remove it
+  //   if(imageController.removeFwdSlash(req)){
+  //       val = imageController.removeFwdSlash(req)
+  //   }
+  //   // if in correct format
+  //   console.log('val', val)
+  //   console.log('func', imageController.numFormat(val))
+  //   if(imageController.numFormat(val)){
+  //       // return two num vals
+  //       valObj = imageController.extractDims(val)
+  //   }
+  //   imageController.showImage(req, res)
+  //   console.log(valObj)
+  // res.send(valObj)
+
 // });
 
 router.get('/login', sessionsController.loginDisplay)
@@ -60,7 +77,7 @@ router.get('/single-seed', (req, res) => {
             description: 'A seeded puppy',
             src: img.secure_url,
             contentType: 'image/jpg',
-            path: '100x100'
+            path: '400x400'
         })
         // remove all dogs everytime
         Image.remove({}, () => {
@@ -87,18 +104,15 @@ router.get('/add', imageController.addFile)
 router.post('/add', upload.single('file'), imageController.add)
 //
 router.get('/images', imageController.showImages)
-// var x = imageController.showImage()
-// console.log('x', x  )
-// console.log(imageContoll, imageController.outReq)
-// router.get('/:100x100',imageController.showImage)
-// router.get('/')
-let i = 0
-while (i < 999) {
-    let route = `/${i}x${i}`
-    router.get(route, (req, res) => {
-        imageController.showImage(req, res)
-    })
-    i++
-}
+
+
+// let i = 0
+// while (i < 999) {
+//     let route = `/${400}x${400}`
+//     router.get(route, (req, res) => {
+//         imageController.showImage(req, res)
+//     })
+//     i++
+// }
 
 module.exports = router;

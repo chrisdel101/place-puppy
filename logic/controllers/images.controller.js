@@ -22,27 +22,43 @@ module.exports = {
     extractDims: extractDims,
     resize: resize,
     imageFormat: imageFormat,
-    processImage: (req, res) => {
+    numFormat: numFormat,
+    removeFwdSlash: removeFwdSlash,
+    showImage: (req, res) => {
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
         // get pathname from url
         let pathName = url.parse(fullUrl)
-        // regex checks to see if /
+        // regex checks to see if starts w /
         let re = /^\//ig
         // get pathname from url
         pathName = pathName.pathname
         if (pathName.match(re)) {
+            console.log('inside')
             // slice out forward slash
             pathName = pathName.slice(1, pathName.length)
         }
         console.log('pathname', pathName)
         // url matches image from db - needs field
         let promise = Image.findOne({path: pathName}).exec()
+        // check for promise okay
+        if (!promise || promise === null) {
+            console.log('That route does not exist')
+            res.send('Error. That route does not exist')
+            return
+        }
+        console.log('promise', promise)
         promise.then(img => {
-            console.log(img)
+            // check not null
+            if (!img) {
+                console.log('This data does not exist')
+                res.send('Error. This data does not exist')
+                return
+            }
+            console.log('img', img)
 
             let format = module.exports.imageFormat(img.contentType)
+            format = 'png'
             let dims = module.exports.extractDims(pathName)
-            // var image = "IMG_8010--2--NS.jpg"
             //
             let width = parseInt(dims.width)
             let height = parseInt(dims.height)
@@ -50,71 +66,62 @@ module.exports = {
                 console.log('width or height is null')
                 return
             }
-            let src = `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
+            // let src = `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
 
             res.type(`image/${format || 'jpg'}`);
-            // console.log(format)
-            // console.log(width)
-            // console.log(height)
-
+            // call url from cloudinary
             https.get(img.src, (response) => {
-                var data = new Stream();
-                // res.setEncoding('binary')
-                response.on('data', (chunk) => {
-                    // console.log('chunk', chunk)
-                    data.push(chunk);
+                console.log('make http call')
+                if (response.statusCode === 200) {
+                    // console.log('res', response)
+                    console.log('status', response.statusCode)
+                    var data = new Stream();
+                    response.on('data', (chunk) => {
+                        // read chunks into stream
+                        // console.log('res', response)
+                        // console.log('data', chunk)
+                        data.push(chunk);
+                    })
+                    response.on('end', () => {
+                        console.log('in end')
+                        // read data with.read()
+                        data = data.read()
+                        // make file and wrap in promise
+                        fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
+                            if (err)
+                                throw err
+                            console.log('image created')
 
-                })
-                response.on('end', () => {
-                    data = data.read()
-                    let file = fs.writeFile('./tmp/logo.png', data, 'binary', (err) => {
-                        if (err)
-                            throw err
-                        console.log('image created')
+                            return new Promise(function(resolve, reject) {
+                                fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
+                                    if (err)
+                                        reject(err);
+                                    else
+                                        resolve(data);
+                                    }
+                                );
+                                // resolve promise - resize and unlin
+                            }).then(data => {
 
-                        return new Promise(function(resolve, reject) {
-                            fs.writeFile('./tmp/logo.png', data, 'binary', (err) =>  {
-                                if (err)
-                                    reject(err);
-                                else
-                                    resolve(data);
-                                }
-                            );
-                        }).then(data => {
-                            module.exports.resize('./tmp/logo.png', format, width, height).pipe(res)
-
-                            fs.unlink('./tmp/logo.png');
-                            console.log('unlinked')
-                        }).catch(err => {
-                            console.error("An error in a promise show image", err)
-                            res.send('An Err', err)
-                        })
-                    });
-                })
-
+                                module.exports.resize('./tmp/logo.jpg', format, width, height).pipe(res)
+                                // unlin from file
+                                fs.unlink('./tmp/logo.jpg');
+                                console.log('unlinked')
+                            }).catch(err => {
+                                console.error("An error in a promise show image", err)
+                                res.send('An Err', err)
+                            })
+                        });
+                    })
+                } else {
+                    console.error(`An http error occured`, response.statusCode)
+                }
             })
+            // }
+        }).catch(err => {
+            console.error("An error in the promise ending show", err)
+            res.status(404).send(err)
         })
-        //unless images are random
-        //  console.log('fullUrl', fullUrl)
-        // module.exports.outReq.push(req.path)
-        // return '100x100'
-        // console.log('outreq', outReq.path)
-        // sharp(image)
-        //     .resize(200, 200)
-        //     .toFile('output.jpg', (err, done) => {
-        //         console.log(done)
-        //     })
-
-        // sharp("JPEG_example_JPG_RIP_100.jepg")
-        //    .rotate()
-        //   .resize(200)
-        //   .toFile('hello.png')
-        //   .then(data => console.log(data))
-        //   .catch(err => console.error(err))
-
-    },
-    showImage: (req, res) => {
-        module.exports.processImage(req, res)
     },
     add: (req, res) => {
         // get file
@@ -251,12 +258,45 @@ module.exports = {
         })
     }
 }
-
+function removeFwdSlash(req) {
+    var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+    // get pathname from url
+    let pathName = url.parse(fullUrl)
+    // starts with /
+    let re = /^\//ig
+    // get pathname from url
+    pathName = pathName.pathname
+    if (pathName.match(re)) {
+        // slice out forward slash
+        pathName = pathName.slice(1, pathName.length)
+        return pathName
+    }
+    return false
+}
+function numFormat(numStr) {
+    console.log('numstr', numStr)
+    // all nums before x
+    var re1 = /\d+(?=\x)/g
+    var beforeX = numStr.match(re1)
+    if (!beforeX) {
+        return false
+    }
+    // get x only if followed by num
+    var re2 = /x(?=[0-9])/
+    var afterX = numStr.match(re2)
+    if (!afterX) {
+        return false
+    }
+    return true
+}
 function extractDims(urlDims) {
     let pageUrl = urlDims
     let newUrl = url.parse(pageUrl)
     // all nums before x
     var re = /\d+(?=\x)/g
+    //  get x only if followed by num
+    // var secondNumRe = /x(?=[0-9])/
+
     // look behind doesn't work
     // var behind = /(?<=\x)\d+/g
 
