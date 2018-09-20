@@ -1,14 +1,15 @@
 const fs = require('fs');
-const dir = `./public/images`
+const dir = `./public/public-images`
 
 module.exports = {
     showIndex: (req, res) => {
+        console.log('dir', dir)
         fs.readdir(dir, (err, dogsArr) => {
             if (err)
                 console.error(err)
                 // make dogs array, filter out other files
             let dogStrs = dogsArr.map(dog => {
-                return `./images/${dog}`
+                return `./public-images/${dog}`
             }).filter(dogStr => {
                 return dogStr.includes('dog')
             })

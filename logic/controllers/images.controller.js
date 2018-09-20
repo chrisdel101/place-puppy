@@ -24,6 +24,8 @@ module.exports = {
     imageFormat: imageFormat,
     numFormat: numFormat,
     removeFwdSlash: removeFwdSlash,
+    fullSeed: fullSeed,
+    cloudinaryUploader: cloudinaryUploader,
     showImage: (req, res) => {
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
         // get pathname from url
@@ -175,20 +177,6 @@ module.exports = {
         }).catch(err => {
             console.error('An error occured', err)
             res.redirect('add')
-        })
-    },
-    cloudinaryUploader: (image) => {
-        return new Promise((resolve, reject) => {
-            cloudinary.v2.uploader.upload(image, (error, result) => {
-                if (error) {
-                    console.error(error)
-                    reject(error)
-                } else {
-                    console.log('result', result)
-                    resolve(result)
-                }
-            })
-
         })
     },
     // show view
@@ -352,4 +340,127 @@ function imageFormat(input) {
     } else {
         return 'jpg'
     }
+}
+function fullSeed(req, res) {
+    // console.log('image id', publicImageId)
+    // if global var is set, delete
+    // if (publicImageId) {
+    //     cloudinary.v2.api.delete_resources([publicImageId], function(error, result) {
+    //         console.log('deleted')
+    //          res.send(result)
+    //     })
+    // }
+    let files = fs.readdirSync("./public/public-images/for-seeds")
+
+    // loop over files
+    function createPromises(files) {
+        let arr = []
+        files.forEach((file) => {
+            console.log('file', file)
+            // let file = `adorable-animal-canine-163685.jpg`
+            let src = `./public/public-images/for-seeds/${file}`
+            // add new image
+            let promise = cloudinaryUploader(src)
+            arr.push(promise)
+            // console.log(promise)
+        })
+        return arr
+    }
+    function addToDb(promiseArr) {
+        promiseArr.forEach((promise) => {
+
+            promise.then(img => {
+                console.log('img', img)
+                publicImageId = img.public_id
+                // add bucket src to Image
+                let image = new Image({
+                    filename: img.original_filename,
+                    title: 'puppy image',
+                    photographer: 'NA',
+                    description: 'A seeded puppy',
+                    src: img.secure_url,
+                    contentType: img.format,
+                    path: '400x400'
+                })
+                // remove all dogs everytime
+                // Image.remove({}, () => {
+                    let result = image.save()
+
+                    result.then(image => {
+                        console.log('saved')
+                        // req.flash('success', 'Image Saved')
+                        // res.send('saved')
+                    }).catch(e => {
+                        console.log(`image not saved, ${e}`)
+                        req.flash('error', `Image not Saved: ${e}`);
+                        res.redirect('single-seed')
+                    })
+                // })
+            }).catch(err => {
+                console.error('An error occured', err)
+                res.send('An error at the end of the promise')
+            })
+        })
+    }
+    addToDb(createPromises(files))
+    // let promises = files.map((file) => {
+    //     console.log('file', file)
+    //      let file = `adorable-animal-canine-163685.jpg`
+    //     let src = `./public/public-images/for-seeds/${file}`
+    //      add new image
+    //     let promise = cloudinaryUploader(src)
+    //      promise returned from cloudinary
+    //     console.log('promise', promise)
+    // promise.then(img => {
+    //     console.log('img', img)
+    //     publicImageId = img.public_id
+    //     // add bucket src to Image
+    //     let image = new Image({
+    //         filename: file,
+    //         title: 'puppy image',
+    //         photographer: 'NA',
+    //         description: 'A seeded puppy',
+    //         src: img.secure_url,
+    //         contentType: img.format,
+    //         path: '400x400'
+    //     })
+    //     // remove all dogs everytime
+    //     Image.remove({}, () => {
+    //         let promise = image.save()
+    //
+    //         promise.then(image => {
+    //             console.log('saved')
+    //             // req.flash('success', 'Image Saved')
+    //             // res.send('saved')
+    //         }).catch(e => {
+    //             console.log(`image not saved, ${e}`)
+    //             req.flash('error', `Image not Saved: ${e}`);
+    //             res.redirect('single-seed')
+    //         })
+    //     })
+    // }).catch(err => {
+    //     console.error('An error occured', err)
+    //     res.send('An error at the end of the promise')
+    // })
+
+    // })
+    // let allPromises = Promise.all(promises)
+    // allPromises.then((results) => {
+    //     console.log('all Promises', results)
+    // })
+
+}
+function cloudinaryUploader(image) {
+    return new Promise((resolve, reject) => {
+        cloudinary.v2.uploader.upload(image, (error, result) => {
+            if (error) {
+                console.error('Error in the cloudinary loader', error)
+                reject(error)
+            } else {
+                console.log('result', result)
+                resolve(result)
+            }
+        })
+
+    })
 }

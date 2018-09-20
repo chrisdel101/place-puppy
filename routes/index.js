@@ -9,29 +9,30 @@ const multer = require('multer')
 const upload = multer({dest: 'uploads/'})
 const cloudinary = require('cloudinary')
 let publicImageId = ''
+const fs = require('fs')
 /* GET home page. */
 router.get('/', indexController.showIndex)
+// /Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/routes/users.js
 // res.render('index', { title: req.app.locals.title });
 // });
-
-router.get('/:id',  imageController.showImage)
+// router.get('/:id', imageController.showImage)
 // {
-  //   let val
-  //   let valObj
-  //   // if starts with / remove it
-  //   if(imageController.removeFwdSlash(req)){
-  //       val = imageController.removeFwdSlash(req)
-  //   }
-  //   // if in correct format
-  //   console.log('val', val)
-  //   console.log('func', imageController.numFormat(val))
-  //   if(imageController.numFormat(val)){
-  //       // return two num vals
-  //       valObj = imageController.extractDims(val)
-  //   }
-  //   imageController.showImage(req, res)
-  //   console.log(valObj)
-  // res.send(valObj)
+//   let val
+//   let valObj
+//    if starts with / remove it
+//   if(imageController.removeFwdSlash(req)){
+//       val = imageController.removeFwdSlash(req)
+//   }
+//    if in correct format
+//   console.log('val', val)
+//   console.log('func', imageController.numFormat(val))
+//   if(imageController.numFormat(val)){
+//        return two num vals
+//       valObj = imageController.extractDims(val)
+//   }
+//   imageController.showImage(req, res)
+//   console.log(valObj)
+// res.send(valObj)
 
 // });
 
@@ -53,6 +54,7 @@ router.get('/see-db', function(req, res) {
     //     console.log(result)
     // });
 })
+router.get('/full-seed', imageController.fullSeed)
 
 // hit route to add a single image to db, and to cloudinary
 router.get('/single-seed', (req, res) => {
@@ -104,7 +106,6 @@ router.get('/add', imageController.addFile)
 router.post('/add', upload.single('file'), imageController.add)
 //
 router.get('/images', imageController.showImages)
-
 
 // let i = 0
 // while (i < 999) {
