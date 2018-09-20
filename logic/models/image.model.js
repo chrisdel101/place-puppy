@@ -3,6 +3,7 @@ const Schema = mongoose.Schema
 const assert = require('assert')
 
 const imageSchema = new mongoose.Schema({
+    id: String,
 	filename: String,
 	title: {
 		type: String,

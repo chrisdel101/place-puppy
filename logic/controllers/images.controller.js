@@ -26,7 +26,7 @@ module.exports = {
     removeFwdSlash: removeFwdSlash,
     fullSeed: fullSeed,
     cloudinaryUploader: cloudinaryUploader,
-    showImage: showImage,
+            showImage: showImage,
     add: add,
     addFile: addFile
 }
@@ -86,7 +86,7 @@ function add(req, res) {
         res.redirect('add')
     })
 }
-function showImage(req, res) {
+    function showImage(req, res) {
     var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     // get pathname from url
     let pathName = url.parse(fullUrl)
@@ -290,7 +290,7 @@ function fullSeed(req, res) {
     //     })
     // }
     let files = fs.readdirSync("./public/public-images/for-seeds")
-
+    files = files.slice(0,5)
     // loop over files
 
     _addToDb(_createPromises(files), req, res)
@@ -343,7 +343,7 @@ function fullSeed(req, res) {
 }
 function cloudinaryUploader(image) {
     return new Promise((resolve, reject) => {
-        cloudinary.v2.uploader.upload(image, (error, result) => {
+        cloudinary.v2.uploader.upload(image, {timeout:10000000}, (error, result) => {
             if (error) {
                 console.error('Error in the cloudinary loader', error)
                 reject(error)
@@ -435,37 +435,73 @@ function _createPromises(files) {
     return arr
 }
 function _addToDb(promiseArr, req, res) {
+    // create array of promises
     let imgPromises = []
     promiseArr.forEach((promise, i) => {
+        counter = 1
         imgPromises.push(new Promise((resolve, reject) => {
             promise.then(img => {
                 // console.log('index', i)
-                // console.log('img', img)
-                publicImageId = img.public_id
+                console.log('img', img.public_id)
                 // add bucket src to Image
                 let image = new Image({
+                    id: img.public_id,
                     filename: img.original_filename,
                     title: 'puppy image',
                     photographer: 'NA',
                     description: 'A seeded puppy',
                     src: img.secure_url,
                     contentType: img.format,
-                    path: `${i + 1}00x${i + 1}00`
+                    path: Math.random()
                 })
+                counter++
                 console.log('RESOLVING')
                 resolve(image)
+            }).catch(e => {
+                console.error(`An error occured: ${e}`)
+                reject(`An error occured: ${e}`)
+            })
+        }))
+    })
+    // create another array of promise
+    let finishPromises = []
+    // loop over array of pending promises
+    imgPromises.forEach((promise) => {
+        console.log('promise', promise)
+        finishPromises.push(new Promise((resolve, reject) => {
+            promise.then(img => {
+                // imgs.forEach(img => {
+                console.log('img', img)
+                // Image.remove({}, () => {
+                // let promise = Image.findOne({path: pathName}).exec()
+                Image.find({id: img.id}).exec()
+                .then(check => {
+                    // check make sure not already in db- double save
+                    if(check.length <= 0){
+                        let result = img.save()
+
+                        result.then(image => {
+                            console.log(`saved: ${img.id}`)
+                            resolve('saved to db')
+                            // req.flash('success', 'Image Saved')
+                            // res.send('saved')
+                        }).catch(e => {
+                            console.error(`image not saved, ${e}`)
+                            // req.flash('error', `Image not Saved: ${e}`);
+                            // res.redirect('single-seed')
+                            reject(`reject :Image not Saved: ${e}`)
+                        })
+                    } else {
+                        console.error('Not saved. This is already in the db.')
+                    }
+                })
+
+
+
             })
         })
-        )
+    )
     })
-    console.log(imgPromises)
-    // let outerPromise2 = new Promise((resolve, reject) => {
-    //     outerPromise1.then(imgs => {
-    //         imgs.forEach(img => {
-    //             console.log('img inside', img)
-    //         })
-    //     })
-    //     resolve('complete')
     // })
     // Image.remove({}, () => {
     // let result = image.save()
@@ -489,5 +525,9 @@ function _addToDb(promiseArr, req, res) {
     // if(counter === promiseArr.length){
     //     resolve('complete')
     // }
-    // return Promise.all(([outerPromise])).then((result) => console.log('result', result))
+    return Promise.all((finishPromises)).then((result) => {
+        // req.flash('success', 'Image Saved')
+        console.log('SAVED')
+        res.send('saved')
+    })
 }
