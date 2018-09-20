@@ -18,7 +18,6 @@ const imageSchema = new mongoose.Schema({
 	contentType: String,
     path: {
         type: String,
-        required: true,
         unique: true
     },
     alt: String,

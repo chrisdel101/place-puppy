@@ -31,7 +31,7 @@ module.exports = {
     addFile: addFile
 }
 
-function add(req, res)  {
+function add(req, res) {
     // get file
     let file = req.file
     console.log(req.file.path)
@@ -292,56 +292,8 @@ function fullSeed(req, res) {
     let files = fs.readdirSync("./public/public-images/for-seeds")
 
     // loop over files
-    function createPromises(files) {
-        let arr = []
-        files.forEach((file) => {
-            console.log('file', file)
-            // let file = `adorable-animal-canine-163685.jpg`
-            let src = `./public/public-images/for-seeds/${file}`
-            // add new image
-            let promise = cloudinaryUploader(src)
-            arr.push(promise)
-            // console.log(promise)
-        })
-        return arr
-    }
-    function addToDb(promiseArr) {
-        promiseArr.forEach((promise) => {
 
-            promise.then(img => {
-                console.log('img', img)
-                publicImageId = img.public_id
-                // add bucket src to Image
-                let image = new Image({
-                    filename: img.original_filename,
-                    title: 'puppy image',
-                    photographer: 'NA',
-                    description: 'A seeded puppy',
-                    src: img.secure_url,
-                    contentType: img.format,
-                    path: '400x400'
-                })
-                // remove all dogs everytime
-                // Image.remove({}, () => {
-                    let result = image.save()
-
-                    result.then(image => {
-                        console.log('saved')
-                        // req.flash('success', 'Image Saved')
-                        // res.send('saved')
-                    }).catch(e => {
-                        console.log(`image not saved, ${e}`)
-                        req.flash('error', `Image not Saved: ${e}`);
-                        res.redirect('single-seed')
-                    })
-                // })
-            }).catch(err => {
-                console.error('An error occured', err)
-                res.send('An error at the end of the promise')
-            })
-        })
-    }
-    addToDb(createPromises(files))
+    _addToDb(_createPromises(files), req, res)
     // let promises = files.map((file) => {
     //     console.log('file', file)
     //      let file = `adorable-animal-canine-163685.jpg`
@@ -353,7 +305,7 @@ function fullSeed(req, res) {
     // promise.then(img => {
     //     console.log('img', img)
     //     publicImageId = img.public_id
-    //     // add bucket src to Image
+    //      add bucket src to Image
     //     let image = new Image({
     //         filename: file,
     //         title: 'puppy image',
@@ -363,14 +315,14 @@ function fullSeed(req, res) {
     //         contentType: img.format,
     //         path: '400x400'
     //     })
-    //     // remove all dogs everytime
+    //      remove all dogs everytime
     //     Image.remove({}, () => {
     //         let promise = image.save()
     //
     //         promise.then(image => {
     //             console.log('saved')
-    //             // req.flash('success', 'Image Saved')
-    //             // res.send('saved')
+    //              req.flash('success', 'Image Saved')
+    //              res.send('saved')
     //         }).catch(e => {
     //             console.log(`image not saved, ${e}`)
     //             req.flash('error', `Image not Saved: ${e}`);
@@ -403,7 +355,7 @@ function cloudinaryUploader(image) {
 
     })
 }
-function addFile(req, res){
+function addFile(req, res) {
     // console.log('session user', req.session.user)
     // if(!req.session.user){
     //     return res.status(401).send()
@@ -467,4 +419,75 @@ function addFile(req, res){
         routeName: req.path
 
     })
+}
+function _createPromises(files) {
+    let arr = []
+    files.forEach((file) => {
+        console.log('file', file)
+        // let file = `adorable-animal-canine-163685.jpg`
+        let src = `./public/public-images/for-seeds/${file}`
+        // add new image
+        let promise = cloudinaryUploader(src)
+        console.log('push in cloudinaryUploader')
+        arr.push(promise)
+        // console.log(promise)
+    })
+    return arr
+}
+function _addToDb(promiseArr, req, res) {
+    let imgPromises = []
+    promiseArr.forEach((promise, i) => {
+        imgPromises.push(new Promise((resolve, reject) => {
+            promise.then(img => {
+                // console.log('index', i)
+                // console.log('img', img)
+                publicImageId = img.public_id
+                // add bucket src to Image
+                let image = new Image({
+                    filename: img.original_filename,
+                    title: 'puppy image',
+                    photographer: 'NA',
+                    description: 'A seeded puppy',
+                    src: img.secure_url,
+                    contentType: img.format,
+                    path: `${i + 1}00x${i + 1}00`
+                })
+                console.log('RESOLVING')
+                resolve(image)
+            })
+        })
+        )
+    })
+    console.log(imgPromises)
+    // let outerPromise2 = new Promise((resolve, reject) => {
+    //     outerPromise1.then(imgs => {
+    //         imgs.forEach(img => {
+    //             console.log('img inside', img)
+    //         })
+    //     })
+    //     resolve('complete')
+    // })
+    // Image.remove({}, () => {
+    // let result = image.save()
+    //
+    // result.then(image => {
+    //     console.log('saved')
+    //     counter++
+    //      req.flash('success', 'Image Saved')
+    //      res.send('saved')
+    // }).catch(e => {
+    //     console.log(`image not saved, ${e}`)
+    //      req.flash('error', `Image not Saved: ${e}`);
+    //      res.redirect('single-seed')
+    // })
+    // })
+    // }).catch(err => {
+    //     console.error('An error occured', err)
+    //     res.send('An error at the end of the promise')
+    // })
+    // })
+    // if(counter === promiseArr.length){
+    //     resolve('complete')
+    // }
+    // return Promise.all(([outerPromise])).then((result) => console.log('result', result))
 }
