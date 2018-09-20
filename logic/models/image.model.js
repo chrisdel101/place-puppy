@@ -21,6 +21,7 @@ const imageSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    alt: String,
     created: {
         type: Date,
         default: Date.now()

@@ -26,225 +26,164 @@ module.exports = {
     removeFwdSlash: removeFwdSlash,
     fullSeed: fullSeed,
     cloudinaryUploader: cloudinaryUploader,
-    showImage: (req, res) => {
-        var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-        // get pathname from url
-        let pathName = url.parse(fullUrl)
-        // regex checks to see if starts w /
-        let re = /^\//ig
-        // get pathname from url
-        pathName = pathName.pathname
-        if (pathName.match(re)) {
-            console.log('inside')
-            // slice out forward slash
-            pathName = pathName.slice(1, pathName.length)
-        }
-        console.log('pathname', pathName)
-        // url matches image from db - needs field
-        let promise = Image.findOne({path: pathName}).exec()
-        // check for promise okay
-        if (!promise || promise === null) {
-            console.log('That route does not exist')
-            res.send('Error. That route does not exist')
-            return
-        }
-        console.log('promise', promise)
-        promise.then(img => {
-            // check not null
-            if (!img) {
-                console.log('This data does not exist')
-                res.send('Error. This data does not exist')
-                return
-            }
-            console.log('img', img)
+    showImage: showImage,
+    add: add,
+    addFile: addFile
+}
 
-            let format = module.exports.imageFormat(img.contentType)
-            format = 'png'
-            let dims = module.exports.extractDims(pathName)
-            //
-            let width = parseInt(dims.width)
-            let height = parseInt(dims.height)
-            if (!width || !height) {
-                console.log('width or height is null')
-                return
-            }
-            // let src = `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
-
-            res.type(`image/${format || 'jpg'}`);
-            // call url from cloudinary
-            https.get(img.src, (response) => {
-                console.log('make http call')
-                if (response.statusCode === 200) {
-                    // console.log('res', response)
-                    console.log('status', response.statusCode)
-                    var data = new Stream();
-                    response.on('data', (chunk) => {
-                        // read chunks into stream
-                        // console.log('res', response)
-                        // console.log('data', chunk)
-                        data.push(chunk);
-                    })
-                    response.on('end', () => {
-                        console.log('in end')
-                        // read data with.read()
-                        data = data.read()
-                        // make file and wrap in promise
-                        fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
-                            if (err)
-                                throw err
-                            console.log('image created')
-
-                            return new Promise(function(resolve, reject) {
-                                fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
-                                    if (err)
-                                        reject(err);
-                                    else
-                                        resolve(data);
-                                    }
-                                );
-                                // resolve promise - resize and unlin
-                            }).then(data => {
-
-                                module.exports.resize('./tmp/logo.jpg', format, width, height).pipe(res)
-                                // unlin from file
-                                fs.unlink('./tmp/logo.jpg');
-                                console.log('unlinked')
-                            }).catch(err => {
-                                console.error("An error in a promise show image", err)
-                                res.send('An Err', err)
-                            })
-                        });
-                    })
-                } else {
-                    console.error(`An http error occured`, response.statusCode)
-                }
-            })
-            // }
-        }).catch(err => {
-            console.error("An error in the promise ending show", err)
-            res.status(404).send(err)
-        })
-    },
-    add: (req, res) => {
-        // get file
-        let file = req.file
-        console.log(req.file.path)
-        // if no file, kill
-        if (!file) {
-            req.flash('info', 'No file attached')
-            res.redirect('add')
-        }
-        console.log('file', file)
-        // if not image, kill
-        if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg') {
-            console.log('File type is not an image')
-            req.flash('info', 'File is not a image. Upload images only')
-            res.redirect('add')
-            return
-        }
-        // put image into cloudinary
-        let promise = module.exports.cloudinaryUploader(file.path)
-        promise.then(data => {
-            console.log('data', data)
-            // make image with data from cloudinary
-            let image = new Image({
-                filename: file.originalname,
-                title: req.body.title,
-                photographer: req.body.photographer,
-                description: req.body.description,
-                locationTaken: req.body.locationTaken,
-                src: data.secure_url,
-                contentType: file.mimetype,
-                path: req.body['route-path']
-            })
-
-            console.log('image : ' + image);
-            // console.log('base64' + String(image.data).substring(0, 50));
-            // unlink form /uploads
-            fs.unlink(file.path);
-            // save to DB
-            let promise = image.save()
-
-            promise.then(image => {
-                console.log('saved')
-                req.flash('success', 'Image Saved')
-                res.redirect('add')
-            }).catch(e => {
-                console.log(`image not saved, ${e}`)
-                req.flash('error', `Image not Saved: ${e}`);
-                res.redirect('add')
-            })
-        }).catch(err => {
-            console.error('An error occured', err)
-            res.redirect('add')
-        })
-    },
-    // show view
-    addFile: (req, res) => {
-        // console.log('session user', req.session.user)
-        // if(!req.session.user){
-        //     return res.status(401).send()
-        // }
-        // var dog = {
-        //     color:'white',
-        //     fluffy: true
-        // }
-        // let myImage = new Image({
-        //     photographer: 'no photographer',
-        //     title: 'no title',
-        //     locationTaken: 'no location_taken',
-        //     tags:[]
-        // })
-        // console.log(res)
-        // myImage.save(function(err, image){
-        //     if(err) return console.error(err)
-        //     console.log('saved')
-        // })
-        return res.render('add', {
-            method: 'POST',
-            action: '/add',
-            enctype: 'multipart/form-data',
-            fieldOne: 'Title',
-            fieldTwo: 'Photographer',
-            fieldThree: 'Description',
-            fieldFour: 'Path to match',
-            fieldFive: 'Upload',
-            fieldSix: 'Alt Tag',
-            buttonField: 'Submit',
-            field_one_for: 'title',
-            field_two_for: 'photographer',
-            field_three_for: 'description',
-            field_four_for: 'path-match',
-            field_five_for: 'upload',
-            field_six_for: 'alt',
-            field_one_id: 'title',
-            field_two_id: 'photographer',
-            field_three_id: 'description',
-            field_four_id: 'path-match',
-            field_five_id: 'upload',
-            field_six_id: 'alt',
-            field_one_placeholder: 'Title of work',
-            field_two_placeholder: "Photographer's name",
-            field_three_placeholder: 'Describe Image',
-            field_four_placeholder: 'Route path image should match i.e 100x100',
-            field_five_placeholder: 'Upload',
-            field_six_placeholder: 'Add alt tag',
-            field_one_type: 'text',
-            field_two_type: 'text',
-            field_three_type: 'text',
-            field_four_type: 'text',
-            field_five_type: 'file',
-            field_six_type: 'text',
-            field_one_name: 'title',
-            field_two_name: 'photographer',
-            field_three_name: 'description',
-            field_four_name: 'route-path',
-            field_five_name: 'file',
-            field_six_name: 'alt',
-            routeName: req.path
-
-        })
+function add(req, res)  {
+    // get file
+    let file = req.file
+    console.log(req.file.path)
+    // if no file, kill
+    if (!file) {
+        req.flash('info', 'No file attached')
+        res.redirect('add')
     }
+    console.log('file', file)
+    // if not image, kill
+    if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg') {
+        console.log('File type is not an image')
+        req.flash('info', 'File is not a image. Upload images only')
+        res.redirect('add')
+        return
+    }
+    // put image into cloudinary
+    let promise = module.exports.cloudinaryUploader(file.path)
+    promise.then(data => {
+        console.log('data', data)
+        // make image with data from cloudinary
+        let image = new Image({
+            filename: file.originalname,
+            title: req.body.title,
+            photographer: req.body.photographer,
+            description: req.body.description,
+            locationTaken: req.body.locationTaken,
+            src: data.secure_url,
+            alt: req.body.alt,
+            contentType: file.mimetype,
+            path: req.body['route-path']
+        })
+
+        console.log('image : ' + image);
+        // console.log('base64' + String(image.data).substring(0, 50));
+        // unlink form /uploads
+        fs.unlink(file.path);
+        // save to DB
+        let promise = image.save()
+
+        promise.then(image => {
+            console.log('saved')
+            req.flash('success', 'Image Saved')
+            res.redirect('add')
+        }).catch(e => {
+            console.log(`image not saved, ${e}`)
+            req.flash('error', `Image not Saved: ${e}`);
+            res.redirect('add')
+        })
+    }).catch(err => {
+        console.error('An error occured', err)
+        res.redirect('add')
+    })
+}
+function showImage(req, res) {
+    var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+    // get pathname from url
+    let pathName = url.parse(fullUrl)
+    // regex checks to see if starts w /
+    let re = /^\//ig
+    // get pathname from url
+    pathName = pathName.pathname
+    if (pathName.match(re)) {
+        console.log('inside')
+        // slice out forward slash
+        pathName = pathName.slice(1, pathName.length)
+    }
+    console.log('pathname', pathName)
+    // url matches image from db - needs field
+    let promise = Image.findOne({path: pathName}).exec()
+    // check for promise okay
+    if (!promise || promise === null) {
+        console.log('That route does not exist')
+        res.send('Error. That route does not exist')
+        return
+    }
+    console.log('promise', promise)
+    promise.then(img => {
+        // check not null
+        if (!img) {
+            console.log('This data does not exist')
+            res.send('Error. This data does not exist')
+            return
+        }
+        console.log('img', img)
+
+        let format = module.exports.imageFormat(img.contentType)
+        format = 'png'
+        let dims = module.exports.extractDims(pathName)
+        //
+        let width = parseInt(dims.width)
+        let height = parseInt(dims.height)
+        if (!width || !height) {
+            console.log('width or height is null')
+            return
+        }
+        // let src = `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
+
+        res.type(`image/${format || 'jpg'}`);
+        // call url from cloudinary
+        https.get(img.src, (response) => {
+            console.log('make http call')
+            if (response.statusCode === 200) {
+                // console.log('res', response)
+                console.log('status', response.statusCode)
+                var data = new Stream();
+                response.on('data', (chunk) => {
+                    // read chunks into stream
+                    // console.log('res', response)
+                    // console.log('data', chunk)
+                    data.push(chunk);
+                })
+                response.on('end', () => {
+                    console.log('in end')
+                    // read data with.read()
+                    data = data.read()
+                    // make file and wrap in promise
+                    fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
+                        if (err)
+                            throw err
+                        console.log('image created')
+
+                        return new Promise(function(resolve, reject) {
+                            fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
+                                if (err)
+                                    reject(err);
+                                else
+                                    resolve(data);
+                                }
+                            );
+                            // resolve promise - resize and unlin
+                        }).then(data => {
+
+                            module.exports.resize('./tmp/logo.jpg', format, width, height).pipe(res)
+                            // unlin from file
+                            fs.unlink('./tmp/logo.jpg');
+                            console.log('unlinked')
+                        }).catch(err => {
+                            console.error("An error in a promise show image", err)
+                            res.send('An Err', err)
+                        })
+                    });
+                })
+            } else {
+                console.error(`An http error occured`, response.statusCode)
+            }
+        })
+        // }
+    }).catch(err => {
+        console.error("An error in the promise ending show", err)
+        res.status(404).send(err)
+    })
 }
 function removeFwdSlash(req) {
     var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
@@ -461,6 +400,71 @@ function cloudinaryUploader(image) {
                 resolve(result)
             }
         })
+
+    })
+}
+function addFile(req, res){
+    // console.log('session user', req.session.user)
+    // if(!req.session.user){
+    //     return res.status(401).send()
+    // }
+    // var dog = {
+    //     color:'white',
+    //     fluffy: true
+    // }
+    // let myImage = new Image({
+    //     photographer: 'no photographer',
+    //     title: 'no title',
+    //     locationTaken: 'no location_taken',
+    //     tags:[]
+    // })
+    // console.log(res)
+    // myImage.save(function(err, image){
+    //     if(err) return console.error(err)
+    //     console.log('saved')
+    // })
+    return res.render('add', {
+        method: 'POST',
+        action: '/add',
+        enctype: 'multipart/form-data',
+        fieldOne: 'Title',
+        fieldTwo: 'Photographer',
+        fieldThree: 'Description',
+        fieldFour: 'Path to match',
+        fieldFive: 'Upload',
+        fieldSix: 'Alt Tag',
+        buttonField: 'Submit',
+        field_one_for: 'title',
+        field_two_for: 'photographer',
+        field_three_for: 'description',
+        field_four_for: 'path-match',
+        field_five_for: 'upload',
+        field_six_for: 'alt',
+        field_one_id: 'title',
+        field_two_id: 'photographer',
+        field_three_id: 'description',
+        field_four_id: 'path-match',
+        field_five_id: 'upload',
+        field_six_id: 'alt',
+        field_one_placeholder: 'Title of work',
+        field_two_placeholder: "Photographer's name",
+        field_three_placeholder: 'Describe Image',
+        field_four_placeholder: 'Route path image should match i.e 100x100',
+        field_five_placeholder: 'Upload',
+        field_six_placeholder: 'Add alt tag',
+        field_one_type: 'text',
+        field_two_type: 'text',
+        field_three_type: 'text',
+        field_four_type: 'text',
+        field_five_type: 'file',
+        field_six_type: 'text',
+        field_one_name: 'title',
+        field_two_name: 'photographer',
+        field_three_name: 'description',
+        field_four_name: 'route-path',
+        field_five_name: 'file',
+        field_six_name: 'alt',
+        routeName: req.path
 
     })
 }

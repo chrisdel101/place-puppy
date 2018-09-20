@@ -16,6 +16,9 @@ router.get('/', indexController.showIndex)
 // res.render('index', { title: req.app.locals.title });
 // });
 // router.get('/:id', imageController.showImage)
+router.get('/\/^\d+x\d+/i', (req, res) => {
+    console.log('hello')
+})
 // {
 //   let val
 //   let valObj
