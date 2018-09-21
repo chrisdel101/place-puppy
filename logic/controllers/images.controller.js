@@ -26,7 +26,7 @@ module.exports = {
     removeFwdSlash: removeFwdSlash,
     fullSeed: fullSeed,
     cloudinaryUploader: cloudinaryUploader,
-            showImage: showImage,
+    showImage: showImage,
     add: add,
     addFile: addFile
 }
@@ -86,7 +86,7 @@ function add(req, res) {
         res.redirect('add')
     })
 }
-    function showImage(req, res) {
+function showImage(req, res) {
     var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     // get pathname from url
     let pathName = url.parse(fullUrl)
@@ -100,15 +100,40 @@ function add(req, res) {
         pathName = pathName.slice(1, pathName.length)
     }
     console.log('pathname', pathName)
-    // url matches image from db - needs field
-    let promise = Image.findOne({path: pathName}).exec()
-    // check for promise okay
-    if (!promise || promise === null) {
-        console.log('That route does not exist')
-        res.send('Error. That route does not exist')
-        return
-    }
-    console.log('promise', promise)
+
+    let preSets = [
+        '100x100',
+        '150x150',
+        '200x200',
+        '250x250',
+        '300x300',
+        '350x350',
+        '400x400',
+        '450x450',
+        '500x500',
+        '550x550',
+        '600x600',
+        '650x650',
+        '700x700'
+    ]
+    let promise = new Promise((resolve, reject) => {
+        // if one of the preset, send this
+        if (preSets.includes.pathName) {
+            resolve(Image.findOne({path: pathName}).exec())
+        } else {
+        // else random
+ // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
+            // Get the count of all users
+            Image.count().exec(function(err, count) {
+                if(err) console.error(err)
+                // Get a random entry
+                var random = Math.floor(Math.random() * count)
+                resolve(Image.findOne().skip(random).exec())
+            })
+        }
+
+    })
+
     promise.then(img => {
         // check not null
         if (!img) {
@@ -179,7 +204,6 @@ function add(req, res) {
                 console.error(`An http error occured`, response.statusCode)
             }
         })
-        // }
     }).catch(err => {
         console.error("An error in the promise ending show", err)
         res.status(404).send(err)
@@ -290,7 +314,7 @@ function fullSeed(req, res) {
     //     })
     // }
     let files = fs.readdirSync("./public/public-images/for-seeds")
-    files = files.slice(0,5)
+    files = files.slice(0, 10)
     // loop over files
 
     _addToDb(_createPromises(files), req, res)
@@ -343,7 +367,9 @@ function fullSeed(req, res) {
 }
 function cloudinaryUploader(image) {
     return new Promise((resolve, reject) => {
-        cloudinary.v2.uploader.upload(image, {timeout:10000000}, (error, result) => {
+        cloudinary.v2.uploader.upload(image, {
+            timeout: 10000000
+        }, (error, result) => {
             if (error) {
                 console.error('Error in the cloudinary loader', error)
                 reject(error)
@@ -474,10 +500,9 @@ function _addToDb(promiseArr, req, res) {
                 console.log('img', img)
                 // Image.remove({}, () => {
                 // let promise = Image.findOne({path: pathName}).exec()
-                Image.find({id: img.id}).exec()
-                .then(check => {
+                Image.find({id: img.id}).exec().then(check => {
                     // check make sure not already in db- double save
-                    if(check.length <= 0){
+                    if (check.length <= 0) {
                         let result = img.save()
 
                         result.then(image => {
@@ -496,11 +521,8 @@ function _addToDb(promiseArr, req, res) {
                     }
                 })
 
-
-
             })
-        })
-    )
+        }))
     })
     // })
     // Image.remove({}, () => {
