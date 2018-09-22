@@ -49,7 +49,7 @@ function add(req, res) {
         return
     }
     // put image into cloudinary
-    let promise = module.exports.cloudinaryUploader(file.path)
+    let promise = cloudinaryUploader(file.path)
     promise.then(data => {
         console.log('data', data)
         // make image with data from cloudinary
@@ -95,7 +95,6 @@ function showImage(req, res) {
     // get pathname from url
     pathName = pathName.pathname
     if (pathName.match(re)) {
-        console.log('inside')
         // slice out forward slash
         pathName = pathName.slice(1, pathName.length)
     }
@@ -118,7 +117,7 @@ function showImage(req, res) {
     ]
     let promise = new Promise((resolve, reject) => {
         // if one of the preset, send this
-        if (preSets.includes.pathName) {
+        if (preSets.includes(pathName)) {
             resolve(Image.findOne({path: pathName}).exec())
         } else {
         // else random
@@ -161,7 +160,7 @@ function showImage(req, res) {
             console.log('make http call')
             if (response.statusCode === 200) {
                 // console.log('res', response)
-                console.log('status', response.statusCode)
+                console.log('status of url call', response.statusCode)
                 var data = new Stream();
                 response.on('data', (chunk) => {
                     // read chunks into stream
@@ -263,7 +262,34 @@ function extractDims(urlDims) {
     // second = Array.from(second).reverse().join('')
     return {width: width, height: height}
 }
+function setImageQuality(urlStr, quality){
+    // this should take upload
+    let beforeRegex = /(.+)upload/
+    // pin on quality to start of string
+    let afterRegex = /upload(.+)/
 
+    let before = urlStr.match(beforeRegex)[0]
+    let after = urlStr.match(afterRegex)[1]
+
+    let insertStr = ``
+    switch(quality){
+        case 'high':
+            insertStr = `q_auto:best`
+            break
+        case 'good':
+            insertStr = `q_auto:good`
+            break
+        case 'eco':
+            insertStr = `q_auto:eco`
+            break
+        case 'low':
+            insertStr = `q_auto:low`
+            break
+        default:
+            insertStr = 'q_auto'
+    }
+    return `${before}/${insertStr}${after}`
+}
 function showImages(req, res) {
     // if (!req.session.user) {
     //     return res.status(401).send()
@@ -313,8 +339,8 @@ function fullSeed(req, res) {
     //          res.send(result)
     //     })
     // }
-    let files = fs.readdirSync("./public/public-images/for-seeds")
-    files = files.slice(0, 10)
+    let files = fs.readdirSync("./public/public-images/dim-images")
+    // files = files.slice(0, 10)
     // loop over files
 
     _addToDb(_createPromises(files), req, res)
@@ -381,80 +407,15 @@ function cloudinaryUploader(image) {
 
     })
 }
-function addFile(req, res) {
-    // console.log('session user', req.session.user)
-    // if(!req.session.user){
-    //     return res.status(401).send()
-    // }
-    // var dog = {
-    //     color:'white',
-    //     fluffy: true
-    // }
-    // let myImage = new Image({
-    //     photographer: 'no photographer',
-    //     title: 'no title',
-    //     locationTaken: 'no location_taken',
-    //     tags:[]
-    // })
-    // console.log(res)
-    // myImage.save(function(err, image){
-    //     if(err) return console.error(err)
-    //     console.log('saved')
-    // })
-    return res.render('add', {
-        method: 'POST',
-        action: '/add',
-        enctype: 'multipart/form-data',
-        fieldOne: 'Title',
-        fieldTwo: 'Photographer',
-        fieldThree: 'Description',
-        fieldFour: 'Path to match',
-        fieldFive: 'Upload',
-        fieldSix: 'Alt Tag',
-        buttonField: 'Submit',
-        field_one_for: 'title',
-        field_two_for: 'photographer',
-        field_three_for: 'description',
-        field_four_for: 'path-match',
-        field_five_for: 'upload',
-        field_six_for: 'alt',
-        field_one_id: 'title',
-        field_two_id: 'photographer',
-        field_three_id: 'description',
-        field_four_id: 'path-match',
-        field_five_id: 'upload',
-        field_six_id: 'alt',
-        field_one_placeholder: 'Title of work',
-        field_two_placeholder: "Photographer's name",
-        field_three_placeholder: 'Describe Image',
-        field_four_placeholder: 'Route path image should match i.e 100x100',
-        field_five_placeholder: 'Upload',
-        field_six_placeholder: 'Add alt tag',
-        field_one_type: 'text',
-        field_two_type: 'text',
-        field_three_type: 'text',
-        field_four_type: 'text',
-        field_five_type: 'file',
-        field_six_type: 'text',
-        field_one_name: 'title',
-        field_two_name: 'photographer',
-        field_three_name: 'description',
-        field_four_name: 'route-path',
-        field_five_name: 'file',
-        field_six_name: 'alt',
-        routeName: req.path
-
-    })
-}
 function _createPromises(files) {
     let arr = []
     files.forEach((file) => {
         console.log('file', file)
         // let file = `adorable-animal-canine-163685.jpg`
-        let src = `./public/public-images/for-seeds/${file}`
-        // add new image
+        let src = `./public/public-images/dim-images/${file}`
+        // add new image\\
         let promise = cloudinaryUploader(src)
-        console.log('push in cloudinaryUploader')
+        // console.log('push in cloudinaryUploader')
         arr.push(promise)
         // console.log(promise)
     })
@@ -477,6 +438,7 @@ function _addToDb(promiseArr, req, res) {
                     photographer: 'NA',
                     description: 'A seeded puppy',
                     src: img.secure_url,
+                    alt: 'a puppy',
                     contentType: img.format,
                     path: Math.random()
                 })
@@ -551,5 +513,80 @@ function _addToDb(promiseArr, req, res) {
         // req.flash('success', 'Image Saved')
         console.log('SAVED')
         res.send('saved')
+        return
     })
+}
+function addFile(req, res) {
+    // console.log('session user', req.session.user)
+    // if(!req.session.user){
+    //     return res.status(401).send()
+    // }
+    // var dog = {
+    //     color:'white',
+    //     fluffy: true
+    // }
+    // let myImage = new Image({
+    //     photographer: 'no photographer',
+    //     title: 'no title',
+    //     locationTaken: 'no location_taken',
+    //     tags:[]
+    // })
+    // console.log(res)
+    // myImage.save(function(err, image){
+    //     if(err) return console.error(err)
+    //     console.log('saved')
+    // })
+    return res.render('add', {
+        method: 'POST',
+        action: '/add',
+        enctype: 'multipart/form-data',
+        fieldOne: 'Title',
+        fieldTwo: 'Photographer',
+        fieldThree: 'Description',
+        fieldFour: 'Path to match',
+        fieldFive: 'Upload',
+        fieldSix: 'Alt Tag',
+        buttonField: 'Submit',
+        field_one_for: 'title',
+        field_two_for: 'photographer',
+        field_three_for: 'description',
+        field_four_for: 'path-match',
+        field_five_for: 'upload',
+        field_six_for: 'alt',
+        field_one_id: 'title',
+        field_two_id: 'photographer',
+        field_three_id: 'description',
+        field_four_id: 'path-match',
+        field_five_id: 'upload',
+        field_six_id: 'alt',
+        field_one_placeholder: 'Title of work',
+        field_two_placeholder: "Photographer's name",
+        field_three_placeholder: 'Describe Image',
+        field_four_placeholder: 'Route path image should match i.e 100x100',
+        field_five_placeholder: 'Upload',
+        field_six_placeholder: 'Add alt tag',
+        field_one_type: 'text',
+        field_two_type: 'text',
+        field_three_type: 'text',
+        field_four_type: 'text',
+        field_five_type: 'file',
+        field_six_type: 'text',
+        field_one_name: 'title',
+        field_two_name: 'photographer',
+        field_three_name: 'description',
+        field_four_name: 'route-path',
+        field_five_name: 'file',
+        field_six_name: 'alt',
+        routeName: req.path
+
+    })
+}
+function setDimImages(dir) {
+    let files = fs.readdirSync(dir)
+    files.splice(0,2)
+    files.splice(6,2)
+    files.splice(7,1)
+    files.splice(8,1)
+    files.splice(8,1)
+    return files
 }
