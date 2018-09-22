@@ -19,7 +19,6 @@ const imageSchema = new mongoose.Schema({
 	contentType: String,
     path: {
         type: String,
-        unique: true
     },
     alt: String,
     created: {

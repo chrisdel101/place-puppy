@@ -28,7 +28,8 @@ module.exports = {
     cloudinaryUploader: cloudinaryUploader,
     showImage: showImage,
     add: add,
-    addFile: addFile
+    addFile: addFile,
+    filterImages: filterImages
 }
 
 function add(req, res) {
@@ -120,12 +121,13 @@ function showImage(req, res) {
         if (preSets.includes(pathName)) {
             resolve(Image.findOne({path: pathName}).exec())
         } else {
-        // else random
- // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
+            // else random
+            // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
             // Get the count of all users
             Image.count().exec(function(err, count) {
-                if(err) console.error(err)
-                // Get a random entry
+                if (err)
+                    console.error(err)
+                    // Get a random entry
                 var random = Math.floor(Math.random() * count)
                 resolve(Image.findOne().skip(random).exec())
             })
@@ -262,7 +264,7 @@ function extractDims(urlDims) {
     // second = Array.from(second).reverse().join('')
     return {width: width, height: height}
 }
-function setImageQuality(urlStr, quality){
+function setImageQuality(urlStr, quality) {
     // this should take upload
     let beforeRegex = /(.+)upload/
     // pin on quality to start of string
@@ -272,7 +274,7 @@ function setImageQuality(urlStr, quality){
     let after = urlStr.match(afterRegex)[1]
 
     let insertStr = ``
-    switch(quality){
+    switch (quality) {
         case 'high':
             insertStr = `q_auto:best`
             break
@@ -339,11 +341,12 @@ function fullSeed(req, res) {
     //          res.send(result)
     //     })
     // }
-    let files = fs.readdirSync("./public/public-images/dim-images")
-    // files = files.slice(0, 10)
-    // loop over files
 
-    _addToDb(_createPromises(files), req, res)
+    // let files = fs.readdirSync("./public/public-images/seeds-copy")
+
+    let files = filterImages(['jpg', 'png'], "./public/public-images/seeds-copy")
+
+    _addToDb(_createPromises(files,"./public/public-images/seeds-copy"), req, res)
     // let promises = files.map((file) => {
     //     console.log('file', file)
     //      let file = `adorable-animal-canine-163685.jpg`
@@ -407,12 +410,13 @@ function cloudinaryUploader(image) {
 
     })
 }
-function _createPromises(files) {
+// makes array of promises with image files to upload
+function _createPromises(files, dir) {
     let arr = []
     files.forEach((file) => {
         console.log('file', file)
         // let file = `adorable-animal-canine-163685.jpg`
-        let src = `./public/public-images/dim-images/${file}`
+        let src = `${dir}/${file}`
         // add new image\\
         let promise = cloudinaryUploader(src)
         // console.log('push in cloudinaryUploader')
@@ -434,13 +438,13 @@ function _addToDb(promiseArr, req, res) {
                 let image = new Image({
                     id: img.public_id,
                     filename: img.original_filename,
-                    title: 'puppy image',
+                    title: 'image',
                     photographer: 'NA',
-                    description: 'A seeded puppy',
+                    description: 'A puppy',
                     src: img.secure_url,
                     alt: 'a puppy',
                     contentType: img.format,
-                    path: Math.random()
+                    path: 'NA'
                 })
                 counter++
                 console.log('RESOLVING')
@@ -583,10 +587,24 @@ function addFile(req, res) {
 }
 function setDimImages(dir) {
     let files = fs.readdirSync(dir)
-    files.splice(0,2)
-    files.splice(6,2)
-    files.splice(7,1)
-    files.splice(8,1)
-    files.splice(8,1)
+    files.splice(0, 2)
+    files.splice(6, 2)
+    files.splice(7, 1)
+    files.splice(8, 1)
+    files.splice(8, 1)
     return files
+}
+function filterImages(stubsArr, dir) {
+    let result = []
+    let files = fs.readdirSync(dir)
+
+        files.forEach(file => {
+            stubsArr.forEach(stub => {
+                if (file.includes(stub)) {
+                    result.push(file)
+                }
+
+            })
+        })
+        return result
 }

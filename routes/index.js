@@ -109,23 +109,51 @@ router.post('/add', upload.single('file'), imageController.add)
 router.get('/images', imageController.showImages)
 
 router.get('/test', () => {
-    function _createPromises(files) {
-        let arr = []
-        files.forEach((file) => {
-            console.log('file', file)
-            // let file = `adorable-animal-canine-163685.jpg`
-            // let src = `./public/public-images/dim-images/${file}`
-            // // add new image\\
-            // let promise = cloudinaryUploader(src)
-            // console.log('push in cloudinaryUploader')
-            arr.push(file)
-            // console.log(promise)
-        })
-        return arr
-    }
-    let files = fs.readdirSync("./public/public-images/dim-images")
-    _createPromises(files)
+    // function _createPromises(files) {
+    //     let arr = []
+    //     files.forEach((file) => {
+    //         console.log('file', file)
+    //          let file = `adorable-animal-canine-163685.jpg`
+    //          let src = `./public/public-images/dim-images/${file}`
+    //           add new image\\
+    //          let promise = cloudinaryUploader(src)
+    //          console.log('push in cloudinaryUploader')
+    //         arr.push(file)
+    //          console.log(promise)
+    //     })
+    //     return arr
+    // }
+    // let files = fs.readdirSync("./public/public-images/dim-images")
+    // _createPromises(files)
+
+    // make json
+    // let promise = Image.find({contentType: /(jpg|png)/}).exec()
+    // promise.then(puppies => {
+    //     puppies = JSON.stringify(puppies)
+    //     console.log(puppies)
+    //     fs.writeFile('./json/puppy.json', puppies, (err) => {
+    //         if(err) console.error(err)
+    //         console.log('file done')
+    //         })
+    //     })
+    // insertJson
+    // let arr = require("../json/puppy.json")
+    // arr = JSON.parse(JSON.stringify(arr))
+    // console.log(arr)
+    // Image.insertMany(arr)
+    // .then(data => {
+    //     data.save()
+    //     console.log('saved')
+    // })
+    // drop indexes
+    Image.collection.dropAllIndexes((err, results) => {
+        if (err)
+            console.error(err)
+        console.log('dropped')
+    })
 })
+
+// res.send('done')
 // let i = 0
 // while (i < 999) {
 //     let route = `/${400}x${400}`
