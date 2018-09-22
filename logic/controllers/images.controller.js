@@ -55,6 +55,7 @@ function add(req, res) {
         console.log('data', data)
         // make image with data from cloudinary
         let image = new Image({
+            id: data.public_id,
             filename: file.originalname,
             title: req.body.title,
             photographer: req.body.photographer,
@@ -344,9 +345,11 @@ function fullSeed(req, res) {
 
     // let files = fs.readdirSync("./public/public-images/seeds-copy")
 
-    let files = filterImages(['jpg', 'png'], "./public/public-images/seeds-copy")
+    let files = filterImages([
+        'jpg', 'png'
+    ], "./public/public-images/seeds-copy")
 
-    _addToDb(_createPromises(files,"./public/public-images/seeds-copy"), req, res)
+    _addToDb(_createPromises(files, "./public/public-images/seeds-copy"), req, res)
     // let promises = files.map((file) => {
     //     console.log('file', file)
     //      let file = `adorable-animal-canine-163685.jpg`
@@ -598,13 +601,13 @@ function filterImages(stubsArr, dir) {
     let result = []
     let files = fs.readdirSync(dir)
 
-        files.forEach(file => {
-            stubsArr.forEach(stub => {
-                if (file.includes(stub)) {
-                    result.push(file)
-                }
+    files.forEach(file => {
+        stubsArr.forEach(stub => {
+            if (file.includes(stub)) {
+                result.push(file)
+            }
 
-            })
         })
-        return result
+    })
+    return result
 }

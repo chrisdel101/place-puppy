@@ -126,7 +126,7 @@ router.get('/test', () => {
     // let files = fs.readdirSync("./public/public-images/dim-images")
     // _createPromises(files)
 
-    // make json
+    // MAKE JSON
     // let promise = Image.find({contentType: /(jpg|png)/}).exec()
     // promise.then(puppies => {
     //     puppies = JSON.stringify(puppies)
@@ -136,7 +136,7 @@ router.get('/test', () => {
     //         console.log('file done')
     //         })
     //     })
-    // insertJson
+    // INSERTJSON
     // let arr = require("../json/puppy.json")
     // arr = JSON.parse(JSON.stringify(arr))
     // console.log(arr)
@@ -145,22 +145,19 @@ router.get('/test', () => {
     //     data.save()
     //     console.log('saved')
     // })
-    // drop indexes
-    Image.collection.dropAllIndexes((err, results) => {
-        if (err)
-            console.error(err)
-        console.log('dropped')
-    })
-})
+    // DROP INDEXES
+    // Image.collection.dropAllIndexes((err, results) => {
+    //     if (err)
+    //         console.error(err)
+    //     console.log('dropped')
+    // })
 
-// res.send('done')
-// let i = 0
-// while (i < 999) {
-//     let route = `/${400}x${400}`
-//     router.get(route, (req, res) => {
-//         imageController.showImage(req, res)
-//     })
-//     i++
-// }
+    // DELETE MANY
+    Image.deleteMany({ path: "NA"}, (err) =>  {
+        if(err) console.error(err)
+        console.log('deleted')
+    })
+
+})
 
 module.exports = router;

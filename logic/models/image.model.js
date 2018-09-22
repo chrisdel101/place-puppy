@@ -3,7 +3,11 @@ const Schema = mongoose.Schema
 const assert = require('assert')
 
 const imageSchema = new mongoose.Schema({
-    id: String,
+    id: {
+        type: String,
+        required: true,
+        unique: true,
+    },
 	filename: String,
 	title: {
 		type: String,
