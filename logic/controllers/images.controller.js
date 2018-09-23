@@ -29,7 +29,8 @@ module.exports = {
     showImage: showImage,
     add: add,
     addFile: addFile,
-    filterImages: filterImages
+    filterImages: filterImages,
+    setImageQuality: setImageQuality
 }
 
 function add(req, res) {
@@ -88,7 +89,8 @@ function add(req, res) {
         res.redirect('add')
     })
 }
-function showImage(req, res) {
+function showImage(req, res, quality) {
+    console.log('QUALTY', quality)
     var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     // get pathname from url
     let pathName = url.parse(fullUrl)
@@ -155,6 +157,14 @@ function showImage(req, res) {
             console.log('width or height is null')
             return
         }
+
+        // get qualiy and set new str
+        if(quality){
+            let newSrc = setImageQuality(img.src, quality)
+            img.src = newSrc
+        }
+
+        console.log('NEW SRC', img.src)
         // let src = `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
 
         res.type(`image/${format || 'jpg'}`);
@@ -179,7 +189,7 @@ function showImage(req, res) {
                     fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
                         if (err)
                             throw err
-                        console.log('image created')
+                        console.log('tmp image stored')
 
                         return new Promise(function(resolve, reject) {
                             fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
@@ -265,7 +275,7 @@ function extractDims(urlDims) {
     // second = Array.from(second).reverse().join('')
     return {width: width, height: height}
 }
-function setImageQuality(urlStr, quality) {
+    function setImageQuality(urlStr, quality) {
     // this should take upload
     let beforeRegex = /(.+)upload/
     // pin on quality to start of string

@@ -5,6 +5,7 @@ const imageController = require('../logic/controllers/images.controller')
 const sessionsController = require('../logic/controllers/sessions.controller')
 const usersController = require('../logic/controllers/users.controller')
 const indexController = require('../logic/controllers/index.controller')
+const imageMiddleware = require('../logic/middleware/images.middleware.js')
 const multer = require('multer')
 const upload = multer({dest: 'uploads/'})
 const cloudinary = require('cloudinary')
@@ -12,11 +13,42 @@ let publicImageId = ''
 const fs = require('fs')
 /* GET home page. */
 router.get('/', indexController.showIndex)
-// /Users/chrisdielschnieder/desktop/code_work/cs50/pset9/placepuppy/routes/users.js
+//
+console.log(imageMiddleware) 
 // res.render('index', { title: req.app.locals.title });
 // });
 // router.get('/:id', imageController.showImage)
-router.get('^/:dimensions([0-9]+[x][0-9]+)', imageController.showImage)
+router.get('^/:dimensions([0-9]+[x][0-9]+)',
+(req, res, next) => {
+    // if matches get query
+    // use query to build cloudinary call string
+    // add new call string to img.src via input
+    // this returns that url
+    if(req.query.q){
+        switch(req.query.q){
+            case 'high':
+                req.quality = 'high'
+                break
+            case 'medium':
+                req.quality = 'good'
+                break
+            case 'eco':
+                req.quality = 'eco'
+                break
+            case 'low':
+                req.quality = 'low'
+                break
+
+        }
+    }
+    next()
+}, (req, res) =>  {
+    imageController.showImage(req, res, req.quality)
+})
+
+// router.get('^/:dimensions([0-9]+[x][0-9]+)', (req, res) => {
+//     console.log("IDDDDDDDDDD")
+// })
 // {
 //   let val
 //   let valObj
