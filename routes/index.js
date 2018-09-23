@@ -14,35 +14,10 @@ const fs = require('fs')
 /* GET home page. */
 router.get('/', indexController.showIndex)
 //
-console.log(imageMiddleware) 
 // res.render('index', { title: req.app.locals.title });
 // });
 // router.get('/:id', imageController.showImage)
-router.get('^/:dimensions([0-9]+[x][0-9]+)',
-(req, res, next) => {
-    // if matches get query
-    // use query to build cloudinary call string
-    // add new call string to img.src via input
-    // this returns that url
-    if(req.query.q){
-        switch(req.query.q){
-            case 'high':
-                req.quality = 'high'
-                break
-            case 'medium':
-                req.quality = 'good'
-                break
-            case 'eco':
-                req.quality = 'eco'
-                break
-            case 'low':
-                req.quality = 'low'
-                break
-
-        }
-    }
-    next()
-}, (req, res) =>  {
+router.get('^/:dimensions([0-9]+[x][0-9]+)',imageMiddleware.qualityMiddleware, (req, res) =>  {
     imageController.showImage(req, res, req.quality)
 })
 

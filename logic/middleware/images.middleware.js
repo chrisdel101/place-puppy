@@ -1,5 +1,4 @@
-exports.qualityMiddleware = (options) => {
-    return(req, res, next) => {
+exports.qualityMiddleware = (req,res,next) => {
         if (req.query.q) {
             switch (req.query.q) {
                 case 'high':
@@ -16,6 +15,5 @@ exports.qualityMiddleware = (options) => {
                     break
             }
         }
-        next()
-    }
+    next()
 }
