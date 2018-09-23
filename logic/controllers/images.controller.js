@@ -1,4 +1,7 @@
-const Image = require('../models/image.model.js')
+// const Image = require('../models/image.model.js')
+const mongoose = require('mongoose')
+const Image = mongoose.models.Image || require('../models/image.model.js')
+
 const url = require('url')
 const multer = require('multer')
 const storage = multer.diskStorage({
@@ -253,6 +256,10 @@ function numFormat(numStr) {
     return true
 }
 function extractDims(urlDims) {
+    if(typeof urlDims !== 'string'){
+        let error = new TypeError('Incorrect input: Needs to be a string')
+        throw error
+    }
     let pageUrl = urlDims
     let newUrl = url.parse(pageUrl)
     // all nums before x

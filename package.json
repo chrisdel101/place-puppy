@@ -1,11 +1,12 @@
 {
 
-  "name": "placepuppy2",
+  "name": "placepuppy",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon ./bin/www",
-    "test": "mocha"
+    "start": "NODE_ENV=developmen nodemon ./bin/www",
+    "test": "mocha",
+    "test:watch": "mocha -w"
   },
   "dependencies": {
     "bcrypt": "^3.0.0",
