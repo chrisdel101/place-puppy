@@ -11,6 +11,10 @@ a {
     max-width: 100%;
 }
 
+#upload {
+    height: initial;
+}
+
 /* .cindex-container {
     display: grid;
     grid-template-columns: repeat(5, 1fr 2fr);

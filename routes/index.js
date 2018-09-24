@@ -21,34 +21,7 @@ router.get('^/:dimensions([0-9]+[x][0-9]+)',imageMiddleware.qualityMiddleware, (
     imageController.showImage(req, res, req.quality)
 })
 
-// router.get('^/:dimensions([0-9]+[x][0-9]+)', (req, res) => {
-//     console.log("IDDDDDDDDDD")
-// })
-// {
-//   let val
-//   let valObj
-//    if starts with / remove it
-//   if(imageController.removeFwdSlash(req)){
-//       val = imageController.removeFwdSlash(req)
-//   }
-//    if in correct format
-//   console.log('val', val)
-//   console.log('func', imageController.numFormat(val))
-//   if(imageController.numFormat(val)){
-//        return two num vals
-//       valObj = imageController.extractDims(val)
-//   }
-//   imageController.showImage(req, res)
-//   console.log(valObj)
-// res.send(valObj)
 
-// });
-
-router.get('/login', sessionsController.loginDisplay)
-router.post('/login', sessionsController.login)
-
-router.get('/register', usersController.registerDisplay)
-router.post('/register', usersController.register)
 
 router.get('/see-db', function(req, res) {
     console.log('image id', publicImageId)
@@ -109,6 +82,15 @@ router.get('/single-seed', (req, res) => {
     })
 })
 // admin routes
+
+router.get('/login', sessionsController.loginDisplay)
+router.post('/login', sessionsController.login)
+
+router.get('/logout', sessionsController.logoutDisplay)
+router.post('/logout', sessionsController.logout)
+
+router.get('/register', usersController.registerDisplay)
+router.post('/register', usersController.register)
 router.get('/add', imageController.addFile)
 //  needs to match form val and name
 router.post('/add', upload.single('file'), imageController.add)

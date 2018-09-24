@@ -311,9 +311,10 @@ function extractDims(urlDims) {
     return `${before}/${insertStr}${after}`
 }
 function showImages(req, res) {
-    // if (!req.session.user) {
-    //     return res.status(401).send()
-    // }
+    // LOGIN REQUIRED
+    if (!req.session.user) {
+        return res.status(401).send()
+    }
     cloudinary.v2.search.expression("resource_type:image").execute(function(error, result) {
         console.log('result', result)
         // res.send(result)
@@ -541,10 +542,10 @@ function _addToDb(promiseArr, req, res) {
     })
 }
 function addFile(req, res) {
-    // console.log('session user', req.session.user)
-    // if(!req.session.user){
-    //     return res.status(401).send()
-    // }
+    console.log('session user', req.session.user)
+    if(!req.session.user){
+        return res.status(401).send()
+    }
     // var dog = {
     //     color:'white',
     //     fluffy: true
