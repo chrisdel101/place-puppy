@@ -7,6 +7,8 @@ module.exports = {
         fs.readdir(dir, (err, dogsArr) => {
             if (err)
                 console.error(err)
+            // temp cut down dogs array
+            // dogsArr = dogsArr.slice
                 // make dogs array, filter out other files
             let dogStrs = dogsArr.map(dog => {
                 return `./public-images/${dog}`
