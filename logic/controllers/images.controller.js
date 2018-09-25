@@ -1,4 +1,4 @@
-// const Image = require('../models/image.model.js')
+const path = require('path')
 const mongoose = require('mongoose')
 const Image = mongoose.models.Image || require('../models/image.model.js')
 
@@ -19,13 +19,15 @@ const session = require('express-session')
 const cloudinary = require('cloudinary')
 const https = require('https')
 const Stream = require('stream').Transform
+const debug = require('debug')
+const log = debug('image:log')
+const error = debug('image:error')
 
 module.exports = {
     showImages: showImages,
     extractDims: extractDims,
     resize: resize,
     imageFormat: imageFormat,
-    numFormat: numFormat,
     removeFwdSlash: removeFwdSlash,
     fullSeed: fullSeed,
     cloudinaryUploader: cloudinaryUploader,
@@ -33,7 +35,8 @@ module.exports = {
     add: add,
     addFile: addFile,
     filterImages: filterImages,
-    setImageQuality: setImageQuality
+    setImageQuality: setImageQuality,
+    replaceUrlExt: replaceUrlExt
 }
 
 function add(req, res) {
@@ -92,137 +95,142 @@ function add(req, res) {
         res.redirect('add')
     })
 }
-function showImage(req, res, quality) {
-    console.log('QUALTY', quality)
-    var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-    // get pathname from url
-    let pathName = url.parse(fullUrl)
-    // regex checks to see if starts w /
-    let re = /^\//ig
-    // get pathname from url
-    pathName = pathName.pathname
-    if (pathName.match(re)) {
-        // slice out forward slash
-        pathName = pathName.slice(1, pathName.length)
-    }
-    console.log('pathname', pathName)
-
-    let preSets = [
-        '100x100',
-        '150x150',
-        '200x200',
-        '250x250',
-        '300x300',
-        '350x350',
-        '400x400',
-        '450x450',
-        '500x500',
-        '550x550',
-        '600x600',
-        '650x650',
-        '700x700'
-    ]
-    let promise = new Promise((resolve, reject) => {
-        // if one of the preset, send this
-        if (preSets.includes(pathName)) {
-            resolve(Image.findOne({path: pathName}).exec())
-        } else {
-            // else random
-            // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
-            // Get the count of all users
-            Image.count().exec(function(err, count) {
-                if (err)
-                    console.error(err)
-                    // Get a random entry
-                var random = Math.floor(Math.random() * count)
-                resolve(Image.findOne().skip(random).exec())
-            })
+function showImage(req, res, quality, format) {
+    try {
+            // log('hello')
+        var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+        // get pathname from url
+        let pathName = url.parse(fullUrl)
+        // regex checks to see if starts w /
+        let re = /^\//ig
+        // get pathname from url
+        pathName = pathName.pathname
+        if (pathName.match(re)) {
+            // slice out forward slash
+            pathName = pathName.slice(1, pathName.length)
         }
+        console.log('pathname', pathName)
 
-    })
-
-    promise.then(img => {
-        // check not null
-        if (!img) {
-            console.log('This data does not exist')
-            res.send('Error. This data does not exist')
-            return
-        }
-        console.log('img', img)
-
-        let format = module.exports.imageFormat(img.contentType)
-        format = 'png'
-        let dims = module.exports.extractDims(pathName)
-        //
-        let width = parseInt(dims.width)
-        let height = parseInt(dims.height)
-        if (!width || !height) {
-            console.log('width or height is null')
-            return
-        }
-
-        // get qualiy and set new str
-        if(quality){
-            let newSrc = setImageQuality(img.src, quality)
-            img.src = newSrc
-        }
-
-        console.log('NEW SRC', img.src)
-        // let src = `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
-
-        res.type(`image/${format || 'jpg'}`);
-        // call url from cloudinary
-        https.get(img.src, (response) => {
-            console.log('make http call')
-            if (response.statusCode === 200) {
-                // console.log('res', response)
-                console.log('status of url call', response.statusCode)
-                var data = new Stream();
-                response.on('data', (chunk) => {
-                    // read chunks into stream
-                    // console.log('res', response)
-                    // console.log('data', chunk)
-                    data.push(chunk);
-                })
-                response.on('end', () => {
-                    console.log('in end')
-                    // read data with.read()
-                    data = data.read()
-                    // make file and wrap in promise
-                    fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
-                        if (err)
-                            throw err
-                        console.log('tmp image stored')
-
-                        return new Promise(function(resolve, reject) {
-                            fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
-                                if (err)
-                                    reject(err);
-                                else
-                                    resolve(data);
-                                }
-                            );
-                            // resolve promise - resize and unlin
-                        }).then(data => {
-
-                            module.exports.resize('./tmp/logo.jpg', format, width, height).pipe(res)
-                            // unlin from file
-                            fs.unlink('./tmp/logo.jpg');
-                            console.log('unlinked')
-                        }).catch(err => {
-                            console.error("An error in a promise show image", err)
-                            res.send('An Err', err)
-                        })
-                    });
-                })
+        let preSets = [
+            '100x100',
+            '150x150',
+            '200x200',
+            '250x250',
+            '300x300',
+            '350x350',
+            '400x400',
+            '450x450',
+            '500x500',
+            '550x550',
+            '600x600',
+            '650x650',
+            '700x700'
+        ]
+        let promise = new Promise((resolve, reject) => {
+            // if one of the preset, send this
+            if (preSets.includes(pathName)) {
+                resolve(Image.findOne({path: pathName}).exec())
             } else {
-                console.error(`An http error occured`, response.statusCode)
+                // else random
+                // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
+                // Get the count of all users
+                Image.count().exec(function(err, count) {
+                    if (err)
+                        console.error(err)
+                        // Get a random entry
+                    var random = Math.floor(Math.random() * count)
+                    resolve(Image.findOne().skip(random).exec())
+                })
             }
+
         })
-    }).catch(err => {
-        console.error("An error in the promise ending show", err)
-        res.status(404).send(err)
-    })
+
+        promise.then(img => {
+            // check not null
+            if (!img) {
+                console.log('This data does not exist')
+                res.send('Error. This data does not exist')
+                return
+            }
+            console.log('img', img)
+
+            let format = imageFormat(img.contentType)
+            format = 'png'
+            let dims = extractDims(pathName)
+            //
+            let width = parseInt(dims.width)
+            let height = parseInt(dims.height)
+            if (!width || !height) {
+                console.log('width or height is null')
+                return
+            }
+            // if format in query, change img type
+            if (format) {
+                let newSrc = replaceUrlExt(img.src, format)
+                img.src = newSrc
+                console.log('Format src', img.src)
+
+            }
+            // get qualiy and set new str
+            if (quality) {
+                let newSrc = setImageQuality(img.src, quality)
+                img.src = newSrc
+                console.log('Quality src', img.src)
+            }
+
+            // let src = `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
+
+            res.type(`image/${format || 'jpg'}`);
+            // call url from cloudinary
+            https.get(img.src, (response) => {
+                console.log('make http call')
+                if (response.statusCode === 200) {
+                    console.log('status of url call', response.statusCode)
+                    var data = new Stream();
+                    response.on('data', (chunk) => {
+                        data.push(chunk);
+                    })
+                    response.on('end', () => {
+                        // read data with.read()
+                        data = data.read()
+                        // make file and wrap in promise
+                        fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
+                            if (err)
+                                throw err
+                            console.log('tmp image stored')
+
+                            return new Promise(function(resolve, reject) {
+                                fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
+                                    if (err)
+                                        reject(err);
+                                    else
+                                        resolve(data);
+                                    }
+                                );
+                                // resolve promise - resize and unlink
+                            }).then(data => {
+
+                                resize('./tmp/logo.jpg', format, width, height).pipe(res)
+                                // unlink from file
+                                fs.unlink('./tmp/logo.jpg');
+                                console.log('unlinked')
+                            }).catch(err => {
+                                console.error("An error in a promise show image", err)
+                                res.send('An Err', err)
+                            })
+                        });
+                    })
+                } else {
+                    console.error(`An http error occured`, response.statusCode)
+                }
+            })
+        }).catch(err => {
+            console.error("An error in the promise ending show", err)
+            res.status(404).send(err)
+        })
+    } catch(err) {
+        console.error('A try/catch error occured', err)
+    }
 }
 function removeFwdSlash(req) {
     var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
@@ -239,24 +247,25 @@ function removeFwdSlash(req) {
     }
     return false
 }
-function numFormat(numStr) {
-    console.log('numstr', numStr)
-    // all nums before x
-    var re1 = /\d+(?=\x)/g
-    var beforeX = numStr.match(re1)
-    if (!beforeX) {
-        return false
-    }
-    // get x only if followed by num
-    var re2 = /x(?=[0-9])/
-    var afterX = numStr.match(re2)
-    if (!afterX) {
-        return false
-    }
-    return true
-}
+// not used
+// function numFormat(numStr) {
+//     console.log('numstr', numStr)
+//      all nums before x
+//     var re1 = /\d+(?=\x)/g
+//     var beforeX = numStr.match(re1)
+//     if (!beforeX) {
+//         return false
+//     }
+//      get x only if followed by num
+//     var re2 = /x(?=[0-9])/
+//     var afterX = numStr.match(re2)
+//     if (!afterX) {
+//         return false
+//     }
+//     return true
+// }
 function extractDims(urlDims) {
-    if(typeof urlDims !== 'string'){
+    if (typeof urlDims !== 'string') {
         let error = new TypeError('Incorrect input: Needs to be a string')
         throw error
     }
@@ -282,7 +291,10 @@ function extractDims(urlDims) {
     // second = Array.from(second).reverse().join('')
     return {width: width, height: height}
 }
-    function setImageQuality(urlStr, quality) {
+function setImageQuality(urlStr, quality) {
+    if (quality !== 'high' && quality !== 'good' && quality !== 'eco' && quality !== 'low') {
+        throw TypeError('quality setting is invalid. Must be high, good, eco, or low.')
+    }
     // this should take upload
     let beforeRegex = /(.+)upload/
     // pin on quality to start of string
@@ -543,7 +555,7 @@ function _addToDb(promiseArr, req, res) {
 }
 function addFile(req, res) {
     console.log('session user', req.session.user)
-    if(!req.session.user){
+    if (!req.session.user) {
         return res.status(401).send()
     }
     // var dog = {
@@ -606,26 +618,38 @@ function addFile(req, res) {
 
     })
 }
-function setDimImages(dir) {
-    let files = fs.readdirSync(dir)
-    files.splice(0, 2)
-    files.splice(6, 2)
-    files.splice(7, 1)
-    files.splice(8, 1)
-    files.splice(8, 1)
-    return files
-}
+
+// function setDimImages(dir) {
+//     let files = fs.readdirSync(dir)
+//     files.splice(0, 2)
+//     files.splice(6, 2)
+//     files.splice(7, 1)
+//     files.splice(8, 1)
+//     files.splice(8, 1)
+//     return files
+// }
+// used for seeding images out of dir
 function filterImages(stubsArr, dir) {
     let result = []
     let files = fs.readdirSync(dir)
-
-    files.forEach(file => {
-        stubsArr.forEach(stub => {
-            if (file.includes(stub)) {
-                result.push(file)
-            }
-
-        })
-    })
-    return result
+    console.log('some files', files)
+    // files.forEach(file => {
+    //     stubsArr.forEach(stub => {
+    //         if (file.includes(stub)) {
+    //             result.push(file)
+    //         }
+    //
+    //     })
+    // })
+    // return result
+}
+function replaceUrlExt(imgUrl, newExt) {
+    if (newExt !== 'jpg' && newExt !== 'png' && newExt !== 'gif' && newExt !== 'jpeg') {
+        throw new TypeError('Extension is not valid to replace url. Only png, jpg, and gif.')
+    }
+    if (!imgUrl.includes('jpg') && !imgUrl.includes('png') && !imgUrl.includes('gif') && !imgUrl.includes('jpeg')) {
+        throw TypeError("Url is not has not extension. Must be jpg, png, or gif.")
+    }
+    let fileNoExt = imgUrl.split('.').slice(0, -1).join('.')
+    return `${fileNoExt}.${newExt}`
 }

@@ -12,8 +12,23 @@ var upload = multer({dest: 'uploads/'})
 var flash = require('express-flash')
 var session = require('express-session')
 
+const debug = require('debug')
+
+const log = debug('app:log')
+const error = debug('app:error')
+// log.log = console.log.bind(console);
+if(debug.enabled){
+    console.log('true')
+}
+log('hello')
+console.log(process.env.npm_package_name)
+console.log(process.env.DEBUG)
+
+error('error')
 // var randtoken = require('rand-token');
-//
+// console.log('log', log)
+// console.log('error', error)
+// //
 //  Generate a 16 character alpha-numeric token:
 // var token = randtoken.generate(32);
 // console.log(token)

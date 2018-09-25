@@ -11,17 +11,11 @@ const upload = multer({dest: 'uploads/'})
 const cloudinary = require('cloudinary')
 let publicImageId = ''
 const fs = require('fs')
-/* GET home page. */
+
 router.get('/', indexController.showIndex)
-//
-// res.render('index', { title: req.app.locals.title });
-// });
-// router.get('/:id', imageController.showImage)
-router.get('^/:dimensions([0-9]+[x][0-9]+)',imageMiddleware.qualityMiddleware, (req, res) =>  {
-    imageController.showImage(req, res, req.quality)
+router.get('^/:dimensions([0-9]+[x][0-9]+)',imageMiddleware.qualityMiddleware, imageMiddleware.returnImageFormat, (req, res) =>  {
+    imageController.showImage(req, res, req.quality, req.format)
 })
-
-
 
 router.get('/see-db', function(req, res) {
     console.log('image id', publicImageId)
