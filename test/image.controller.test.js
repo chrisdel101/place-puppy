@@ -1,10 +1,17 @@
 const SUT = require('../logic/controllers/images.controller')
-const x = require('../public/javascripts/validation')
+// const x = require('../public/javascripts/validation')
 const chai = require('chai')
-const assert = chai.assert
-const expect = chai.expect
+const { assert } = chai
+const { expect } = chai
 const mock = require('mock-fs')
-const fs = require('fs')
+// const fs = require('fs')
+const { mockRequest, mockResponse } = require('mock-req-res')
+const req = mockRequest()
+const res = mockResponse()
+const sinon = require('sinon')
+const rewire = require('rewire')
+const rwSUT = rewire('../logic/controllers/images.controller');
+
 describe('images controller', function() {
     describe('extractDims()', function() {
         it('returns an object', function() {
@@ -45,33 +52,69 @@ describe('images controller', function() {
                 SUT.replaceUrlExt('http://example.jpg', 'alt')
             }).to.throw(TypeError, 'Extension is not valid to replace url. Only png, jpg, and gif.')
         })
-
-        // it('a', function() {
-        //     expect(SUT.replaceUrlExt('a', '1')).to.throw(TypeError, "Extension is not valid to replace url. Only png, jpg, and gif.")
-        // })
     })
     describe('filterImages()', function() {
+        beforeEach(function() {
+            // use mock data
+            mock({
+                'path/to/fake/dir': {
+                    'some-file.txt': 'file content here',
+                    'empty-dir': {/** empty directory */
+                    }
+                },
+                'path/to/some.png': Buffer.from([
+                    8,
+                    6,
+                    7,
+                    5,
+                    3,
+                    0,
+                    9
+                ]),
+                'some/other/path': {/** another empty directory */
+                }
+            })
+        })
+        after(function() {
+            mock.restore()
+        })
         describe('returns an array', function() {
-            // mock({
-            //     'path/to/fake/dir': {
-            //         'some-file.txt': 'file content here',
-            //         'empty-dir': {/** empty directory */
-            //         }
-            //     },
-            //     'path/to/some.png': Buffer.from([
-            //         8,
-            //         6,
-            //         7,
-            //         5,
-            //         3,
-            //         0,
-            //         9
-            //     ]),
-            //     'some/other/path': {/** another empty directory */
-            //     }
-            // });
             // placepuppy/public/public-images
-            let result = SUT.filterImages(['a'], './public')
+            it('returns an array', function() {
+                let result = SUT.filterImages(['test'], './path/to/fake/dir')
+                assert.typeOf(result, 'array')
+            })
+            it('returns the files that match the stubs in the array', function(){
+                let result = SUT.filterImages(['txt'], './path/to/fake/dir')
+                expect(result.includes('some-file.txt')).to.be.true
+            })
+        })
+    })
+    describe('addFile()', function(){
+        it('returns an undefined', function(){
+            let req = mockRequest({
+                session: {
+                    user: 'test user'
+                }
+            })
+            let result = SUT.addFile(req, res)
+            expect(result).to.equal(undefined)
+        })
+        it('will not run function without a user in the session', function(){
+            let req = mockRequest({
+                session: {
+                    user: ''
+                }
+            })
+            let console = {
+                log: sinon.spy(),
+                error: sinon.spy()
+            }
+            rwSUT.__set__('console', console)
+            // controller.__set('console', this.console)
+            let result = rwSUT.addFile(req, res)
+             expect(console.error.callCount).to.equal(1)
+
         })
     })
 })

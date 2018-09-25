@@ -554,8 +554,8 @@ function _addToDb(promiseArr, req, res) {
     })
 }
 function addFile(req, res) {
-    console.log('session user', req.session.user)
     if (!req.session.user) {
+        console.error('Not signed in')
         return res.status(401).send()
     }
     // var dog = {
@@ -632,16 +632,16 @@ function addFile(req, res) {
 function filterImages(stubsArr, dir) {
     let result = []
     let files = fs.readdirSync(dir)
-    console.log('some files', files)
-    // files.forEach(file => {
-    //     stubsArr.forEach(stub => {
-    //         if (file.includes(stub)) {
-    //             result.push(file)
-    //         }
-    //
-    //     })
-    // })
-    // return result
+    // get all files that include the stubs
+    files.forEach(file => {
+        stubsArr.forEach(stub => {
+            if (file.includes(stub)) {
+                result.push(file)
+            }
+
+        })
+    })
+    return result
 }
 function replaceUrlExt(imgUrl, newExt) {
     if (newExt !== 'jpg' && newExt !== 'png' && newExt !== 'gif' && newExt !== 'jpeg') {
