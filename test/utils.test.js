@@ -28,7 +28,7 @@ describe('utils', function() {
                 }
             })
         })
-        after(function() {
+        afterEach(function() {
             mock.restore()
         })
         describe('returns an array', function() {

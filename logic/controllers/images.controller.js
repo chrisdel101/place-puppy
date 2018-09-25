@@ -303,27 +303,39 @@ function resize(path, format, width, height) {
     const readStream = fs.createReadStream(path)
 
     let transform = sharp();
+    let formats = ['jpg', 'png', 'jpeg', 'gif']
     if (format) {
-        transform = transform.toFormat(format);
+        if(formats.includes(format)){
+            transform = transform.toFormat(format);
+        } else {
+            throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
+        }
     }
 
     if (width || height) {
-        transform = transform.resize(width, height)
-        // console.log(transform)
+        if(typeof width === 'number' && typeof height === 'number'){
+            transform = transform.resize(width, height)
+        } else {
+                throw TypeError('resize error: Width or height must be of type number.')
+        }
     }
     return readStream.pipe(transform);
 
 }
-function imageFormat(input) {
+function imageFormat(imgSrc) {
     // convert to lower
-    if (typeof input === 'string') {
-        input = input.toLowerCase()
+    if (typeof imgSrc === 'string') {
+        imgSrc = imgSrc.toLowerCase()
+    } else {
+        throw TypeError('imageFormat error: imgSrc must be a string')
     }
 
-    if (input.includes('jpeg') || input.includes('jpg')) {
+    if (imgSrc.includes('jpeg') || imgSrc.includes('jpg')) {
         return 'jpg'
-    } else if (input.includes('png')) {
+    } else if (imgSrc.includes('png')) {
         return 'png'
+    } else if (imgSrc.includes('gif')){
+        return 'gif'
     } else {
         return 'jpg'
     }
