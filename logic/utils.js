@@ -2,12 +2,14 @@ const mongoose = require('mongoose')
 const imageController = require('./controllers/images.controller')
 const Image = mongoose.models.Image || require('../models/image.model.js')
 const fs = require('fs')
+const cloudinary = require('cloudinary')
 
 module.exports = {
     fullSeed: fullSeed,
     createPromises: createPromises,
     addToDb: addToDb,
-    filterImages: filterImages
+    filterImages: filterImages,
+    cloudinaryUploader: cloudinaryUploader
 }
 function fullSeed(req, res) {
     // console.log('image id', publicImageId)
@@ -196,4 +198,36 @@ function filterImages(stubsArr, dir) {
         })
     })
     return result
+}
+function cloudinaryUploader(image) {
+    return new Promise((resolve, reject) => {
+        cloudinary.v2.uploader.upload(image, {
+            timeout: 10000000
+        }, (error, result) => {
+            if (error) {
+                console.error('Error in the cloudinary loader', error)
+                reject(error)
+            } else {
+                console.log('result', result)
+                resolve(result)
+            }
+        })
+
+    })
+}
+// not used
+function removeFwdSlash(req) {
+    var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+    // get pathname from url
+    let pathName = url.parse(fullUrl)
+    // starts with /
+    let re = /^\//ig
+    // get pathname from url
+    pathName = pathName.pathname
+    if (pathName.match(re)) {
+        // slice out forward slash
+        pathName = pathName.slice(1, pathName.length)
+        return pathName
+    }
+    return false
 }

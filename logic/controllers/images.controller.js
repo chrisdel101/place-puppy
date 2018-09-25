@@ -17,6 +17,7 @@ const sharp = require('sharp')
 const fs = require('fs')
 const session = require('express-session')
 const cloudinary = require('cloudinary')
+const { cloudinaryUploader } = require('../utils')
 const https = require('https')
 const Stream = require('stream').Transform
 const debug = require('debug')
@@ -28,8 +29,6 @@ module.exports = {
     extractDims: extractDims,
     resize: resize,
     imageFormat: imageFormat,
-    removeFwdSlash: removeFwdSlash,
-    cloudinaryUploader: cloudinaryUploader,
     showImage: showImage,
     add: add,
     addFile: addFile,
@@ -230,38 +229,6 @@ function showImage(req, res, quality, format) {
         console.error('A try/catch error occured', err)
     }
 }
-function removeFwdSlash(req) {
-    var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-    // get pathname from url
-    let pathName = url.parse(fullUrl)
-    // starts with /
-    let re = /^\//ig
-    // get pathname from url
-    pathName = pathName.pathname
-    if (pathName.match(re)) {
-        // slice out forward slash
-        pathName = pathName.slice(1, pathName.length)
-        return pathName
-    }
-    return false
-}
-// not used
-// function numFormat(numStr) {
-//     console.log('numstr', numStr)
-//      all nums before x
-//     var re1 = /\d+(?=\x)/g
-//     var beforeX = numStr.match(re1)
-//     if (!beforeX) {
-//         return false
-//     }
-//      get x only if followed by num
-//     var re2 = /x(?=[0-9])/
-//     var afterX = numStr.match(re2)
-//     if (!afterX) {
-//         return false
-//     }
-//     return true
-// }
 function extractDims(urlDims) {
     if (typeof urlDims !== 'string') {
         let error = new TypeError('Incorrect input: Needs to be a string')
@@ -361,22 +328,6 @@ function imageFormat(input) {
         return 'jpg'
     }
 }
-function cloudinaryUploader(image) {
-    return new Promise((resolve, reject) => {
-        cloudinary.v2.uploader.upload(image, {
-            timeout: 10000000
-        }, (error, result) => {
-            if (error) {
-                console.error('Error in the cloudinary loader', error)
-                reject(error)
-            } else {
-                console.log('result', result)
-                resolve(result)
-            }
-        })
-
-    })
-}
 function addFile(req, res) {
     // no access without login
     if (!req.session.user) {
@@ -428,31 +379,6 @@ function addFile(req, res) {
 
     })
 }
-
-// function setDimImages(dir) {
-//     let files = fs.readdirSync(dir)
-//     files.splice(0, 2)
-//     files.splice(6, 2)
-//     files.splice(7, 1)
-//     files.splice(8, 1)
-//     files.splice(8, 1)
-//     return files
-// }
-// used for seeding images out of dir
-// function filterImages(stubsArr, dir) {
-//     let result = []
-//     let files = fs.readdirSync(dir)
-//     // get all files that include the stubs
-//     files.forEach(file => {
-//         stubsArr.forEach(stub => {
-//             if (file.includes(stub)) {
-//                 result.push(file)
-//             }
-//
-//         })
-//     })
-//     return result
-// }
 function replaceUrlExt(imgUrl, newExt) {
     if (newExt !== 'jpg' && newExt !== 'png' && newExt !== 'gif' && newExt !== 'jpeg') {
         throw new TypeError('Extension is not valid to replace url. Only png, jpg, and gif.')
