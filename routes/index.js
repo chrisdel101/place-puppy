@@ -11,6 +11,7 @@ const upload = multer({dest: 'uploads/'})
 const cloudinary = require('cloudinary')
 let publicImageId = ''
 const fs = require('fs')
+const utils = require('../logic/utils')
 
 router.get('/', indexController.showIndex)
 router.get('^/:dimensions([0-9]+[x][0-9]+)',imageMiddleware.qualityMiddleware, imageMiddleware.returnImageFormat, (req, res) =>  {
@@ -29,7 +30,7 @@ router.get('/see-db', function(req, res) {
     //     console.log(result)
     // });
 })
-router.get('/full-seed', imageController.fullSeed)
+router.get('/full-seed', utils.fullSeed)
 
 // hit route to add a single image to db, and to cloudinary
 router.get('/single-seed', (req, res) => {
