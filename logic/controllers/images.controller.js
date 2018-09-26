@@ -289,14 +289,22 @@ function setImageQuality(urlStr, quality) {
 }
 function showImages(req, res) {
     // LOGIN REQUIRED
-    if (!req.session.user) {
-        return res.status(401).send()
-    }
-    cloudinary.v2.search.expression("resource_type:image").execute(function(error, result) {
-        console.log('result', result)
-        // res.send(result)
-        res.render('images', {imagesArr: result.resources})
-    });
+    // if (!req.session.user) {
+    //     return res.status(401).send()
+    // }
+    // cloudinary.v2.search.expression("resource_type:image").execute(function(error, result) {
+    //     console.log('result', result)
+    //     // res.send(result)
+    //     res.render('images', {imagesArr: result.resources})
+    // });
+    let promise = Image.find({}).exec()
+    promise.then(imgs => {
+        console.log(imgs)
+        // res.send(imgs)
+        res.render('images', {imgs: imgs})
+    }).catch(err => {
+        console.error(`An err occured: ${err}`)
+    })
 }
 
 function resize(path, format, width, height) {

@@ -1,5 +1,5 @@
 const fs = require('fs');
-const dir = `./public/public-images/index-page-copy`
+const dir = `./public/public-images/index-page`
 const {extractDims, isValidURL, filterImages} = require('../utils')
 
 module.exports = {
@@ -39,6 +39,7 @@ module.exports = {
             res.render('index', {imgObjs: imgObjs})
         });
     },
+    // make an obj to use in the template
     makeDogObj: (dogFolderArr) => {
         var sm = /-sm\./
         var md = /-md\./
@@ -59,7 +60,6 @@ module.exports = {
                 console.log('No files match the size params')
             }
         })
-
         return dogObj
     }
 }

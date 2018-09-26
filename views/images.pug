@@ -4,7 +4,7 @@ block content
     div.images-show
         h2 Images
         div.row
-            each image in imagesArr
+            each img in imgs
                 //- - let str = `data:image/png;base64, ${image}`
                 div.col-sm-8.col-md-4.col-lg-
-                    img.image(src=image.url)
+                    img.image(src=img.src )
