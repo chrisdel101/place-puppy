@@ -37,6 +37,7 @@ function extractDims(str) {
     let re4 = /([0-9]+[x][0-9]+)/
     // check if string is a Url
     if(isValidURL(str)){
+        console.log('valid URL')
         let newUrl = url.parse(str)
         // check str has the 100x100 format
         if(!newUrl.pathname.match(re)){
@@ -283,17 +284,9 @@ function cloudinaryUploader(image) {
 
     })
 }
+https://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url/22648406#22648406
 function isValidURL(str) {
-    let pattern = new RegExp('^((https?:)?\\/\\/)?'+ // protocol
-        '(?:\\S+(?::\\S*)?@)?' + // authentication
-        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
-        '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-        '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-        '(\\#[-a-z\\d_]*)?$','i'); // fragment locater
-    if (!pattern.test(str)) {
-        return false;
-    } else {
-        return true;
-    }
+    var urlRegex = '^(?!mailto:)(?:(?:http|https|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[0-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))|localhost)(?::\\d{2,5})?(?:(/|\\?|#)[^\\s]*)?$';
+    var url = new RegExp(urlRegex, 'i');
+    return str.length < 2083 && url.test(str);
 }

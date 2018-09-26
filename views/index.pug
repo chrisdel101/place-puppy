@@ -3,25 +3,29 @@ extends layout
 block content
     div.index-container
         div.puppy-box
-
             h1= title
             p Welcome to #{title}
-        each dog in dogStrs
-            div.puppy-box
-                img.image(src=dog)  
-                //- div.puppy-box
-                //-     h2 3
-                //- div.puppy-box
-                //-     h2 4
-                //- div.puppy-box
-                //-     h2 5
-                //- div.puppy-box
-                //-     h2 6 
-                //- div.puppy-box
-                //-     h2 7 
-                //- div.puppy-box
-                //-     h2 8
-                //- div.puppy-box
-                //-     h2 9
-                //- div.puppy-box
-                //-     h2 10
+        div.puppy-box
+            //- img.image(srcset=`${dogsObj.sm}, ${dogsObj.md}, ${dogsObj.lg}, ${dogsObj.fs}` sizes=`(min-width:854px) 310, (max-width: 853px) 211, (max-width: 640) 140, (max-width: 426) 110`)
+            picture
+                source(media=`(max-width:630px)` srcset=`${dogsObj.sm}`)
+                source(media=`(max-width:900px)` srcset=`${dogsObj.md}`)
+                source(media=`(max-width:1099px)` srcset=`${dogsObj.lg}`)
+                source(media=`(min-width:1100px)` srcset=`${dogsObj.fs}`) 
+                img.image(src=`${dogsObj.fs}` alt=`A dog`)
+        div.puppy-box
+            h2 3
+        div.puppy-box
+            h2 4
+        div.puppy-box
+            h2 5
+        div.puppy-box
+            h2 6 
+        div.puppy-box
+            h2 7 
+        div.puppy-box
+            h2 8
+        div.puppy-box
+            h2 9
+        div.puppy-box
+            h2 10

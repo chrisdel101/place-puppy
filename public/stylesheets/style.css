@@ -1,3 +1,15 @@
+@media (min-width:853px) {
+    .vsc-initialized {
+        background-color: yellow;
+    }
+}
+
+@media (max-width:852px) {
+    .vsc-initialized {
+        background-color: blue;
+    }
+}
+
 body {
     padding: 50px;
     font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
