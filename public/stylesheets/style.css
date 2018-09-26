@@ -9,6 +9,7 @@ a {
 
 .image {
     max-width: 100%;
+    padding: 5px;
 }
 
 #upload {
@@ -28,7 +29,7 @@ a {
 .index-container {
     display: grid;
     /* min-max on each col is repsponsive */
-    grid-template-columns: repeat(2, minmax(100px, 200px)) repeat(4, minmax(50px, 100px));
+    grid-template-columns: repeat(2, minmax(100px, 400px)) repeat(4, minmax(50px, 150px));
     grid-template-rows: repeat(4, 143.5px);
     /* grid-template-columns: 100px repeat(2, 1fr auto) 200px repeat(2, 1fr);
     grid-template-columns: repeat(5, 1fr); */

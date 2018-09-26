@@ -3,17 +3,85 @@ const imageController = require('./controllers/images.controller')
 const Image = mongoose.models.Image || require('../models/image.model.js')
 const fs = require('fs')
 const cloudinary = require('cloudinary')
+const url = require('url')
 
 module.exports = {
     fullSeed: fullSeed,
     createPromises: createPromises,
     addToDb: addToDb,
     filterImages: filterImages,
-    cloudinaryUploader: cloudinaryUploader
+    cloudinaryUploader: cloudinaryUploader,
+    extractDims: extractDims,
+    removeFwdSlash: removeFwdSlash
+}
+function removeFwdSlash(str){
+// 	check if starts with /
+	let re = /^\//ig
+	if(str.match(re)){
+    	return str.slice(1, str.length)
+	}
+	return str
+}
+function extractDims(str) {
+    if (typeof str !== 'string') {
+        let error = new TypeError('Incorrect input: Needs to be a string')
+        throw error
+    }
+    // all nums before x starting with / - to extract
+    let re = /\/\d+(?=\x)/g
+    // all nums before x, no /
+    let re2 = /\d+(?=\x)/g
+    // to help with the reverse - no /
+    let re3 = /\d+(?=\x)/g
+    // look for dims pattern
+    let re4 = /([0-9]+[x][0-9]+)/
+    // check if string is a Url
+    if(isValidURL(str)){
+        let newUrl = url.parse(str)
+        // check str has the 100x100 format
+        if(!newUrl.pathname.match(re)){
+            throw TypeError('extractDims error: input url does not have dims to extract, or the dims are not in the right format. Must be in the pathname or url.' )
+        }
+        // WIDTH
+        // get first num
+        let width = newUrl.pathname.match(re).join('')
+        // remove /
+        width = removeFwdSlash(width)
+        // HEIGHT
+        // reverse String - then use join
+        let reverseUrl = Array.from(newUrl.pathname).reverse().join('')
+        // extract digits -
+        let height = reverseUrl.match(re3).join('')
+        console.log('he', height)
+        // un-reverse back to normal
+        height = Array.from(height).reverse().join('')
+        console.log(height)
+        // remove /
+        height = removeFwdSlash(height)
+        return {width: width, height: height}
+    } else {
+        if(!str.match(re4)){
+            throw TypeError('extractDims error: input does not contain dims i.e. 100x100 neeeded for extract')
+        }
+        let extractDim = str.match(re4)[0]
+        console.log(extractDim)
+        let width = extractDim.match(re2).join('')
+        console.log('width', width)
+        // reverse the dims
+        let reverseDim = Array.from(extractDim).reverse().join('')
+        console.log('revdim', reverseDim)
+        // extract up until x - then use join to str
+        let height = reverseDim.match(re2).join('')
+        console.log('height', height)
+        // console.log(height.join(''))
+        height= Array.from(height).reverse().join('')
+        return {width: width, height: height}
+    }
+    return undefined
 }
 function fullSeed(req, res) {
     // console.log('image id', publicImageId)
-    // if global var is set, delete
+    // if global let is set, delete
     // if (publicImageId) {
     //     cloudinary.v2.api.delete_resources([publicImageId], function(error, result) {
     //         console.log('deleted')
@@ -215,19 +283,17 @@ function cloudinaryUploader(image) {
 
     })
 }
-// not used
-function removeFwdSlash(req) {
-    var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-    // get pathname from url
-    let pathName = url.parse(fullUrl)
-    // starts with /
-    let re = /^\//ig
-    // get pathname from url
-    pathName = pathName.pathname
-    if (pathName.match(re)) {
-        // slice out forward slash
-        pathName = pathName.slice(1, pathName.length)
-        return pathName
+function isValidURL(str) {
+    let pattern = new RegExp('^((https?:)?\\/\\/)?'+ // protocol
+        '(?:\\S+(?::\\S*)?@)?' + // authentication
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+        '(\\#[-a-z\\d_]*)?$','i'); // fragment locater
+    if (!pattern.test(str)) {
+        return false;
+    } else {
+        return true;
     }
-    return false
 }

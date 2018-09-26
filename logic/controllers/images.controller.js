@@ -17,7 +17,7 @@ const sharp = require('sharp')
 const fs = require('fs')
 const session = require('express-session')
 const cloudinary = require('cloudinary')
-const { cloudinaryUploader } = require('../utils')
+const { cloudinaryUploader, extractDims } = require('../utils')
 const https = require('https')
 const Stream = require('stream').Transform
 const debug = require('debug')
@@ -26,7 +26,7 @@ const error = debug('image:error')
 
 module.exports = {
     showImages: showImages,
-    extractDims: extractDims,
+    // extractDims: extractDims,
     resize: resize,
     imageFormat: imageFormat,
     showImage: showImage,
@@ -229,33 +229,33 @@ function showImage(req, res, quality, format) {
         console.error('A try/catch error occured', err)
     }
 }
-function extractDims(urlDims) {
-    if (typeof urlDims !== 'string') {
-        let error = new TypeError('Incorrect input: Needs to be a string')
-        throw error
-    }
-    let pageUrl = urlDims
-    let newUrl = url.parse(pageUrl)
-    // all nums before x
-    var re = /\d+(?=\x)/g
-    //  get x only if followed by num
-    // var secondNumRe = /x(?=[0-9])/
-
-    // look behind doesn't work
-    // var behind = /(?<=\x)\d+/g
-
-    // get first num
-    var width = newUrl.pathname.match(re).join('')
-    // reverse String
-    var reverseUrl = Array.from(newUrl.pathname).reverse().join('')
-    // extract digits -
-    var height = reverseUrl.match(re).join('')
-    // un-reverse back to normal
-    height = Array.from(height).reverse().join('')
-    // var height = newStr.match(re)
-    // second = Array.from(second).reverse().join('')
-    return {width: width, height: height}
-}
+// function extractDims(urlDims) {
+//     if (typeof urlDims !== 'string') {
+//         let error = new TypeError('Incorrect input: Needs to be a string')
+//         throw error
+//     }
+//     let pageUrl = urlDims
+//     let newUrl = url.parse(pageUrl)
+//     // all nums before x
+//     var re = /\d+(?=\x)/g
+//     //  get x only if followed by num
+//     // var secondNumRe = /x(?=[0-9])/
+//
+//     // look behind doesn't work
+//     // var behind = /(?<=\x)\d+/g
+//
+//     // get first num
+//     var width = newUrl.pathname.match(re).join('')
+//     // reverse String
+//     var reverseUrl = Array.from(newUrl.pathname).reverse().join('')
+//     // extract digits -
+//     var height = reverseUrl.match(re).join('')
+//     // un-reverse back to normal
+//     height = Array.from(height).reverse().join('')
+//     // var height = newStr.match(re)
+//     // second = Array.from(second).reverse().join('')
+//     return {width: width, height: height}
+// }
 function setImageQuality(urlStr, quality) {
     if (quality !== 'high' && quality !== 'good' && quality !== 'eco' && quality !== 'low') {
         throw TypeError('quality setting is invalid. Must be high, good, eco, or low.')
