@@ -1,17 +1,31 @@
 const fs = require('fs');
-const dir = `./public/public-images/index-page/image1`
-const {extractDims, isValidURL} = require('../utils')
+const dir = `./public/public-images/index-page-copy`
+const {extractDims, isValidURL, filterImages} = require('../utils')
 
 module.exports = {
     showIndex: (req, res) => {
-        console.log('dir', dir)
-        fs.readdir(dir, (err, dogsArr) => {
+        // read dir of dirs
+        fs.readdir(dir, (err, dirs) => {
             if (err)
                 console.error(err)
-            dogsArr = dogsArr.map(dogStr => {
-                return `../public-images/index-page/image1/${dogStr}`
+                // dogsArr = dogsArr.map(dogStr => {
+            //     return `../public-images/index-page/image1/${dogStr}`
+            // })
+            // filter out non-image dirs
+            dirs = filterImages(['image'], dir)
+            let imgObjs = []
+            console.log('dir', dirs)
+            dirs.forEach(imgDir => {
+                console.log('imgDir', imgDir)
+                let filesArr = fs.readdirSync(`${dir}/${imgDir}`)
+                // loop over dir and make into valid paths
+                let imgStrs = filesArr.map(file => {
+                    return `./public-images/index-page/${imgDir}/${file}`
+                })
+                console.log('imgStrs', imgStrs)
+                let obj = module.exports.makeDogObj(imgStrs)
+                imgObjs.push(obj)
             })
-            console.log('dogsArr', dogsArr)
 
             // make dogs array, filter out other files
             // let dogStrs = dogsArr.map(dog => {
@@ -19,10 +33,10 @@ module.exports = {
             // }).filter(dogStr => {
             //     return dogStr.includes('jpg')
             // })
-
-            let dogsObj = module.exports.makeDogObj(dogsArr)
-            console.log('dogObj', dogsObj)
-            res.render('index', {dogsObj: dogsObj})
+            console.log('imgObjs', imgObjs)
+            // let dogsObj = module.exports.makeDogObj(dogsArr)
+            // console.log('dogObj', dogsObj)
+            res.render('index', {imgObjs: imgObjs})
         });
     },
     makeDogObj: (dogFolderArr) => {
@@ -42,7 +56,7 @@ module.exports = {
             } else if (dogFile.match(fs)) {
                 dogObj['fs'] = dogFile
             } else {
-                log('No files match the size params')
+                console.log('No files match the size params')
             }
         })
 
