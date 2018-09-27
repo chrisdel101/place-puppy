@@ -6,11 +6,14 @@ const {expect} = chai
 const mock = require('mock-fs')
 // const fs = require('fs')
 const {mockRequest, mockResponse} = require('mock-req-res')
-const req = mockRequest()
-const res = mockResponse()
+const fakeReq = mockRequest()
+const fakeRes = mockResponse()
 const sinon = require('sinon')
+require('sinon-mongoose')
 const rewire = require('rewire')
 const rwSUT = rewire('../logic/controllers/images.controller');
+const mongoose = require('mongoose')
+const Image = mongoose.models.Image || require('../models/image.model.js')
 
 describe('images controller', function() {
     describe('replaceUrlExt()', function() {
@@ -37,16 +40,16 @@ describe('images controller', function() {
     })
     describe('addFile()', function() {
         it('returns an undefined', function() {
-            let req = mockRequest({
+            fakeRes = mockRequest({
                 session: {
                     user: 'test user'
                 }
             })
-            let result = SUT.addFile(req, res)
+            let result = SUT.addFile(fakeReq, fakeRes)
             expect(result).to.equal(undefined)
         })
         it('will not run function without a user in the session', function() {
-            let req = mockRequest({
+            fakeReq = mockRequest({
                 session: {
                     user: ''
                 }
@@ -57,7 +60,7 @@ describe('images controller', function() {
             }
             rwSUT.__set__('console', console)
             // controller.__set('console', this.console)
-            let result = rwSUT.addFile(req, res)
+            let result = rwSUT.addFile(fakeReq, fakeRes)
             expect(console.error.callCount).to.equal(1)
 
         })
@@ -109,8 +112,8 @@ describe('images controller', function() {
             let result = SUT.resize('./path/to/some.png', 'png', 200, 200)
             assert.typeOf(result.pipe, 'function')
         })
-        it('returns a stream that contains the width/height input', function(){
-            let result = SUT.resize('./path/to/some.png', 'png', 100 , 300)
+        it('returns a stream that contains the width/height input', function() {
+            let result = SUT.resize('./path/to/some.png', 'png', 100, 300)
             expect(result.options.width).to.equal(100)
             expect(result.options.height).to.equal(300)
         })
@@ -123,6 +126,37 @@ describe('images controller', function() {
             expect(function() {
                 let result = SUT.resize('./path/to/some.png', 'png', 200, '200')
             }).to.throw(TypeError, 'resize error: Width or height must be of type number.')
+        })
+
+    })
+    describe.only('showImages()', function() {
+        beforeEach(function() {
+
+
+        })
+        afterEach(function() {
+            // Image.find.restore()
+            // mock.restore()
+        })
+        it('calls db.find() spy once', function() {
+            sinon.spy(Image, 'find')
+            // this syntax is same as (spy) find.restore - used as no need for scope
+            let result = SUT.showImages(fakeReq, fakeRes)
+            expect(Image.find.calledOnce).to.be.true
+            Image.find.restore()
+        })
+        it('calls db.find() stub and resolves the promise', function() {
+            // stub promise and change return
+            let stub = sinon.stub(Image, 'find').resolves('Image goes here')
+            SUT.showImages(fakeReq,fakeRes)
+            sinon.assert.calledOnce(stub);
+            Image.find.restore()
+        })
+        it('calls', function(){
+            let stub = sinon.stub(Image, 'find').resolves('Image goes here')
+            let result = SUT.showImages(fakeReq,fakeRes)
+            console.log(result)
+            Image.find.restore()
         })
 
     })
