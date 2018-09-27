@@ -26,7 +26,6 @@ const error = debug('image:error')
 
 module.exports = {
     showImages: showImages,
-    // extractDims: extractDims,
     resize: resize,
     imageFormat: imageFormat,
     showImage: showImage,
@@ -39,7 +38,7 @@ module.exports = {
 function add(req, res) {
     // get file
     let file = req.file
-    console.log(req.file.path)
+    // console.log(req.file.path)
     // if no file, kill
     if (!file) {
         req.flash('info', 'No file attached')
@@ -229,33 +228,6 @@ function showImage(req, res, quality, format) {
         console.error('A try/catch error occured', err)
     }
 }
-// function extractDims(urlDims) {
-//     if (typeof urlDims !== 'string') {
-//         let error = new TypeError('Incorrect input: Needs to be a string')
-//         throw error
-//     }
-//     let pageUrl = urlDims
-//     let newUrl = url.parse(pageUrl)
-//     // all nums before x
-//     var re = /\d+(?=\x)/g
-//     //  get x only if followed by num
-//     // var secondNumRe = /x(?=[0-9])/
-//
-//     // look behind doesn't work
-//     // var behind = /(?<=\x)\d+/g
-//
-//     // get first num
-//     var width = newUrl.pathname.match(re).join('')
-//     // reverse String
-//     var reverseUrl = Array.from(newUrl.pathname).reverse().join('')
-//     // extract digits -
-//     var height = reverseUrl.match(re).join('')
-//     // un-reverse back to normal
-//     height = Array.from(height).reverse().join('')
-//     // var height = newStr.match(re)
-//     // second = Array.from(second).reverse().join('')
-//     return {width: width, height: height}
-// }
 function setImageQuality(urlStr, quality) {
     if(typeof urlStr !== 'string' || typeof quality !== 'string'){
         throw TypeError('setImageQuality error: functions params must both be strings')

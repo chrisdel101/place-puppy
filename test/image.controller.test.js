@@ -6,8 +6,8 @@ const {expect} = chai
 const mock = require('mock-fs')
 // const fs = require('fs')
 const {mockRequest, mockResponse} = require('mock-req-res')
-const fakeReq = mockRequest()
-const fakeRes = mockResponse()
+let fakeReq = mockRequest()
+let fakeRes = mockResponse()
 const sinon = require('sinon')
 const rewire = require('rewire')
 const rwSUT = rewire('../logic/controllers/images.controller');
@@ -201,6 +201,39 @@ describe('images controller', function() {
             expect(function() {
                 let result = SUT.setImageQuality(str, 'blah')
             }).to.throw(TypeError, 'setImageQuality: quality setting is invalid. Must be high, good, eco, or low')
+        })
+    })
+    describe('add()', function(){
+        let cloudinaryUploader
+        afterEach(function(){
+            Image.find.restore()
+        })
+        it('stuff', function(){
+
+
+            // let console = {
+            //     log: sinon.spy(),
+            //     error: sinon.spy()
+            // }
+            // rwSUT.__set__('console', console)
+
+
+            let newFakeReq = mockRequest({
+                file: {
+                    mimetype: 'image/png',
+                },
+                flash: sinon.spy()
+            })
+            // let newFakeRes = mockRequest({
+            //     redirect: sinon.spy()
+            // })
+            // stub and rewire cloudinaryUploader
+            cloudinaryUploader = sinon.stub().resolves('cloudinary resolves')
+            // console.log(cloudinaryUploader)
+            rwSUT.__set__('cloudinaryUploader', cloudinaryUploader)
+            let save = sinon.stub(Image, 'find').resolves('save return value')
+            let result = SUT.add(newFakeReq, fakeRes)
+            // cloudinaryUploader.restore()
         })
     })
 })
