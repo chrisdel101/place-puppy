@@ -1,4 +1,4 @@
-@media (min-width:853px) {
+/* @media (min-width:853px) {
     .vsc-initialized {
         background-color: yellow;
     }
@@ -8,7 +8,7 @@
     .vsc-initialized {
         background-color: blue;
     }
-}
+} */
 
 body {
     padding: 50px;
@@ -95,12 +95,17 @@ a {
 }
 
 .puppy-box:nth-child(4) {
-    background-color: #9b59b6;
+    /* background-color: #9b59b6; */
     grid-column: 5/ 7;
 }
 
+@media (min-width: 1160px) {
+    .puppy-box:nth-child(5) {
+        background-color: black;
+    }
+}
+
 .puppy-box:nth-child(5) {
-    background-color: #34495e;
     grid-row: 3 / 5;
     grid-column: 1 / 3;
 
