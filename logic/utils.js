@@ -14,13 +14,13 @@ module.exports = {
     extractDims: extractDims,
     removeFwdSlash: removeFwdSlash
 }
-function removeFwdSlash(str){
-// 	check if starts with /
-	let re = /^\//ig
-	if(str.match(re)){
-    	return str.slice(1, str.length)
-	}
-	return str
+function removeFwdSlash(str) {
+    // 	check if starts with /
+    let re = /^\//ig
+    if (str.match(re)) {
+        return str.slice(1, str.length)
+    }
+    return str
 }
 function extractDims(str) {
     if (typeof str !== 'string') {
@@ -36,12 +36,11 @@ function extractDims(str) {
     // look for dims pattern
     let re4 = /([0-9]+[x][0-9]+)/
     // check if string is a Url
-    if(isValidURL(str)){
-        console.log('valid URL')
+    if (isValidURL(str)) {
         let newUrl = url.parse(str)
         // check str has the 100x100 format
-        if(!newUrl.pathname.match(re)){
-            throw TypeError('extractDims error: input url does not have dims to extract, or the dims are not in the right format. Must be in the pathname or url.' )
+        if (!newUrl.pathname.match(re)) {
+            throw TypeError('extractDims error: input url does not have dims to extract, or the dims are not in the right format. Must be in the pathname or url.')
         }
         // WIDTH
         // get first num
@@ -61,21 +60,17 @@ function extractDims(str) {
         height = removeFwdSlash(height)
         return {width: width, height: height}
     } else {
-        if(!str.match(re4)){
+        if (!str.match(re4)) {
             throw TypeError('extractDims error: input does not contain dims i.e. 100x100 neeeded for extract')
         }
         let extractDim = str.match(re4)[0]
-        console.log(extractDim)
         let width = extractDim.match(re2).join('')
-        console.log('width', width)
         // reverse the dims
         let reverseDim = Array.from(extractDim).reverse().join('')
-        console.log('revdim', reverseDim)
         // extract up until x - then use join to str
         let height = reverseDim.match(re2).join('')
-        console.log('height', height)
         // console.log(height.join(''))
-        height= Array.from(height).reverse().join('')
+        height = Array.from(height).reverse().join('')
         return {width: width, height: height}
     }
     return undefined
@@ -284,7 +279,7 @@ function cloudinaryUploader(image) {
 
     })
 }
-https://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url/22648406#22648406
+https : //stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url/22648406#22648406
 function isValidURL(str) {
     var urlRegex = '^(?!mailto:)(?:(?:http|https|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[0-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))|localhost)(?::\\d{2,5})?(?:(/|\\?|#)[^\\s]*)?$';
     var url = new RegExp(urlRegex, 'i');

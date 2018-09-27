@@ -26,12 +26,12 @@ describe('images controller', function() {
             let ext = result.split('.').pop()
             expect(ext).to.equal('png')
         })
-        it('errors out when a passed a URL without and extension', function() {
+        it('throws an error when a passed a URL without and extension', function() {
             expect(function() {
                 SUT.replaceUrlExt('a', 'png')
             }).to.throw(TypeError, 'Url is not has not extension. Must be jpg, png, or gif.')
         })
-        it('errors out when given a new extentsion that is not valid', function() {
+        it('throws an error when given a new extentsion that is not valid', function() {
             expect(function() {
                 SUT.replaceUrlExt('http://example.jpg', 'alt')
             }).to.throw(TypeError, 'Extension is not valid to replace url. Only png, jpg, and gif.')
@@ -40,16 +40,16 @@ describe('images controller', function() {
     describe('addFile()', function() {
         it('returns an undefined', function() {
             // use mockRequest to set user session
-            fakeRes = mockRequest({
+            let req = mockRequest({
                 session: {
                     user: 'test user'
                 }
             })
-            let result = SUT.addFile(fakeReq, fakeRes)
-            expect(result).to.equal(undefined)
+            let result = SUT.addFile(req, fakeRes)
+            // expect(result).to.equal(undefined)
         })
         it('will not run function without a user in the session', function() {
-            fakeReq = mockRequest({
+            let req = mockRequest({
                 session: {
                     user: ''
                 }
@@ -59,8 +59,7 @@ describe('images controller', function() {
                 error: sinon.spy()
             }
             rwSUT.__set__('console', console)
-            // controller.__set('console', this.console)
-            let result = rwSUT.addFile(fakeReq, fakeRes)
+            let result = rwSUT.addFile(req, fakeRes)
             expect(console.error.callCount).to.equal(1)
 
         })
@@ -74,7 +73,7 @@ describe('images controller', function() {
             let result = SUT.imageFormat('https://res.cloudinary.com/chris-del/image/upload/v1537584219/o0bfegw7lw6j89jhmi2g.gif')
             expect(result).to.equal('gif')
         })
-        it('errors out when given an input that is not a string', function() {
+        it('throws an error when given an input that is not a string', function() {
             expect(function() {
                 SUT.imageFormat({test: 'me'})
             }).to.throw(TypeError, 'imageFormat error: imgSrc must be a string')
@@ -117,19 +116,19 @@ describe('images controller', function() {
             expect(result.options.width).to.equal(100)
             expect(result.options.height).to.equal(300)
         })
-        it('errors out when given an incorrect format', function() {
+        it('throws an error when given an incorrect format', function() {
             expect(function() {
                 let result = SUT.resize('./path/to/some.png', 'xhr', 200, 200)
             }).to.throw(TypeError, 'resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
         })
-        it('errors out width/height is not a number', function() {
+        it('throws an error when width/height is not a number', function() {
             expect(function() {
                 let result = SUT.resize('./path/to/some.png', 'png', 200, '200')
             }).to.throw(TypeError, 'resize error: Width or height must be of type number.')
         })
 
     })
-    describe.only('showImages()', function() {
+    describe('showImages()', function() {
         let fakeReq
         beforeEach(function() {
             // set fake seessions
@@ -165,22 +164,43 @@ describe('images controller', function() {
                 sinon.assert.calledOnce(res.render)
             })
         })
-        it.only('returns a error when there are no sessions', function() {
+        it('returns a error when there are no sessions', function() {
             let noSession = {
                 session: {}
             }
             let res = {
                 // status returns send
-                status: sinon.stub().returns({
-                    send: sinon.spy()
-                })
+                status: sinon.stub().returns({send: sinon.spy()})
             }
             let stub = sinon.stub(Image, 'find').resolves('Image goes here')
-            let result = SUT.showImages(noSession,res )
+            let result = SUT.showImages(noSession, res)
             sinon.assert.calledOnce(res.status)
 
         })
 
     })
-
+    describe('setImageQuality()', function() {
+        let str = "https://res.cloudinary.com/chris-del/image/upload/v1537584219/o0bfegw7lw6j89jhmi2g.jpg"
+        it('returns a string', function() {
+            let result = SUT.setImageQuality(str, 'high')
+            assert.typeOf(result, 'string')
+        })
+        it('returns the string correctly with input params', function(){
+            let result = SUT.setImageQuality(str, 'low')
+            expect(result).to.equal('https://res.cloudinary.com/chris-del/image/upload/q_auto:low/v1537584219/o0bfegw7lw6j89jhmi2g.jpg')
+        })
+        it('throws an error when given input params that are not strings', function() {
+            expect(function() {
+                let result = SUT.setImageQuality(10, 'high')
+            }).to.throw(TypeError, 'setImageQuality error: functions params must both be strings')
+            expect(function() {
+                let result = SUT.setImageQuality(str, ['high'])
+            }).to.throw(TypeError, 'setImageQuality error: functions params must both be strings')
+        })
+        it('throws and error when given a quality setting that is not an option', function(){
+            expect(function() {
+                let result = SUT.setImageQuality(str, 'blah')
+            }).to.throw(TypeError, 'setImageQuality: quality setting is invalid. Must be high, good, eco, or low')
+        })
+    })
 })

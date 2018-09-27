@@ -257,10 +257,13 @@ function showImage(req, res, quality, format) {
 //     return {width: width, height: height}
 // }
 function setImageQuality(urlStr, quality) {
-    if (quality !== 'high' && quality !== 'good' && quality !== 'eco' && quality !== 'low') {
-        throw TypeError('quality setting is invalid. Must be high, good, eco, or low.')
+    if(typeof urlStr !== 'string' || typeof quality !== 'string'){
+        throw TypeError('setImageQuality error: functions params must both be strings')
     }
-    // this should take upload
+    if (quality !== 'high' && quality !== 'good' && quality !== 'eco' && quality !== 'low') {
+        throw TypeError('setImageQuality: quality setting is invalid. Must be high, good, eco, or low')
+    }
+    // this should take 'upload'
     let beforeRegex = /(.+)upload/
     // pin on quality to start of string
     let afterRegex = /upload(.+)/
@@ -295,7 +298,7 @@ function showImages(req, res) {
     let promise = Image.find({})
     // console.log(promise)
     return promise.then(imgs => {
-        console.log(`imgs`, imgs)
+        // console.log(`imgs`, imgs)
         // res.send(imgs)
          res.render('images', {imgs: imgs})
     }).catch(err => {
