@@ -43,6 +43,7 @@ module.exports = {
     makeDogObj: (dogFolderArr) => {
         var sm = /-sm\./
         var md = /-md\./
+        var cn = /-cn\./
         var lg = /-lg\./
         var fs = /-fs\./
 
@@ -52,6 +53,8 @@ module.exports = {
                 dogObj['sm'] = dogFile
             } else if (dogFile.match(md)) {
                 dogObj['md'] = dogFile
+            } else if (dogFile.match('cn')) {
+                dogObj['cn'] = dogFile
             } else if (dogFile.match(lg)) {
                 dogObj['lg'] = dogFile
             } else if (dogFile.match(fs)) {
