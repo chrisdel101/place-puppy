@@ -1,4 +1,4 @@
-## Placepuppy
+## Placepuppy - STILL IN DEVELOPMENT
 ### An image placeholder api
 
 Use this this api to deliver placholder images to your projects in developement.
