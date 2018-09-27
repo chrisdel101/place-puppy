@@ -9,7 +9,6 @@ const {mockRequest, mockResponse} = require('mock-req-res')
 const fakeReq = mockRequest()
 const fakeRes = mockResponse()
 const sinon = require('sinon')
-require('sinon-mongoose')
 const rewire = require('rewire')
 const rwSUT = rewire('../logic/controllers/images.controller');
 const mongoose = require('mongoose')
@@ -40,6 +39,7 @@ describe('images controller', function() {
     })
     describe('addFile()', function() {
         it('returns an undefined', function() {
+            // use mockRequest to set user session
             fakeRes = mockRequest({
                 session: {
                     user: 'test user'
@@ -130,33 +130,55 @@ describe('images controller', function() {
 
     })
     describe.only('showImages()', function() {
+        let fakeReq
         beforeEach(function() {
-
-
+            // set fake seessions
+            fakeReq = mockRequest({
+                session: {
+                    user: 'test user'
+                }
+            })
         })
         afterEach(function() {
-            // Image.find.restore()
-            // mock.restore()
+            Image.find.restore()
+            // fakeRes.status.restore()
         })
         it('calls db.find() spy once', function() {
             sinon.spy(Image, 'find')
             // this syntax is same as (spy) find.restore - used as no need for scope
             let result = SUT.showImages(fakeReq, fakeRes)
             expect(Image.find.calledOnce).to.be.true
-            Image.find.restore()
         })
         it('calls db.find() stub and resolves the promise', function() {
             // stub promise and change return
             let stub = sinon.stub(Image, 'find').resolves('Image goes here')
-            SUT.showImages(fakeReq,fakeRes)
+            SUT.showImages(fakeReq, fakeRes)
             sinon.assert.calledOnce(stub);
-            Image.find.restore()
         })
-        it('calls', function(){
+        it('calls res.render() spy once', function() {
             let stub = sinon.stub(Image, 'find').resolves('Image goes here')
-            let result = SUT.showImages(fakeReq,fakeRes)
-            console.log(result)
-            Image.find.restore()
+            let res = {
+                render: sinon.spy()
+            }
+            let result = SUT.showImages(fakeReq, res)
+            return result.then(i => {
+                sinon.assert.calledOnce(res.render)
+            })
+        })
+        it.only('returns a error when there are no sessions', function() {
+            let noSession = {
+                session: {}
+            }
+            let res = {
+                // status returns send
+                status: sinon.stub().returns({
+                    send: sinon.spy()
+                })
+            }
+            let stub = sinon.stub(Image, 'find').resolves('Image goes here')
+            let result = SUT.showImages(noSession,res )
+            sinon.assert.calledOnce(res.status)
+
         })
 
     })

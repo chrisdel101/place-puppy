@@ -289,9 +289,9 @@ function setImageQuality(urlStr, quality) {
 }
 function showImages(req, res) {
     // LOGIN REQUIRED
-    // if (!req.session.user) {
-    //     return res.status(401).send()
-    // }
+    if (req.session.user === undefined) {
+        return res.status(401).send('401')
+    }
     let promise = Image.find({})
     // console.log(promise)
     return promise.then(imgs => {
