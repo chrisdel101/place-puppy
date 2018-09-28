@@ -3,7 +3,6 @@ const User = require("../models/user.model.js")
 const bcrypt = require('bcrypt')
 const saltRounds = 10
 const cookieParser = require('cookie-parser')
-const crypt = require('crypto')
 
 module.exports = {
     login: (req, res) => {

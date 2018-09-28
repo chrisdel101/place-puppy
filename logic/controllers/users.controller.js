@@ -1,6 +1,10 @@
 const User = require("../models/user.model.js")
 const bcrypt = require('bcrypt')
 const saltRounds = 10
+const async = require("async")
+const crypto = require('crypto')
+
+
 
 module.exports = {
     compareStrs: (pw1, pw2) => {
@@ -29,7 +33,7 @@ module.exports = {
         console.log('pw1', req.body.password)
         console.log('pw2', req.body['password-confirmation'])
         // check that both passwords match
-        if (!module.exports.compareStrs(req.body.password, req.body['password-confirmation'])) {
+        if (!   module.exports.compareStrs(req.body.password, req.body['password-confirmation'])) {
             console.log('passwords do not match')
             req.flash('info', 'passwords do not match')
             res.redirect('register')
@@ -112,31 +116,6 @@ module.exports = {
             buttonField: 'Register'
         })
     },
-    // forgot password
-    forgotPasswordView: (req, res) => {
-        return res.render('reset', {
-            method: 'POST',
-            action: '/forgot',
-            enctype: 'application/x-www-form-urlencoded',
-            // route name is used in template
-            routeName: req.path,
-            field_one_for: 'username',
-            field_two_for: 'password',
-            field_one_id: 'usurname',
-            field_two_id: 'password',
-            field_one_type: 'text',
-            field_two_type: 'password',
-            field_one_name: 'username',
-            field_two_name: 'password',
-            fieldOne: 'Username',
-            fieldTwo: 'Password',
-            field_one_placeholder: 'Enter Username',
-            field_two_placeholder: 'Enter Password',
-            button_type: 'submit',
-            button_value: 'submit',
-            buttonField: "Reset"
-        })
-    },
     forgotPassword: (req, res, next) => {
         async.waterfall([
             function(done) {
@@ -149,6 +128,7 @@ module.exports = {
                 User.findOne({
                     email: req.body.email
                 }, function(err, user) {
+                    console.log('email', req.body.email)
                     if (!user) {
                         req.flash('error', 'No account with that email address exists.');
                         return res.redirect('/forgot');
@@ -159,6 +139,7 @@ module.exports = {
 
                     user.save(function(err) {
                         done(err, token, user);
+                        console.log('user token saved')
                     });
                 });
             },
@@ -254,5 +235,30 @@ module.exports = {
         ], function(err) {
             res.redirect('/campgrounds');
         });
-    }
+    },
+    // forgot password
+    forgotPasswordView: (req, res) => {
+        return res.render('reset', {
+            method: 'POST',
+            action: '/forgot',
+            enctype: 'application/x-www-form-urlencoded',
+            // route name is used in template
+            routeName: req.path,
+            field_one_for: 'username',
+            field_two_for: 'password',
+            field_one_id: 'usurname',
+            field_two_id: 'password',
+            field_one_type: 'text',
+            field_two_type: 'password',
+            field_one_name: 'username',
+            field_two_name: 'password',
+            fieldOne: 'Username',
+            fieldTwo: 'Password',
+            field_one_placeholder: 'Enter Username',
+            field_two_placeholder: 'Enter Password',
+            button_type: 'submit',
+            button_value: 'submit',
+            buttonField: "Reset"
+        })
+    },
 }

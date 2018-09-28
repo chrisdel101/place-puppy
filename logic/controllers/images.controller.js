@@ -25,16 +25,16 @@ const log = debug('image:log')
 const error = debug('image:error')
 
 module.exports = {
-    showImages: showImages,
-    resize: resize,
-    imageFormat: imageFormat,
-    showImage: showImage,
-    // add: add,
-    addFile: addFile,
-    setImageQuality: setImageQuality,
-    replaceUrlExt: replaceUrlExt
+    // showImages: showImages,
+    // resize: resize,
+    // imageFormat: imageFormat,
+    // showImage: showImage,
+    // // add: add,
+    // addFile: addFile,
+    // setImageQuality: setImageQuality,
+    // replaceUrlExt: replaceUrlExt
 }
-exports.add = add
+module.exports.add = add
 function add(req, res) {
     // console.log('req', req)
     // get file
@@ -44,6 +44,7 @@ function add(req, res) {
     if (!file) {
         req.flash('info', 'No file attached')
         res.redirect('add')
+        return
     }
     console.log('file', file)
     // if not image, kill
@@ -87,8 +88,7 @@ function add(req, res) {
             console.log(e)
         }
         promise.then(image => {
-            console.log('SAVED')
-            console.log('saved')
+            console.log('SAVED', image)
             req.flash('success', 'Image Saved')
             res.redirect('add')
         }).catch(e => {

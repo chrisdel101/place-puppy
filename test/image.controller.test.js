@@ -187,7 +187,7 @@ describe('images controller', function() {
             let result = SUT.setImageQuality(str, 'high')
             assert.typeOf(result, 'string')
         })
-        it('returns the string correctly with input params', function(){
+        it('returns the string correctly with input params', function() {
             let result = SUT.setImageQuality(str, 'low')
             expect(result).to.equal('https://res.cloudinary.com/chris-del/image/upload/q_auto:low/v1537584219/o0bfegw7lw6j89jhmi2g.jpg')
         })
@@ -199,16 +199,21 @@ describe('images controller', function() {
                 let result = SUT.setImageQuality(str, ['high'])
             }).to.throw(TypeError, 'setImageQuality error: functions params must both be strings')
         })
-        it('throws and error when given a quality setting that is not an option', function(){
+        it('throws and error when given a quality setting that is not an option', function() {
             expect(function() {
                 let result = SUT.setImageQuality(str, 'blah')
             }).to.throw(TypeError, 'setImageQuality: quality setting is invalid. Must be high, good, eco, or low')
         })
     })
-    describe.only('add()', function(){
-    // rewire add function
-        let add  = rewire('../logic/controllers/images.controller')
-        beforeEach(function(){
+    describe.only('add()', function() {
+        // rewire add function
+        let add = rewire('../logic/controllers/images.controller')
+        let imageStub
+        let cloudinaryStub
+        let newFakeReq
+        let image
+        let data
+        beforeEach(function() {
             mock({
                 'path/to/fake/dir': {
                     'some-file.txt': 'file content here',
@@ -227,16 +232,10 @@ describe('images controller', function() {
                 'some/other/path': {/** another empty directory */
                 }
             })
-        })
-        afterEach(function(){
-            // add.cloudinaryStub.resolves()
-            // Image.file.resolves()
-            mock.restore()//
-        })
-        // console.log('rewire', rewire)
-        it('stuff', function(){
+            fakeRes.redirect = sinon.spy()
+            // console.log('res', fakeRes.redirect)
             // mock req with req params
-            let newFakeReq = mockRequest({
+            newFakeReq = mockRequest({
                 file: {
                     name: 'image.png',
                     mimetype: 'image/png',
@@ -257,7 +256,7 @@ describe('images controller', function() {
                 }
             })
             // create a fake image instance
-            let image = new Image({
+            image = new Image({
                 id: '1234',
                 filename: 'fake original file name',
                 title: 'fake title',
@@ -269,19 +268,30 @@ describe('images controller', function() {
                 contentType: 'fake type',
                 path: '../tmp'
             })
-            let data = {
+            data = {
                 public_id: 'fake data id',
                 secure_url: 'https://afakeurl.com'
             }
             // stub and rewire cloudinaryUploader
-            let cloudinaryStub = sinon.stub().resolves(data)
+            cloudinaryStub = sinon.stub().resolves(data)
             add.__set__('cloudinaryUploader', cloudinaryStub);
             // stub save() as instace of above fake image
-            let imageStub = sinon.stub(Image, 'save').resolves('hello')
-            // add.__set__('save', imageStub)
-            // let save = sinon.stub(Image, 'find').resolves('save return value')
+            imageStub = sinon.stub().returns('HERJNEFOI')
+            add.__set__('save', imageStub)
+        })
+        afterEach(function() {
+            cloudinaryStub.resolves()
+            imageStub.resolves()
+            mock.restore() //
+        })
+        // console.log('rewire', rewire)
+        it('return redirects when req does not contain a file object', function() {
+            // set file to null
+            newFakeReq.file = null
             let result = add.add(newFakeReq, fakeRes)
-            expect()
+            // flash once
+            sinon.assert.calledOnce(newFakeReq.flash)
+            sinon.assert.calledOnce(fakeRes.redirect)
         })
     })
 })
