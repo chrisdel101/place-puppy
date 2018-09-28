@@ -18,6 +18,11 @@ router.get('^/:dimensions([0-9]+[x][0-9]+)',imageMiddleware.qualityMiddleware, i
     imageController.showImage(req, res, req.quality, req.format)
 })
 
+router.get('/forgot', sessionsController.forgotPasswordView)
+router.post('/forgot', sessionsController.forgotPassword)
+router.get('/reset/:token', sessionsController.pwTokenGet)
+router.post('/reset/:token', sessionsController.pwTokenPost)
+
 router.get('/see-db', function(req, res) {
     console.log('image id', publicImageId)
     if (publicImageId) {
@@ -88,7 +93,7 @@ router.get('/register', usersController.registerDisplay)
 router.post('/register', usersController.register)
 router.get('/add', imageController.addFile)
 //  needs to match form val and name
-router.post('/add', upload.single('file'), imageController.add)
+// router.post('/add', upload.single('file'), imageController.add)
 //
 router.get('/images', imageController.showImages)
 

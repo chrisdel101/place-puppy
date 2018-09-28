@@ -24,16 +24,16 @@ const debug = require('debug')
 const log = debug('image:log')
 const error = debug('image:error')
 
-// module.exports = {
-//     showImages: showImages,
-//     resize: resize,
-//     imageFormat: imageFormat,
-//     showImage: showImage,
-//     // add: add,
-//     addFile: addFile,
-//     setImageQuality: setImageQuality,
-//     replaceUrlExt: replaceUrlExt
-// }
+module.exports = {
+    showImages: showImages,
+    resize: resize,
+    imageFormat: imageFormat,
+    showImage: showImage,
+    // add: add,
+    addFile: addFile,
+    setImageQuality: setImageQuality,
+    replaceUrlExt: replaceUrlExt
+}
 exports.add = add
 function add(req, res) {
     // console.log('req', req)
