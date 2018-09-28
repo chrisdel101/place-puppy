@@ -11,7 +11,9 @@ let fakeRes = mockResponse()
 const sinon = require('sinon')
 const rewire = require('rewire')
 const rwSUT = rewire('../logic/controllers/images.controller');
+let rewiredAdd = rewire('../logic/controllers/images.controller').add
 const mongoose = require('mongoose')
+const cloudinary = require('cloudinary')
 const Image = mongoose.models.Image || require('../models/image.model.js')
 
 describe('images controller', function() {
@@ -203,37 +205,99 @@ describe('images controller', function() {
             }).to.throw(TypeError, 'setImageQuality: quality setting is invalid. Must be high, good, eco, or low')
         })
     })
-    describe('add()', function(){
-        let cloudinaryUploader
-        afterEach(function(){
-            Image.find.restore()
+    describe.only('add()', function(){
+    // rewire add function
+        let add  = rewire('../logic/controllers/images.controller')
+        beforeEach(function(){
+            mock({
+                'path/to/fake/dir': {
+                    'some-file.txt': 'file content here',
+                    'empty-dir': {/** empty directory */
+                    }
+                },
+                'path/to/some.png': Buffer.from([
+                    8,
+                    6,
+                    7,
+                    5,
+                    3,
+                    0,
+                    9
+                ]),
+                'some/other/path': {/** another empty directory */
+                }
+            })
         })
+        afterEach(function(){
+            // add.cloudinaryStub.resolves()
+            // Image.file.resolves()
+            mock.restore()//
+        })
+        // console.log('rewire', rewire)
         it('stuff', function(){
-
-
-            // let console = {
-            //     log: sinon.spy(),
-            //     error: sinon.spy()
-            // }
-            // rwSUT.__set__('console', console)
-
-
+            // mock req with req params
             let newFakeReq = mockRequest({
                 file: {
+                    name: 'image.png',
                     mimetype: 'image/png',
+                    // send this to the mock fs above
+                    path: './path/to/some.png',
+                    originalName: 'fake original name'
                 },
-                flash: sinon.spy()
+                flash: sinon.spy(),
+                body: {
+                    title: 'fake title',
+                    photographer: 'fake photographer',
+                    description: 'fake desc',
+                    locationTaken: 'fake location',
+                    alt: 'fake alt',
+                    contentType: 'fake type',
+                    'route-path': 'fake path'
+
+                }
             })
-            // let newFakeRes = mockRequest({
-            //     redirect: sinon.spy()
-            // })
+            // create a fake image instance
+            let image = new Image({
+                id: '1234',
+                filename: 'fake original file name',
+                title: 'fake title',
+                photographer: 'fake photographer',
+                description: 'fake desc',
+                locationTaken: 'fake location',
+                src: 'fake src',
+                alt: 'fake alt',
+                contentType: 'fake type',
+                path: '../tmp'
+            })
+            let data = {
+                public_id: 'fake data id',
+                secure_url: 'https://afakeurl.com'
+            }
             // stub and rewire cloudinaryUploader
-            cloudinaryUploader = sinon.stub().resolves('cloudinary resolves')
-            // console.log(cloudinaryUploader)
-            rwSUT.__set__('cloudinaryUploader', cloudinaryUploader)
-            let save = sinon.stub(Image, 'find').resolves('save return value')
-            let result = SUT.add(newFakeReq, fakeRes)
-            // cloudinaryUploader.restore()
+            let cloudinaryStub = sinon.stub().resolves(data)
+            add.__set__('cloudinaryUploader', cloudinaryStub);
+            // stub save() as instace of above fake image
+            let imageStub = sinon.stub(Image, 'save').resolves('hello')
+            // add.__set__('save', imageStub)
+            // let save = sinon.stub(Image, 'find').resolves('save return value')
+            let result = add.add(newFakeReq, fakeRes)
+            expect()
         })
     })
 })
+// let stub = sinon.stub(Image, 'find').resolves('Image goes here')
+// let req = mockRequest({
+//     session: {
+//         user: ''
+//     }
+// })
+// let console = {
+//     log: sinon.spy(),
+//     error: sinon.spy()
+// }
+// rwSUT.__set__('console', console)
+// let result = rwSUT.addFile(req, fakeRes)
+// expect(console.error.callCount).to.equal(1)
+//
+// })
+// })

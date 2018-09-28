@@ -24,18 +24,19 @@ const debug = require('debug')
 const log = debug('image:log')
 const error = debug('image:error')
 
-module.exports = {
-    showImages: showImages,
-    resize: resize,
-    imageFormat: imageFormat,
-    showImage: showImage,
-    add: add,
-    addFile: addFile,
-    setImageQuality: setImageQuality,
-    replaceUrlExt: replaceUrlExt
-}
-
+// module.exports = {
+//     showImages: showImages,
+//     resize: resize,
+//     imageFormat: imageFormat,
+//     showImage: showImage,
+//     // add: add,
+//     addFile: addFile,
+//     setImageQuality: setImageQuality,
+//     replaceUrlExt: replaceUrlExt
+// }
+exports.add = add
 function add(req, res) {
+    // console.log('req', req)
     // get file
     let file = req.file
     // console.log(req.file.path)
@@ -73,11 +74,20 @@ function add(req, res) {
         console.log('image : ' + image);
         // console.log('base64' + String(image.data).substring(0, 50));
         // unlink form /uploads
-        fs.unlink(file.path);
+        try{
+            fs.unlink(file.path)
+            console.log('unlinked')
+        } catch(e) {
+            console.error('unlink error: An error occured', e)
+        }
         // save to DB
-        let promise = image.save()
-
+        try{
+            let promise = image.save()
+        } catch(e){
+            console.log(e)
+        }
         promise.then(image => {
+            console.log('SAVED')
             console.log('saved')
             req.flash('success', 'Image Saved')
             res.redirect('add')
