@@ -18,10 +18,10 @@ router.get('^/:dimensions([0-9]+[x][0-9]+)',imageMiddleware.qualityMiddleware, i
     imageController.showImage(req, res, req.quality, req.format)
 })
 
-router.get('/forgot', sessionsController.forgotPasswordView)
-router.post('/forgot', sessionsController.forgotPassword)
-router.get('/reset/:token', sessionsController.pwTokenGet)
-router.post('/reset/:token', sessionsController.pwTokenPost)
+router.get('/forgot', usersController.forgotPasswordView)
+router.post('/forgot', usersController.forgotPassword)
+router.get('/reset/:token', usersController.pwTokenGet)
+router.post('/reset/:token', usersController.pwTokenPost)
 
 router.get('/see-db', function(req, res) {
     console.log('image id', publicImageId)

@@ -4,7 +4,7 @@ const assert = require('assert')
 
 
   const userSchema = new mongoose.Schema({
-    username: {
+    email: {
         type: String,
         required: true,
         trim: true
@@ -20,13 +20,13 @@ module.exports = userModel
 
 var user1 = new userModel();
 user1.save(function(error) {
-	assert.equal(error.errors['username'].message, 'Path `username` is required.');
+	assert.equal(error.errors['email'].message, 'Path `email` is required.');
 
 	error = user1.validateSync();
-	assert.equal(error.errors['username'].message, 'Path `username` is required.');
+	assert.equal(error.errors['email'].message, 'Path `email` is required.');
 });
 
-var user2 = new userModel({username: 'user1'});
+var user2 = new userModel({email: 'user1'});
 user2.save(function(error) {
 	assert.equal(error.errors['password'].message, 'Path `password` is required.');
 
