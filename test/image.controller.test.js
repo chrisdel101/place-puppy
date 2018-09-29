@@ -207,7 +207,7 @@ describe('images controller', function() {
     })
     describe.only('add()', function() {
         // rewire add function
-        let add = rewire('../logic/controllers/images.controller')
+        let SUT = rewire('../logic/controllers/images.controller')
         let imageStub
         let cloudinaryStub
         let newFakeReq
@@ -216,11 +216,6 @@ describe('images controller', function() {
         let fs
         beforeEach(function() {
             mock({
-                'path/to/fake/dir': {
-                    'some-file.txt': 'file content here',
-                    'empty-dir': {/** empty directory */
-                    }
-                },
                 'path/to/some.png': Buffer.from([
                     8,
                     6,
@@ -229,12 +224,9 @@ describe('images controller', function() {
                     3,
                     0,
                     9
-                ]),
-                'some/other/path': {/** another empty directory */
-                }
+                ])
             })
             fakeRes.redirect = sinon.spy()
-            // console.log('res', fakeRes.redirect)
             // mock req with req params
             newFakeReq = mockRequest({
                 file: {
@@ -253,7 +245,6 @@ describe('images controller', function() {
                     alt: 'fake alt',
                     contentType: 'fake type',
                     'route-path': 'fake path'
-
                 }
             })
             // create a fake image instance
@@ -275,7 +266,7 @@ describe('images controller', function() {
             }
             // stub and rewire cloudinaryUploader
             cloudinaryStub = sinon.stub().resolves(data)
-            add.__set__('cloudinaryUploader', cloudinaryStub);
+            SUT.__set__('cloudinaryUploader', cloudinaryStub);
             // stub the prototype to get to the .save() instance
             // https://stackoverflow.com/questions/28824519/stubbing-the-mongoose-save-method-on-a-model
             let saveData = {
@@ -287,37 +278,44 @@ describe('images controller', function() {
                 unlink: sinon.spy(),
                 readdirSync: sinon.spy()
             }
-            add.__set__('fs', fs)
+            SUT.__set__('fs', fs)
         })
         afterEach(function() {
             cloudinaryStub.resolves()
             Image.prototype.save.restore();
             mock.restore()
         })
-        // console.log('rewire', rewire)
         it('redirects and flashes when req does not contain a file object', function() {
             // set file to null
             newFakeReq.file = null
-            add.add(newFakeReq, fakeRes)
+            SUT.add(newFakeReq, fakeRes)
             // flash once
             sinon.assert.calledOnce(newFakeReq.flash)
             sinon.assert.calledOnce(fakeRes.redirect)
         })
         it('redirects and flashes if attacment is not an image type', function() {
             newFakeReq.file.mimetype = 'blahblah'
-            add.add(newFakeReq, fakeRes)
+            SUT.add(newFakeReq, fakeRes)
             sinon.assert.calledOnce(newFakeReq.flash)
             sinon.assert.calledOnce(fakeRes.redirect)
         })
         it('calls the cloudinaryUploaer', function() {
-            add.add(newFakeReq, fakeRes)
+            SUT.add(newFakeReq, fakeRes)
             sinon.assert.calledOnce(cloudinaryStub)
         })
         // wrap in timer since .save() takes time to fire
         it('calls db.save()', function(done) {
-            add.add(newFakeReq, fakeRes)
+            SUT.add(newFakeReq, fakeRes)
             setTimeout(function() {
                 sinon.assert.calledOnce(imageStub)
+                done();
+            }, 0);
+        })
+        it('calls flash and redirect after saving', function(done) {
+            SUT.add(newFakeReq, fakeRes)
+            setTimeout(function() {
+                sinon.assert.calledOnce(newFakeReq.flash)
+                sinon.assert.calledOnce(fakeRes.redirect)
                 done();
             }, 0);
         })

@@ -29,7 +29,7 @@ module.exports = {
     resize: resize,
     imageFormat: imageFormat,
     showImage: showImage,
-     add: add,
+    add: add,
     addFile: addFile,
     setImageQuality: setImageQuality,
     replaceUrlExt: replaceUrlExt
