@@ -276,19 +276,22 @@ describe('images controller', function() {
             // stub and rewire cloudinaryUploader
             cloudinaryStub = sinon.stub().resolves(data)
             add.__set__('cloudinaryUploader', cloudinaryStub);
-            // stub save() as instace of above fake image
-            imageStub = sinon.stub()
-            add.__set__('save', imageStub)
+            // stub the prototype to get to the .save() instance
+            // https://stackoverflow.com/questions/28824519/stubbing-the-mongoose-save-method-on-a-model
+            let saveData = {
+                public_id: data.public_id,
+                secure_url_: data.sercure_url
+            }
+            imageStub = sinon.stub(Image.prototype, 'save').resolves(saveData)
             fs = {
                 unlink: sinon.spy(),
                 readdirSync: sinon.spy()
             }
             add.__set__('fs', fs)
-            // console.log(fs)
         })
         afterEach(function() {
             cloudinaryStub.resolves()
-            imageStub.resolves()
+            Image.prototype.save.restore();
             mock.restore()
         })
         // console.log('rewire', rewire)
@@ -300,19 +303,23 @@ describe('images controller', function() {
             sinon.assert.calledOnce(newFakeReq.flash)
             sinon.assert.calledOnce(fakeRes.redirect)
         })
-        it('redirects and flashes if attacment is not an image type', function(){
+        it('redirects and flashes if attacment is not an image type', function() {
             newFakeReq.file.mimetype = 'blahblah'
             add.add(newFakeReq, fakeRes)
             sinon.assert.calledOnce(newFakeReq.flash)
             sinon.assert.calledOnce(fakeRes.redirect)
         })
-        it('calls the cloudinaryUploaer', function(){
+        it('calls the cloudinaryUploaer', function() {
             add.add(newFakeReq, fakeRes)
             sinon.assert.calledOnce(cloudinaryStub)
         })
-        it.only('calls db.save()', function(){
+        // wrap in timer since .save() takes time to fire
+        it('calls db.save()', function(done) {
             add.add(newFakeReq, fakeRes)
-            // sinon.assert.calledOnce(imageStub)
+            setTimeout(function() {
+                sinon.assert.calledOnce(imageStub)
+                done();
+            }, 0);
         })
     })
 })
