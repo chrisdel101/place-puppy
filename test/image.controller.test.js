@@ -205,12 +205,12 @@ describe('images controller', function() {
             }).to.throw(TypeError, 'setImageQuality: quality setting is invalid. Must be high, good, eco, or low')
         })
     })
-    describe.only('add()', function() {
+    describe('add()', function() {
         // rewire add function
         let SUT = rewire('../logic/controllers/images.controller')
         let imageStub
         let cloudinaryStub
-        let newFakeReq
+        let fakeReq
         let image
         let data
         let fs
@@ -228,7 +228,7 @@ describe('images controller', function() {
             })
             fakeRes.redirect = sinon.spy()
             // mock req with req params
-            newFakeReq = mockRequest({
+            fakeReq = mockRequest({
                 file: {
                     name: 'image.png',
                     mimetype: 'image/png',
@@ -287,37 +287,57 @@ describe('images controller', function() {
         })
         it('redirects and flashes when req does not contain a file object', function() {
             // set file to null
-            newFakeReq.file = null
-            SUT.add(newFakeReq, fakeRes)
+            fakeReq.file = null
+            SUT.add(fakeReq, fakeRes)
             // flash once
-            sinon.assert.calledOnce(newFakeReq.flash)
+            sinon.assert.calledOnce(fakeReq.flash)
             sinon.assert.calledOnce(fakeRes.redirect)
         })
         it('redirects and flashes if attacment is not an image type', function() {
-            newFakeReq.file.mimetype = 'blahblah'
-            SUT.add(newFakeReq, fakeRes)
-            sinon.assert.calledOnce(newFakeReq.flash)
+            fakeReq.file.mimetype = 'blahblah'
+            SUT.add(fakeReq, fakeRes)
+            sinon.assert.calledOnce(fakeReq.flash)
             sinon.assert.calledOnce(fakeRes.redirect)
         })
         it('calls the cloudinaryUploaer', function() {
-            SUT.add(newFakeReq, fakeRes)
+            SUT.add(fakeReq, fakeRes)
             sinon.assert.calledOnce(cloudinaryStub)
         })
         // wrap in timer since .save() takes time to fire
         it('calls db.save()', function(done) {
-            SUT.add(newFakeReq, fakeRes)
+            SUT.add(fakeReq, fakeRes)
             setTimeout(function() {
                 sinon.assert.calledOnce(imageStub)
                 done();
             }, 0);
         })
         it('calls flash and redirect after saving', function(done) {
-            SUT.add(newFakeReq, fakeRes)
+            SUT.add(fakeReq, fakeRes)
             setTimeout(function() {
-                sinon.assert.calledOnce(newFakeReq.flash)
+                sinon.assert.calledOnce(fakeReq.flash)
                 sinon.assert.calledOnce(fakeRes.redirect)
                 done();
             }, 0);
+        })
+    })
+    describe.only('showImage()', function(){
+        let fakeReq
+        beforeEach(function(){
+            fakeReq = mockRequest({
+                protocol: 'https',
+                get: function(){
+                    return 'localhost:3000'
+                },
+                originalName: 'some-stuff'
+
+            })
+
+        })
+        afterEach(function(){
+
+        })
+        it('stuff', function(){
+
         })
     })
 })

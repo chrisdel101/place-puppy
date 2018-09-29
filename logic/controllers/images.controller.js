@@ -110,7 +110,6 @@ function add(req, res) {
 }
 function showImage(req, res, quality, format) {
     try {
-        // log('hello')
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
         // get pathname from url
         let pathName = url.parse(fullUrl)
