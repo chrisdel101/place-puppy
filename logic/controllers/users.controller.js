@@ -3,8 +3,8 @@ const bcrypt = require('bcrypt')
 const saltRounds = 10
 const async = require("async")
 const crypto = require('crypto')
-
-
+const nodemailer = require('nodemailer')
+// var mailgun = require("mailgun-js");
 
 module.exports = {
     compareStrs: (pw1, pw2) => {
@@ -24,7 +24,7 @@ module.exports = {
         }
         // check that both emails match
         // if don't match, kill
-        if(!module.exports.compareStrs(req.body.email, req.body['email-confirmation'])){
+        if (!module.exports.compareStrs(req.body.email, req.body['email-confirmation'])) {
             console.log('emails do not match')
             req.flash('info', 'emails do not match')
             res.redirect('register')
@@ -33,7 +33,7 @@ module.exports = {
         console.log('pw1', req.body.password)
         console.log('pw2', req.body['password-confirmation'])
         // check that both passwords match
-        if (!   module.exports.compareStrs(req.body.password, req.body['password-confirmation'])) {
+        if (!module.exports.compareStrs(req.body.password, req.body['password-confirmation'])) {
             console.log('passwords do not match')
             req.flash('info', 'passwords do not match')
             res.redirect('register')
@@ -145,15 +145,15 @@ module.exports = {
             },
             function(token, user, done) {
                 var smtpTransport = nodemailer.createTransport({
-                    service: 'Gmail',
+                    host: process.env.MAIL_SERVER,
                     auth: {
-                        user: 'learntocodeinfo@gmail.com',
-                        pass: process.env.GMAILPW
+                        user: process.env.MAIL_USERNAME,
+                        pass: process.env.MAIL_PASSWORD
                     }
                 });
                 var mailOptions = {
-                    to: user.email,
-                    from: 'learntocodeinfo@gmail.com',
+                    to: process.env.MAIL_TESTER,
+                    from: 'chris@place-puppy.com',
                     subject: 'Node.js Password Reset',
                     text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' + 'Please click on the following link, or paste this into your browser to complete the process:\n\n' + 'http://' + req.headers.host + '/reset/' + token + '\n\n' + 'If you did not request this, please ignore this email and your password will remain unchanged.\n'
                 };
@@ -238,27 +238,21 @@ module.exports = {
     },
     // forgot password
     forgotPasswordView: (req, res) => {
-        return res.render('reset', {
+        return res.render('forgot', {
             method: 'POST',
             action: '/forgot',
             enctype: 'application/x-www-form-urlencoded',
             // route name is used in template
             routeName: req.path,
-            field_one_for: 'username',
-            field_two_for: 'password',
+            field_one_for: 'email',
             field_one_id: 'usurname',
-            field_two_id: 'password',
             field_one_type: 'text',
-            field_two_type: 'password',
-            field_one_name: 'username',
-            field_two_name: 'password',
-            fieldOne: 'Username',
-            fieldTwo: 'Password',
-            field_one_placeholder: 'Enter Username',
-            field_two_placeholder: 'Enter Password',
+            field_one_name: 'email',
+            fieldOne: 'Enter Email',
+            field_one_placeholder: 'Enter email',
             button_type: 'submit',
             button_value: 'submit',
             buttonField: "Reset"
         })
-    },
+    }
 }
