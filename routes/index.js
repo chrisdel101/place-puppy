@@ -93,7 +93,7 @@ router.get('/register', usersController.registerDisplay)
 router.post('/register', usersController.register)
 router.get('/add', imageController.addFile)
 //  needs to match form val and name
-// router.post('/add', upload.single('file'), imageController.add)
+router.post('/add', upload.single('file'), imageController.add)
 //
 router.get('/images', imageController.showImages)
 

@@ -213,6 +213,7 @@ describe('images controller', function() {
         let newFakeReq
         let image
         let data
+        let fs
         beforeEach(function() {
             mock({
                 'path/to/fake/dir': {
@@ -276,25 +277,47 @@ describe('images controller', function() {
             cloudinaryStub = sinon.stub().resolves(data)
             add.__set__('cloudinaryUploader', cloudinaryStub);
             // stub save() as instace of above fake image
-            imageStub = sinon.stub().returns('HERJNEFOI')
+            imageStub = sinon.stub()
             add.__set__('save', imageStub)
+            fs = {
+                unlink: sinon.spy(),
+                readdirSync: sinon.spy()
+            }
+            add.__set__('fs', fs)
+            // console.log(fs)
         })
         afterEach(function() {
             cloudinaryStub.resolves()
             imageStub.resolves()
-            mock.restore() //
+            mock.restore()
         })
         // console.log('rewire', rewire)
-        it('return redirects when req does not contain a file object', function() {
+        it('redirects and flashes when req does not contain a file object', function() {
             // set file to null
             newFakeReq.file = null
-            let result = add.add(newFakeReq, fakeRes)
+            add.add(newFakeReq, fakeRes)
             // flash once
             sinon.assert.calledOnce(newFakeReq.flash)
             sinon.assert.calledOnce(fakeRes.redirect)
         })
+        it('redirects and flashes if attacment is not an image type', function(){
+            newFakeReq.file.mimetype = 'blahblah'
+            add.add(newFakeReq, fakeRes)
+            sinon.assert.calledOnce(newFakeReq.flash)
+            sinon.assert.calledOnce(fakeRes.redirect)
+        })
+        it('calls the cloudinaryUploaer', function(){
+            add.add(newFakeReq, fakeRes)
+            sinon.assert.calledOnce(cloudinaryStub)
+        })
+        it.only('calls db.save()', function(){
+            add.add(newFakeReq, fakeRes)
+            // sinon.assert.calledOnce(imageStub)
+        })
     })
 })
+// rwSUT.__set__('console', console)
+
 // let stub = sinon.stub(Image, 'find').resolves('Image goes here')
 // let req = mockRequest({
 //     session: {

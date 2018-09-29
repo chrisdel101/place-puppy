@@ -1,6 +1,6 @@
 const path = require('path')
 const mongoose = require('mongoose')
-    const Image = mongoose.models.Image || require('../models/image.model.js')
+const Image = mongoose.models.Image || require('../models/image.model.js')
 
 const url = require('url')
 const multer = require('multer')
@@ -17,7 +17,7 @@ const sharp = require('sharp')
 const fs = require('fs')
 const session = require('express-session')
 const cloudinary = require('cloudinary')
-const { cloudinaryUploader, extractDims } = require('../utils')
+const {cloudinaryUploader, extractDims} = require('../utils')
 const https = require('https')
 const Stream = require('stream').Transform
 const debug = require('debug')
@@ -25,16 +25,16 @@ const log = debug('image:log')
 const error = debug('image:error')
 
 module.exports = {
-    // showImages: showImages,
-    // resize: resize,
-    // imageFormat: imageFormat,
-    // showImage: showImage,
-    // // add: add,
-    // addFile: addFile,
-    // setImageQuality: setImageQuality,
-    // replaceUrlExt: replaceUrlExt
+    showImages: showImages,
+    resize: resize,
+    imageFormat: imageFormat,
+    showImage: showImage,
+     add: add,
+    addFile: addFile,
+    setImageQuality: setImageQuality,
+    replaceUrlExt: replaceUrlExt
 }
-module.exports.add = add
+// module.exports.add = add
 function add(req, res) {
     // console.log('req', req)
     // get file
@@ -57,7 +57,7 @@ function add(req, res) {
     // put image into cloudinary
     let promise = cloudinaryUploader(file.path)
     promise.then(data => {
-        console.log('data', data)
+        // console.log('data', data)
         // make image with data from cloudinary
         let image = new Image({
             id: data.public_id,
@@ -72,30 +72,37 @@ function add(req, res) {
             path: req.body['route-path']
         })
 
-        console.log('image : ' + image);
+        // console.log('image : ' + image);
         // console.log('base64' + String(image.data).substring(0, 50));
         // unlink form /uploads
-        try{
-            fs.unlink(file.path)
+        // try{
+        // console.log(fs.readdirSync('../logic'))
+        fs.unlink(file.path, function(err) {
+            if (err) {
+                // handle the error - like res.send with status 500 etc.
+                console.error('Unlink error', err)
+            }
             console.log('unlinked')
-        } catch(e) {
-            console.error('unlink error: An error occured', e)
-        }
+        });
+        // } catch(e) {
+        //     console.error('unlink error: An error occured', e)
+        // }
         // save to DB
-        try{
+        try {
             let promise = image.save()
-        } catch(e){
+            promise.then(image => {
+                console.log('SAVED', image)
+                req.flash('success', 'Image Saved')
+                res.redirect('add')
+                return 'saved'
+            }).catch(e => {
+                console.log(`image not saved, ${e}`)
+                req.flash('error', `Image not Saved: ${e}`);
+                res.redirect('add')
+            })
+        } catch (e) {
             console.log(e)
         }
-        promise.then(image => {
-            console.log('SAVED', image)
-            req.flash('success', 'Image Saved')
-            res.redirect('add')
-        }).catch(e => {
-            console.log(`image not saved, ${e}`)
-            req.flash('error', `Image not Saved: ${e}`);
-            res.redirect('add')
-        })
     }).catch(err => {
         console.error('An error occured', err)
         res.redirect('add')
@@ -103,7 +110,7 @@ function add(req, res) {
 }
 function showImage(req, res, quality, format) {
     try {
-            // log('hello')
+        // log('hello')
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
         // get pathname from url
         let pathName = url.parse(fullUrl)
@@ -234,12 +241,12 @@ function showImage(req, res, quality, format) {
             console.error("An error in the promise ending show", err)
             res.status(404).send(err)
         })
-    } catch(err) {
+    } catch (err) {
         console.error('A try/catch error occured', err)
     }
 }
 function setImageQuality(urlStr, quality) {
-    if(typeof urlStr !== 'string' || typeof quality !== 'string'){
+    if (typeof urlStr !== 'string' || typeof quality !== 'string') {
         throw TypeError('setImageQuality error: functions params must both be strings')
     }
     if (quality !== 'high' && quality !== 'good' && quality !== 'eco' && quality !== 'low') {
@@ -282,7 +289,7 @@ function showImages(req, res) {
     return promise.then(imgs => {
         // console.log(`imgs`, imgs)
         // res.send(imgs)
-         res.render('images', {imgs: imgs})
+        res.render('images', {imgs: imgs})
     }).catch(err => {
         console.error(`An err occured: ${err}`)
     })
@@ -294,7 +301,7 @@ function resize(path, format, width, height) {
     let transform = sharp();
     let formats = ['jpg', 'png', 'jpeg', 'gif']
     if (format) {
-        if(formats.includes(format)){
+        if (formats.includes(format)) {
             transform = transform.toFormat(format);
         } else {
             throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
@@ -302,10 +309,10 @@ function resize(path, format, width, height) {
     }
 
     if (width || height) {
-        if(typeof width === 'number' && typeof height === 'number'){
+        if (typeof width === 'number' && typeof height === 'number') {
             transform = transform.resize(width, height)
         } else {
-                throw TypeError('resize error: Width or height must be of type number.')
+            throw TypeError('resize error: Width or height must be of type number.')
         }
     }
     return readStream.pipe(transform);
@@ -323,7 +330,7 @@ function imageFormat(imgSrc) {
         return 'jpg'
     } else if (imgSrc.includes('png')) {
         return 'png'
-    } else if (imgSrc.includes('gif')){
+    } else if (imgSrc.includes('gif')) {
         return 'gif'
     } else {
         return 'jpg'
