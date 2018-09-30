@@ -6,21 +6,21 @@ const cookieParser = require('cookie-parser')
 
 module.exports = {
     login: (req, res) => {
-        let username = req.body.username
+        let email = req.body.email
         let password = req.body.password
-        console.log('username', username)
+        console.log('email', email)
         console.log('password', password)
 
-        if (req.body.username.length === 0 || req.body.password.length === 0) {
-            console.log('Username or password cannot be blank')
-            req.flash('info', 'Username or password cannot be blank')
+        if (req.body.email.length === 0 || req.body.password.length === 0) {
+            console.log('Email or password cannot be blank')
+            req.flash('info', 'Email or password cannot be blank')
             res.redirect('register')
             return
         }
-        // Look up username - get ID
+        // Look up email - get ID
         User.find({
-            username: String(username)
-        }, 'username', (err, userArr) => {
+            email: String(email)
+        }, 'email', (err, userArr) => {
             if (err)
                 console.error(err)
                 // console.log(Array.isArray(userArr))
@@ -30,8 +30,8 @@ module.exports = {
                 return
             }
             if (userArr.length <= 0) {
-                console.log('username does not exist')
-                req.flash('info', 'Username does not exist')
+                console.log('email does not exist')
+                req.flash('info', 'Email does not exist')
                 res.redirect('login')
                 return
             }
@@ -57,12 +57,12 @@ module.exports = {
                         // console.log(req.session.user)
                         console.log('added to session')
                         req.flash('success', 'Login successfull')
-                        res.redirect('add')
+                        return res.redirect('add')
                     } else {
                         console.log('incorrect password')
                         // flash
                         req.flash('info', 'incorrect password')
-                        res.redirect('login')
+                        return res.redirect('login')
                     }
                 })
             })
@@ -75,17 +75,17 @@ module.exports = {
             enctype: 'application/x-www-form-urlencoded',
             // route name is used in template
             routeName: req.path,
-            field_one_for: 'username',
+            field_one_for: 'email',
             field_two_for: 'password',
-            field_one_obj: 'usurname',
+            field_one_obj: 'email',
             field_two_id: 'password',
             field_one_type: 'text',
             field_two_type: 'password',
-            field_one_name: 'username',
+            field_one_name: 'email',
             field_two_name: 'password',
-            fieldOne: 'Username',
+            fieldOne: 'Email',
             fieldTwo: 'Password',
-            field_one_placeholder: 'Enter Username',
+            field_one_placeholder: 'Enter Email',
             field_two_placeholder: 'Enter Password',
             button_type: 'submit',
             button_value: 'submit',

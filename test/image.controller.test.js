@@ -15,6 +15,19 @@ let rewiredAdd = rewire('../logic/controllers/images.controller').add
 const mongoose = require('mongoose')
 const cloudinary = require('cloudinary')
 const Image = mongoose.models.Image || require('../models/image.model.js')
+// create a fake image instance
+let fakeImage = image = new Image({
+    id: '1234',
+    filename: 'fake original file name',
+    title: 'fake title',
+    photographer: 'fake photographer',
+    description: 'fake desc',
+    locationTaken: 'fake location',
+    src: 'fake src',
+    alt: 'fake alt',
+    contentType: 'fake type',
+    path: '../tmp'
+})
 
 describe('images controller', function() {
     describe('replaceUrlExt()', function() {
@@ -211,7 +224,6 @@ describe('images controller', function() {
         let imageStub
         let cloudinaryStub
         let fakeReq
-        let image
         let data
         let fs
         beforeEach(function() {
@@ -246,19 +258,6 @@ describe('images controller', function() {
                     contentType: 'fake type',
                     'route-path': 'fake path'
                 }
-            })
-            // create a fake image instance
-            image = new Image({
-                id: '1234',
-                filename: 'fake original file name',
-                title: 'fake title',
-                photographer: 'fake photographer',
-                description: 'fake desc',
-                locationTaken: 'fake location',
-                src: 'fake src',
-                alt: 'fake alt',
-                contentType: 'fake type',
-                path: '../tmp'
             })
             data = {
                 public_id: 'fake data id',
@@ -311,6 +310,7 @@ describe('images controller', function() {
                 done();
             }, 0);
         })
+        // timer needed for these two
         it('calls flash and redirect after saving', function(done) {
             SUT.add(fakeReq, fakeRes)
             setTimeout(function() {
@@ -320,24 +320,31 @@ describe('images controller', function() {
             }, 0);
         })
     })
-    describe.only('showImage()', function(){
+    describe.only('showImage()', function() {
         let fakeReq
-        beforeEach(function(){
+        let fakeRes
+        beforeEach(function() {
             fakeReq = mockRequest({
                 protocol: 'https',
-                get: function(){
+                get: function() {
                     return 'localhost:3000'
                 },
-                originalName: 'some-stuff'
+                originalUrl: '/some-stuff'
 
             })
-
+            var mockFindOne = {
+                exec: sinon.spy()
+            }
+            fakeRes = mockResponse({type: 'image/png'})
+            let imageFind = sinon.stub(Image, 'findOne').resolves(fakeImage)
+            let imageCount = sinon.stub(Image, 'count').resolves(mockFindOne)
         })
-        afterEach(function(){
-
+        afterEach(function() {
+            Image.findOne.restore()
+            Image.count.restore()
         })
-        it('stuff', function(){
-
+        it('stuff', function() {
+            SUT.showImage(fakeReq, fakeRes, 'png', 'high')
         })
     })
 })

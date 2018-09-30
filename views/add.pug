@@ -5,13 +5,5 @@ block content
         .row 
             .col-md-6.col-md-offset-3
             h2.display-4.m-b-2 Add Image
-            - if(messages.success)
-                .message.success.alert.alert-success
-                    span= messages.success
-            - else if(messages.info)
-                .message.info.alert.alert-info
-                    span= messages.info
-            - else if(messages.error)
-                .message.error.alert.alert-danger
-                    span= messages.error
+            include _flashes.pug
             include _form.pug

@@ -25,6 +25,11 @@ console.log(process.env.npm_package_name)
 console.log(process.env.DEBUG)
 
 error('error')
+function date(){
+    return Date.parse(new Date())
+
+}
+console.log('date', date())
 // var randtoken = require('rand-token');
 // console.log('log', log)
 // console.log('error', error)

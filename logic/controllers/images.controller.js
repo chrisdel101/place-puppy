@@ -147,6 +147,7 @@ function showImage(req, res, quality, format) {
                 // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
                 // Get the count of all users
                 Image.count().exec(function(err, count) {
+                    console.log('inside')
                     if (err)
                         console.error(err)
                         // Get a random entry
@@ -337,10 +338,10 @@ function imageFormat(imgSrc) {
 }
 function addFile(req, res) {
     // no access without login
-    if (!req.session.user) {
-        console.error('Not signed in')
-        return res.status(401).send()
-    }
+    // if (!req.session.user) {
+    //     console.error('Not signed in')
+    //     return res.status(401).send()
+    // }
     return res.render('add', {
         method: 'POST',
         action: '/add',

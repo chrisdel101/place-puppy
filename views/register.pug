@@ -5,13 +5,5 @@ block content
     div.register-container
         div.col-md-6.col-md-offset-3  
         h2.display-4.m-b-2 Register
-        - if(messages.success)
-            div.message.success.alert.alert-success
-                span= messages.success
-        - else if(messages.info)
-            div.message.info.alert.alert-info
-                span= messages.info
-        - else if(messages.error)
-            div.message.error.alert.alert-danger
-                span= messages.error
+        include _flashes.pug
         include _form.pug
