@@ -41,12 +41,14 @@ a {
 .index-container {
     display: grid;
     /* min-max on each col is repsponsive */
-    grid-template-columns: repeat(1, 200px) repeat(2, 150px);
-    grid-template-rows: repeat(4, 143px);
+    grid-template-columns: 200px 200px 100px 100px 100px 100px;
+    grid-template-rows: repeat(4, 135px);
     /* grid-template-columns: 100px repeat(2, 1fr auto) 200px repeat(2, 1fr);
     grid-template-columns: repeat(5, 1fr); */
     /* border: 10px solid goldenrod; */
     grid-gap: 10px;
+    width: 900px;
+    margin: auto;
 }
 
 
@@ -74,7 +76,8 @@ a {
 .puppy-box {
     /* display: flex;
     justify-content: center; */
-    /* background-color: #F5F5F5; */
+    background-color: #00B7FF;
+    /* max-width: 300px; */
 }
 
 .puppy-box:nth-child(1) {
