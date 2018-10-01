@@ -3,3 +3,5 @@ node_modules
 /dist
 /uploads
 /public/dev-images
+/public/dev-images
+/public/public-images/index-page-quads
