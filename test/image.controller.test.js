@@ -323,28 +323,33 @@ describe('images controller', function() {
     describe.only('showImage()', function() {
         let fakeReq
         let fakeRes
+        let findOneResult
         beforeEach(function() {
             fakeReq = mockRequest({
                 protocol: 'https',
                 get: function() {
                     return 'localhost:3000'
                 },
-                originalUrl: '/some-stuff'
+                originalUrl: '/100x100'
 
             })
-            var mockFindOne = {
-                exec: sinon.spy()
+            findOneResult = {
+                exec: sinon.stub().resolves(fakeImage)
             }
+            let imageFind = sinon.stub(Image, 'findOne')
+            Image.findOne.returns(findOneResult)
+            imageFind.returns(findOneResult)
             fakeRes = mockResponse({type: 'image/png'})
-            let imageFind = sinon.stub(Image, 'findOne').resolves(fakeImage)
-            let imageCount = sinon.stub(Image, 'count').resolves(mockFindOne)
+
+            // let imageCount = sinon.stub(Image, 'count').resolves(mockFindOne)
         })
         afterEach(function() {
             Image.findOne.restore()
-            Image.count.restore()
+            // Image.count.restore()
         })
         it('stuff', function() {
             SUT.showImage(fakeReq, fakeRes, 'png', 'high')
+
         })
     })
 })
