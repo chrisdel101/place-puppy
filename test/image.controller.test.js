@@ -15,6 +15,7 @@ let rewiredAdd = rewire('../logic/controllers/images.controller').add
 const mongoose = require('mongoose')
 const cloudinary = require('cloudinary')
 const Image = mongoose.models.Image || require('../models/image.model.js')
+const nock = require('nock')
 // create a fake image instance
 let fakeImage = image = new Image({
     id: '1234',
@@ -23,9 +24,9 @@ let fakeImage = image = new Image({
     photographer: 'fake photographer',
     description: 'fake desc',
     locationTaken: 'fake location',
-    src: 'fake src',
+    src: 'https://fake-src.png',
     alt: 'fake alt',
-    contentType: 'fake type',
+    contentType: 'png',
     path: '../tmp'
 })
 
@@ -324,6 +325,7 @@ describe('images controller', function() {
         let fakeReq
         let fakeRes
         let findOneResult
+        let fakeCountResult
         beforeEach(function() {
             fakeReq = mockRequest({
                 protocol: 'https',
@@ -333,22 +335,29 @@ describe('images controller', function() {
                 originalUrl: '/100x100'
 
             })
+            fakeRes = mockResponse({
+                type: sinon.stub().returns('image/png')
+            })
+            fakeResponse = mockResponse({})
             findOneResult = {
                 exec: sinon.stub().resolves(fakeImage)
             }
             let imageFind = sinon.stub(Image, 'findOne')
-            Image.findOne.returns(findOneResult)
             imageFind.returns(findOneResult)
-            fakeRes = mockResponse({type: 'image/png'})
-
-            // let imageCount = sinon.stub(Image, 'count').resolves(mockFindOne)
+            fakeCountResult = {
+                exec: sinon.stub().returns(1000)
+            }
+            let imageCount = sinon.stub(Image, 'count').returns(fakeCountResult)
+            var cloudCall = nock('https://fake-src.png')
+            .get('/image1')
+            .reply(200, fakeResponse);
         })
         afterEach(function() {
             Image.findOne.restore()
-            // Image.count.restore()
+            Image.count.restore()
         })
         it('stuff', function() {
-            SUT.showImage(fakeReq, fakeRes, 'png', 'high')
+            SUT.showImage(fakeReq, fakeRes, '', 'high')
 
         })
     })

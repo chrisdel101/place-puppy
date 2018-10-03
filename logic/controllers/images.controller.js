@@ -147,7 +147,6 @@ function showImage(req, res, quality, format) {
                 // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
                 // Get the count of all users
                 Image.count().exec(function(err, count) {
-                    console.log('inside')
                     if (err)
                         console.error(err)
                         // Get a random entry
@@ -196,7 +195,7 @@ function showImage(req, res, quality, format) {
             res.type(`image/${format || 'jpg'}`);
             // call url from cloudinary
             https.get(img.src, (response) => {
-                console.log('make http call')
+                // console.log('make http call', response)
                 if (response.statusCode === 200) {
                     console.log('status of url call', response.statusCode)
                     var data = new Stream();
