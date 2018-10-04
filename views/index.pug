@@ -5,7 +5,14 @@ block content
         div.puppy-container
             div.puppy-box
                 h1= title
-                p A quick and simple service for getting pictures of kittens for use as placeholders in your designs or code. Just put your image size (width & height) after our URL and you'll get a placeholder.
+                p <strong>A quick and simple service for getting pictures of kittens for use as placeholders in your designs or code.</strong> Just put your image size (width & height) after our URL and you'll get a placeholder.
+                div.links
+                    div(style={color:'white'}) Like this: &nbsp 
+                        a http://place-puppy.com/200x200 #[br]
+                        | jpg or png: &nbsp 
+                        a http://place-puppy.com/g/200x200?f=png #[br]  
+                        | [ high, good, eco, low ] 
+                        a http://place-puppy.com/g/200x200?q=high
             include _flashes
             each imgObj in imgObjs
                 div.puppy-box

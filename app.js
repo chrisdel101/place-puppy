@@ -11,7 +11,6 @@ const multer = require('multer')
 var upload = multer({dest: 'uploads/'})
 var flash = require('express-flash')
 var session = require('express-session')
-var helpers = require('./helpers')
 
 const debug = require('debug')
 
@@ -83,14 +82,7 @@ app.use(session({
 
 }));
 app.use(flash());
-// pass variables to our templates + all requests
-app.use((req, res, next) => {
-  res.locals.h = helpers;
-  // res.locals.flashes = req.flash();
-  res.locals.user = req.user || null;
-  res.locals.currentPath = req.path;
-  next();
-});
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 // app.use(upload())
