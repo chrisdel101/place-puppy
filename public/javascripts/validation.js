@@ -44,3 +44,5 @@
 //         passwordInput.setCustomValidity('')
 //     }
 // }
+
+console.log('hello')
