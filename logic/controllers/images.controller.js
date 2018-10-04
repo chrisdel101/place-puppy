@@ -19,14 +19,15 @@ const session = require('express-session')
 const cloudinary = require('cloudinary')
 const {cloudinaryUploader, extractDims} = require('../utils')
 const https = require('https')
-const Stream = require('stream').Transform
+const streamTransform = require('stream').Transform
+const Stream = require('stream')
 const debug = require('debug')
 const log = debug('image:log')
 const error = debug('image:error')
 
 module.exports = {
     showImages: showImages,
-    resize: resize,
+    // resize: resize,
     imageFormat: imageFormat,
     showImage: showImage,
     add: add,
@@ -108,6 +109,12 @@ function add(req, res) {
         res.redirect('add')
     })
 }
+function cacheImage(){
+    // caceh image on every call
+    // keep three calls in mem
+    // if route matches previous route use cache
+    // else add new cache to list
+    }
 function showImage(req, res, quality, format) {
     try {
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
@@ -139,7 +146,7 @@ function showImage(req, res, quality, format) {
             '700x700'
         ]
         let promise = new Promise((resolve, reject) => {
-            // if one of the preset, send this
+            // if one of the preset images, send this
             if (preSets.includes(pathName)) {
                 resolve(Image.findOne({path: pathName}).exec())
             } else {
@@ -167,14 +174,13 @@ function showImage(req, res, quality, format) {
             console.log('img', img)
 
             let format = imageFormat(img.contentType)
-            format = 'png'
             let dims = extractDims(pathName)
             //
             let width = parseInt(dims.width)
             let height = parseInt(dims.height)
             if (!width || !height) {
                 console.log('width or height is null')
-                return
+                throw TypeError('Width or height is null in showImage()')
             }
             // if format in query, change img type
             if (format) {
@@ -189,48 +195,28 @@ function showImage(req, res, quality, format) {
                 img.src = newSrc
                 console.log('Quality src', img.src)
             }
-
-            // let src = `${__dirname}/JPEG_example_JPG_RIP_100.jpeg`
-
+            // set type
             res.type(`image/${format || 'jpg'}`);
             // call url from cloudinary
             https.get(img.src, (response) => {
-                // console.log('make http call', response)
+                // check server okay
                 if (response.statusCode === 200) {
                     console.log('status of url call', response.statusCode)
-                    var data = new Stream();
+                    // make data stream
+                    var data = new streamTransform();
                     response.on('data', (chunk) => {
                         data.push(chunk);
                     })
                     response.on('end', () => {
                         // read data with.read()
                         data = data.read()
-                        // make file and wrap in promise
-                        fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
-                            if (err)
-                                throw err
-                            console.log('tmp image stored')
-
-                            return new Promise(function(resolve, reject) {
-                                fs.writeFile('./tmp/logo.jpg', data, 'binary', (err) => {
-                                    if (err)
-                                        reject(err);
-                                    else
-                                        resolve(data);
-                                    }
-                                );
-                                // resolve promise - resize and unlink
-                            }).then(data => {
-
-                                resize('./tmp/logo.jpg', format, width, height).pipe(res)
-                                // unlink from file
-                                fs.unlink('./tmp/logo.jpg');
-                                console.log('unlinked')
-                            }).catch(err => {
-                                console.error("An error in a promise show image", err)
-                                res.send('An Err', err)
-                            })
-                        });
+                        https://stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
+                        // Initiate the source
+                        var bufferStream = new Stream.PassThrough();
+                        // Write your buffer
+                        bufferStream.end(new Buffer(data));
+                        // pass to resize func and pipe to res
+                        resize(bufferStream, width, height, format ).pipe(res)
                     })
                 } else {
                     console.error(`An http error occured`, response.statusCode)
@@ -243,6 +229,21 @@ function showImage(req, res, quality, format) {
     } catch (err) {
         console.error('A try/catch error occured', err)
     }
+}
+function resize(stream, width, height, format){
+    let formats = ['jpg', 'png', 'jpeg', 'gif']
+    if (!formats.includes(format)) {
+        throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
+    }
+    if (typeof width !== 'number' || typeof height !== 'number') {
+        throw TypeError('resize error: Width or height must be of type number.')
+    }
+    var transformer = sharp()
+    .resize(width, height)
+    .on('info', function(info) {
+        console.log('Image height is ' + info.height);
+    });
+    return stream.pipe(transformer)
 }
 function setImageQuality(urlStr, quality) {
     if (typeof urlStr !== 'string' || typeof quality !== 'string') {
@@ -294,29 +295,6 @@ function showImages(req, res) {
     })
 }
 
-function resize(path, format, width, height) {
-    const readStream = fs.createReadStream(path)
-
-    let transform = sharp();
-    let formats = ['jpg', 'png', 'jpeg', 'gif']
-    if (format) {
-        if (formats.includes(format)) {
-            transform = transform.toFormat(format);
-        } else {
-            throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
-        }
-    }
-
-    if (width || height) {
-        if (typeof width === 'number' && typeof height === 'number') {
-            transform = transform.resize(width, height)
-        } else {
-            throw TypeError('resize error: Width or height must be of type number.')
-        }
-    }
-    return readStream.pipe(transform);
-
-}
 function imageFormat(imgSrc) {
     // convert to lower
     if (typeof imgSrc === 'string') {

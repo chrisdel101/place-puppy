@@ -349,7 +349,7 @@ describe('images controller', function() {
             }
             let imageCount = sinon.stub(Image, 'count').returns(fakeCountResult)
             var cloudCall = nock('https://fake-src.png')
-            .get('/image1')
+            .get('/')
             .reply(200, fakeResponse);
         })
         afterEach(function() {
