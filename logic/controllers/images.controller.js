@@ -73,21 +73,12 @@ function add(req, res) {
             path: req.body['route-path']
         })
 
-        // console.log('image : ' + image);
-        // console.log('base64' + String(image.data).substring(0, 50));
-        // unlink form /uploads
-        // try{
-        // console.log(fs.readdirSync('../logic'))
         fs.unlink(file.path, function(err) {
             if (err) {
-                // handle the error - like res.send with status 500 etc.
                 console.error('Unlink error', err)
             }
             console.log('unlinked')
         });
-        // } catch(e) {
-        //     console.error('unlink error: An error occured', e)
-        // }
         // save to DB
         try {
             let promise = image.save()
@@ -109,12 +100,51 @@ function add(req, res) {
         res.redirect('add')
     })
 }
-function cacheImage(){
-    // caceh image on every call
+let imgs = []
+let firstPath = true
+let currentPath
+let previousPath
+// true get from cache/ false get from server
+function getCache(pathname) {
+    // cache image on every call
     // keep three calls in mem
     // if route matches previous route use cache
     // else add new cache to list
+    if (firstPath) {
+        // set current to pathname on first go through
+        currentPath = pathname
+        firstPath = false
+        return false
+    } else {
+        // set previos to current pathname outer
+        previousPath = currentPath
+        // reset current to actual current
+        currentPath = pathname
+        return (currentPath !== previousPath)
+            ? false
+            : true
     }
+}
+// take image buff and push to arr
+function manageImageCache(pathname, buffer) {
+    let imgObj = {}
+    imgObj[pathname] = buffer
+    imgs.push(imgObj)
+    // if more than 3, shift one off
+    if (imgs.length > 3) {
+        imgs.shift
+    }
+    console.log('imgs', imgs)
+}
+function retreiveBufferIndex(pathname, arr) {
+    for (let i = 0; i < arr.length; i++) {
+        // console.log('KEYS', Object.keys(arr[i])[0])
+        // console.log('path', pathname)
+        if (Object.keys(arr[i])[0] === pathname)
+            return arr.indexOf(arr[i])
+    }
+    return -1
+}
 function showImage(req, res, quality, format) {
     try {
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
@@ -129,6 +159,23 @@ function showImage(req, res, quality, format) {
             pathName = pathName.slice(1, pathName.length)
         }
         console.log('pathname', pathName)
+        // console.log('get cache', getCache(pathName))
+        // if in cache call from cache
+        if (getCache(pathName)) {
+            let index = retreiveBufferIndex(pathName, imgs)
+            console.log('index', index)
+            let buffer = imgs[index][pathName]
+            console.log('buffer', buffer)
+
+            // Initiate the source
+            var bufferStream = new Stream.PassThrough();
+
+            // Write your buffer
+            bufferStream.end(new Buffer(buffer));
+
+            return bufferStream.pipe(res)
+            // return
+        }
 
         let preSets = [
             '100x100',
@@ -145,6 +192,7 @@ function showImage(req, res, quality, format) {
             '650x650',
             '700x700'
         ]
+
         let promise = new Promise((resolve, reject) => {
             // if one of the preset images, send this
             if (preSets.includes(pathName)) {
@@ -210,13 +258,17 @@ function showImage(req, res, quality, format) {
                     response.on('end', () => {
                         // read data with.read()
                         data = data.read()
-                        https://stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
+                        // push to cache
+                        https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
                         // Initiate the source
                         var bufferStream = new Stream.PassThrough();
                         // Write your buffer
                         bufferStream.end(new Buffer(data));
+
+                        manageImageCache(pathName, data)
+
                         // pass to resize func and pipe to res
-                        resize(bufferStream, width, height, format ).pipe(res)
+                        resize(bufferStream, width, height, format).pipe(res)
                     })
                 } else {
                     console.error(`An http error occured`, response.statusCode)
@@ -230,7 +282,7 @@ function showImage(req, res, quality, format) {
         console.error('A try/catch error occured', err)
     }
 }
-function resize(stream, width, height, format){
+function resize(stream, width, height, format) {
     let formats = ['jpg', 'png', 'jpeg', 'gif']
     if (!formats.includes(format)) {
         throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
@@ -238,9 +290,7 @@ function resize(stream, width, height, format){
     if (typeof width !== 'number' || typeof height !== 'number') {
         throw TypeError('resize error: Width or height must be of type number.')
     }
-    var transformer = sharp()
-    .resize(width, height)
-    .on('info', function(info) {
+    var transformer = sharp().resize(width, height).on('info', function(info) {
         console.log('Image height is ' + info.height);
     });
     return stream.pipe(transformer)
@@ -315,10 +365,10 @@ function imageFormat(imgSrc) {
 }
 function addFile(req, res) {
     // no access without login
-    // if (!req.session.user) {
-    //     console.error('Not signed in')
-    //     return res.status(401).send()
-    // }
+    if (!req.session.user) {
+        console.error('Not signed in')
+        return res.status(401).send()
+    }
     return res.render('add', {
         method: 'POST',
         action: '/add',

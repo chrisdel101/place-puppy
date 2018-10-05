@@ -48,6 +48,12 @@ a {
     font-family: monospace, sans-serif;
 }
 
+.amp {
+    font-style: italic;
+    line-height: 1%;
+    font-family: Baskerville, Palatino, "Book Antiqua", serif;
+}
+
 /* not visible- only for connecting js */
 .state-indicator {
     position: absolute;

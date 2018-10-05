@@ -4,7 +4,6 @@ const saltRounds = 10
 const async = require("async")
 const crypto = require('crypto')
 const nodemailer = require('nodemailer')
-// var mailgun = require("mailgun-js");
 
 module.exports = {
     compareStrs: (pw1, pw2) => {
@@ -28,8 +27,8 @@ module.exports = {
             req.flash('info', 'emails do not match')
             return res.redirect('register')
         }
-        console.log('pw1', req.body.password)
-        console.log('pw2', req.body['password-confirmation'])
+            console.log('pw1', req.body.password)
+            console.log('pw2', req.body['password-confirmation'])
         // check that both passwords match
         if (!module.exports.compareStrs(req.body.password, req.body['password-confirmation'])) {
             console.log('passwords do not match')

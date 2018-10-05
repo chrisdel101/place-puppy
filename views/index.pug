@@ -5,14 +5,17 @@ block content
         div.puppy-container
             div.puppy-box
                 h1= title
-                p <strong>A quick and simple service for getting pictures of kittens for use as placeholders in your designs or code.</strong> Just put your image size (width & height) after our URL and you'll get a placeholder.
+                p <strong>
+                | A quick and simple service for getting pictures of kittens for use as placeholders in your designs or code.</strong> Just put your image size (width 
+                span.amp & 
+                | height) after our URL and you'll get a placeholder.
                 div.links
                     div(style={color:'white'}) Like this: &nbsp 
-                        a http://place-puppy.com/200x200 #[br]
+                        a(href='http://place-puppy.com/200x200') http://place-puppy.com/200x200 #[br]
                         | jpg or png: &nbsp 
-                        a http://place-puppy.com/g/200x200?f=png #[br]  
+                        a(href='http://place-puppy.com/g/200x200?f=png') http://place-puppy.com/g/200x200?f=png #[br]  
                         | [ high, good, eco, low ] 
-                        a http://place-puppy.com/g/200x200?q=high
+                        a(href='http://place-puppy.com/g/200x200?q=high') http://place-puppy.com/g/200x200?q=high
             include _flashes
             each imgObj in imgObjs
                 div.puppy-box
@@ -24,20 +27,34 @@ block content
                         //- source(media=`(max-width:1099px)` srcset=`${imgObj.lg}`)
                         //- source(media=`(min-width:1100px)` srcset=`${imgObj.fs}`) 
                         img.image(src=`${imgObj.fs}` alt=`A dog`)
+            |
+    hr
+    footer.footer
+        div.inpspiration
+            p 
+            | Delivered by 
+            a(href='https://github.com/chrisdel101') Chris Del —  
+            | All images licensed via 
+            a(href='https://pixabay.com/en/service/terms/#usage') Creative Commons 0 
+            span.amp & 
+            a(href='https://www.pexels.com/photo-license/') Pexels License — 
+            | Inspired by 
+            a(href='http://placekitten.com') placekitten
 
-            //- div.puppy-box
-            //-     h2 3
-            //- div.puppy-box
-            //-     h2 4
-            //- div.puppy-box
-            //-     h2 5
-            //- div.puppy-box
-            //-     h2 6 
-            //- div.puppy-box
-            //-     h2 7 
-            //- div.puppy-box
-            //-     h2 8
-            //- div.puppy-box
-            //-     h2 9
-            //- div.puppy-box
-            //-     h2 10
+
+        //- div.puppy-box
+        //-     h2 3
+        //- div.puppy-box
+        //-     h2 4
+        //- div.puppy-box
+        //-     h2 5
+        //- div.puppy-box
+        //-     h2 6 
+        //- div.puppy-box
+        //-     h2 7 
+        //- div.puppy-box
+        //-     h2 8
+        //- div.puppy-box
+        //-     h2 9
+        //- div.puppy-box
+        //-     h2 10
