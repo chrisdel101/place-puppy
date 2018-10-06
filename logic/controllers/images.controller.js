@@ -101,40 +101,23 @@ function add(req, res) {
     })
 }
 let imgs = []
-let firstPath = true
-let currentPath
-let previousPath
-// true get from cache/ false get from server
-function getCache(pathname) {
-    // cache image on every call
-    // keep three calls in mem
-    // if route matches previous route use cache
-    // else add new cache to list
-    if (firstPath) {
-        // set current to pathname on first go through
-        currentPath = pathname
-        firstPath = false
-        return false
-    } else {
-        // set previos to current pathname outer
-        previousPath = currentPath
-        // reset current to actual current
-        currentPath = pathname
-        return (currentPath !== previousPath)
-            ? false
-            : true
-    }
+// checks if called route is in queue T or F
+function getCache(arr, pathname) {
+    // make arr of only keys
+    let paths = arr.map(key => {
+        return Object.keys(key)[0]
+    })
+    return paths.includes(pathname)
 }
 // take image buff and push to arr
 function manageImageCache(pathname, buffer) {
     let imgObj = {}
     imgObj[pathname] = buffer
     imgs.push(imgObj)
-    // if more than 3, shift one off
-    if (imgs.length > 3) {
-        imgs.shift
+    // if more than 4, shift one off
+    if (imgs.length > 4) {
+        imgs.shift()
     }
-    console.log('imgs', imgs)
 }
 function retreiveBufferIndex(pathname, arr) {
     for (let i = 0; i < arr.length; i++) {
@@ -159,22 +142,29 @@ function showImage(req, res, quality, format) {
             pathName = pathName.slice(1, pathName.length)
         }
         console.log('pathname', pathName)
-        // console.log('get cache', getCache(pathName))
-        // if in cache call from cache
-        if (getCache(pathName)) {
-            let index = retreiveBufferIndex(pathName, imgs)
-            console.log('index', index)
-            let buffer = imgs[index][pathName]
-            console.log('buffer', buffer)
 
+        let dims = extractDims(pathName)
+        //
+        let width = parseInt(dims.width)
+        let height = parseInt(dims.height)
+        if (!width || !height) {
+            console.log('width or height is null')
+            throw TypeError('Width or height is null in showImage()')
+        }
+        // if in cache call from cache
+        if (getCache(imgs, pathName)) {
+            let index = retreiveBufferIndex(pathName, imgs)
+            if(index < 0){
+                throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
+                return
+            }
+            let buffer = imgs[index][pathName]
             // Initiate the source
             var bufferStream = new Stream.PassThrough();
-
             // Write your buffer
             bufferStream.end(new Buffer(buffer));
-
-            return bufferStream.pipe(res)
-            // return
+            console.log('Serving from : cache')
+            return resize(bufferStream, width, height, format).pipe(res)
         }
 
         let preSets = [
@@ -222,15 +212,11 @@ function showImage(req, res, quality, format) {
             console.log('img', img)
 
             let format = imageFormat(img.contentType)
-            let dims = extractDims(pathName)
-            //
-            let width = parseInt(dims.width)
-            let height = parseInt(dims.height)
-            if (!width || !height) {
-                console.log('width or height is null')
-                throw TypeError('Width or height is null in showImage()')
+            if (!format) {
+                throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
             }
-            // if format in query, change img type
+
+            // if format change in query, change img type
             if (format) {
                 let newSrc = replaceUrlExt(img.src, format)
                 img.src = newSrc
@@ -266,7 +252,7 @@ function showImage(req, res, quality, format) {
                         bufferStream.end(new Buffer(data));
 
                         manageImageCache(pathName, data)
-
+                        console.log('serving from: cloud')
                         // pass to resize func and pipe to res
                         resize(bufferStream, width, height, format).pipe(res)
                     })
@@ -283,15 +269,11 @@ function showImage(req, res, quality, format) {
     }
 }
 function resize(stream, width, height, format) {
-    let formats = ['jpg', 'png', 'jpeg', 'gif']
-    if (!formats.includes(format)) {
-        throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
-    }
     if (typeof width !== 'number' || typeof height !== 'number') {
         throw TypeError('resize error: Width or height must be of type number.')
     }
     var transformer = sharp().resize(width, height).on('info', function(info) {
-        console.log('Image height is ' + info.height);
+        console.log('Inside resize: resize okay');
     });
     return stream.pipe(transformer)
 }
