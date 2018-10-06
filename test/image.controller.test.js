@@ -16,6 +16,7 @@ const mongoose = require('mongoose')
 const cloudinary = require('cloudinary')
 const Image = mongoose.models.Image || require('../models/image.model.js')
 const nock = require('nock')
+const Stream = require('stream')
 // create a fake image instance
 let fakeImage = image = new Image({
     id: '1234',
@@ -335,22 +336,27 @@ describe('images controller', function() {
                 originalUrl: '/100x100'
 
             })
-            fakeRes = mockResponse({
-                type: sinon.stub().returns('image/png')
+            fakeRes = mockResponse({type: sinon.stub().returns('image/png')})
+            fakeResponse = mockResponse({
+                stream: new Stream
             })
-            fakeResponse = mockResponse({})
             findOneResult = {
                 exec: sinon.stub().resolves(fakeImage)
             }
+            // stub Image find
             let imageFind = sinon.stub(Image, 'findOne')
             imageFind.returns(findOneResult)
+            // stub Image Count and exec
             fakeCountResult = {
                 exec: sinon.stub().returns(1000)
             }
             let imageCount = sinon.stub(Image, 'count').returns(fakeCountResult)
-            var cloudCall = nock('https://fake-src.png')
-            .get('/')
-            .reply(200, fakeResponse);
+            // make fake http call
+            var cloudCall = nock('https://fake-src.png').get('/').reply(200, fakeResponse)
+            const mockStream = new Stream.PassThrough();
+            sinon.spy(mockStream, 'pipe')
+            mockStream.push(mockResponse);
+            // mockStream.end(); //Mark that we pushed all the data.
         })
         afterEach(function() {
             Image.findOne.restore()

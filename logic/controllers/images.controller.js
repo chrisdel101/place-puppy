@@ -254,7 +254,7 @@ function showImage(req, res, quality, format) {
                         manageImageCache(pathName, data)
                         log('serving from: cloud')
                         // pass to resize func and pipe to res
-                        return resize(bufferStream, width, height, format).pipe(res)
+                        resize(bufferStream, width, height, format).pipe(res)
                     })
                 } else {
                     error(`An http error occured`, response.statusCode)
@@ -278,6 +278,7 @@ function resize(stream, width, height, format) {
     var transformer = sharp().resize(width, height).on('info', function(info) {
         log('Inside resize: resize okay')
     })
+    console.log('stream', stream.pipe(transformer))
     return stream.pipe(transformer)
 }
 function setImageQuality(urlStr, quality) {

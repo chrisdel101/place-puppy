@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "NODE_ENV=development nodemon ./bin/www",
-    "prod": "NODE_ENV=production nodemon ./bin/www",
+    "prod": "NODE_ENV=production DEBUG=app:* node ./bin/www",
     "test": "mocha",
     "test:watch": "mocha -w"
   },
