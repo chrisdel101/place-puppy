@@ -1,47 +1,49 @@
 const session = require('express-session')
 const MongoStore = require('connect-mongo')(session);
-
 const User = require("../models/user.model.js")
 const bcrypt = require('bcrypt')
 const saltRounds = 10
 const cookieParser = require('cookie-parser')
+const debug = require('debug')
+const log = debug('sessions:log')
+const error = debug('sessions:error')
 
 module.exports = {
     login: (req, res) => {
         let email = req.body.email
         let password = req.body.password
-        console.log('email', email)
-        console.log('password', password)
+        log('email', email)
 
         if (req.body.email.length === 0 || req.body.password.length === 0) {
-            console.log('Email or password cannot be blank')
+            error('Email or password cannot be blank')
             req.flash('info', 'Email or password cannot be blank')
-            res.redirect('register')
-            return
+            return res.redirect('register')
         }
         // Look up email - get ID
         User.find({
             email: String(email)
         }, 'email', (err, userArr) => {
-            if (err)
-                console.error(err)
-                // console.log(Array.isArray(userArr))
-            console.log(`userArr`, userArr)
+            if (err) {
+                error('An error occured', err)
+                req.flash('error', 'A database error occured')
+                return res.redirect('login')
+            }
+            log(`userArr`, userArr)
             if (!userArr) {
-                console.log('No user. Breaking out of func.')
-                return
+                error('No user. Breaking out of func.')
+                req.flash('error', 'An unknown error occured. Try reloading.')
+                res.redirect('login')
             }
             if (userArr.length <= 0) {
-                console.log('email does not exist')
+                error('email does not exist')
                 req.flash('info', 'Email does not exist')
-                res.redirect('login')
-                return
+                return res.redirect('login')
             }
             // make sure only one user by name
             if (userArr.length > 1) {
-                console.error('Multiple users detected. Cannnot open')
-                req.flash('error', 'A error occured')
-                res.redirect('login')
+                cerror('Multiple users detected. Cannnot open')
+                req.flash('error', 'There is an error with that username.')
+                return res.redirect('login')
             }
             // Use ID to lookup hash for PW
             let id = userArr[0].id
@@ -49,19 +51,16 @@ module.exports = {
                 _id: id
             }, (err, arr) => {
                 let obj = arr[0]
-                console.log(password)
-                console.log(obj.password)
                 bcrypt.compare(password, obj.password, function(err, response) {
                     if (response) {
-                        // console.log('res', response)
                         // add user to session
                         req.session.user = obj
-                        // console.log(req.session.user)
-                        console.log('added to session')
+                        log('added to session')
+                        log('user session', req.session.user)
                         req.flash('success', 'Login successfull')
                         return res.redirect('add')
                     } else {
-                        console.log('incorrect password')
+                        error('incorrect password')
                         // flash
                         req.flash('info', 'incorrect password')
                         return res.redirect('login')
@@ -71,7 +70,7 @@ module.exports = {
         })
     },
     loginDisplay: (req, res) => {
-        res.render('login', {
+        return res.render('login', {
             method: 'POST',
             action: '/login',
             enctype: 'application/x-www-form-urlencoded',
@@ -95,8 +94,8 @@ module.exports = {
         })
     },
     logoutDisplay: (req, res) => {
-        console.log(req.session.user)
-        res.render('logout', {
+        log('user session', req.session.user)
+        return res.render('logout', {
             method: 'POST',
             action: '/logout',
             button_type: 'submit',
@@ -105,8 +104,8 @@ module.exports = {
         })
     },
     logout: (req, res) => {
-        console.log(req.session.user)
+        log('user session', req.session.user)
         req.session.destroy()
-        res.redirect('/')
+        return res.redirect('/')
     }
 }
