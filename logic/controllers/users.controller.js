@@ -4,10 +4,10 @@ const saltRounds = 10
 const async = require('async')
 const crypto = require('crypto')
 const nodemailer = require('nodemailer')
+const {passwordVerify} = require('../utils')
 const debug = require('debug')
-const log = debug('users:log')
-const error = debug('users:error')
-
+const log = debug('app:log')
+const error = debug('app:error')
 
 module.exports = {
     // compare two string
@@ -38,9 +38,9 @@ module.exports = {
             req.flash('info', 'passwords do not match')
             return res.redirect('register')
         }
-        if(!module.exports.passwordVerify(req.body.password)){
+        if (!passwordVerify(req.body.password)) {
             error('Password too short. Must be at least 8 characters')
-            req.flash('info','Password is too short. Must be at least eight characters.')
+            req.flash('info', 'Password is too short. Must be at least eight characters.')
             return res.redirect('register')
         }
         // get hash from pw
@@ -48,19 +48,19 @@ module.exports = {
             log('hash', hash)
             // add user name and hash
             let user = new User({email: req.body.email, password: hash})
-            log('user', user)
+            log('user created', user)
             // lookup to see if username already exists
             User.find({
                 username: String(req.body.email).toLowerCase()
-            }, (err, userArr) => {
+            }, (err, users) => {
                 if (err) {
                     error('An error in finding occured.')
                     res.flash('error', 'An database error occured. Try again.')
                     return res.redirect('register')
-            }
-                log('user', user)
+                }
+                log('user found', user)
                 // if user exists
-                if (userArr.length > 0) {
+                if (users) {
                     log('That email already exists. Register with another')
                     req.flash('info', 'That email already exists. Register with another.')
                     // redirect to same page
@@ -82,7 +82,6 @@ module.exports = {
         }).catch(err => {
             error('There was an err in hashing', err)
         })
-
     },
     // render register template
     registerDisplay: (req, res) => {
@@ -125,32 +124,34 @@ module.exports = {
         async.waterfall([
             function(done) {
                 crypto.randomBytes(20, function(err, buf) {
-                    var token = buf.toString('hex');
+                    var token = buf.toString('hex')
                     log(`token created: ${token}`)
-                    done(err, token);
-                });
+                    done(err, token)
+                })
             },
             function(token, done) {
                 User.findOne({
                     email: req.body.email
                 }, function(err, user) {
-                    if(err) error(err)
+                    if (err)
+                        error(err)
                     log('email: ', req.body.email)
                     if (!user) {
                         error('No user with that email')
-                        req.flash('error', 'No account with that email address exists.');
-                        return res.redirect('forgot');
+                        req.flash('error', 'No account with that email address exists.')
+                        return res.redirect('forgot')
                     }
-                    user.resetPasswordToken = token;
-                    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+                    user.resetPasswordToken = token
+                    user.resetPasswordExpires = Date.now() + 3600000 // 1 hour
 
                     user.save(function(err) {
-                        if (err) error('An error occured in saving')
-                        done(err, token, user);
+                        if (err)
+                            error('An error occured in saving')
+                        done(err, token, user)
                         log('user token saved')
                         log('USER', user)
-                    });
-                });
+                    })
+                })
             },
             function(token, user, done) {
                 var smtpTransport = nodemailer.createTransport({
@@ -159,24 +160,24 @@ module.exports = {
                         user: process.env.MAIL_USERNAME,
                         pass: process.env.MAIL_PASSWORD
                     }
-                });
+                })
                 var mailOptions = {
                     to: req.body.email,
                     from: 'chris@place-puppy.com',
                     subject: 'Node.js Password Reset',
                     text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' + 'Please click on the following link, or paste this into your browser to complete the process:\n\n' + 'http://' + req.headers.host + '/reset/' + token + '\n\n' + 'If you did not request this, please ignore this email and your password will remain unchanged.\n'
-                };
+                }
                 smtpTransport.sendMail(mailOptions, function(err) {
-                    log('mail sent');
-                    req.flash('success', 'An e-mail has been sent to ' + user.email + ' with further instructions.');
-                    done(err, 'done');
-                });
+                    log('mail sent')
+                    req.flash('success', 'An e-mail has been sent to ' + user.email + ' with further instructions.')
+                    done(err, 'done')
+                })
             }
         ], function(err) {
             if (err)
-            next(err);
-            return res.redirect('forgot');
-        });
+                next(err)
+            return res.redirect('forgot')
+        })
     },
     // display user reset form
     pwTokenGet: (req, res) => {
@@ -189,8 +190,8 @@ module.exports = {
             log('USER', user)
             if (!user) {
                 error('Password reset token is invalid or has expired. Or a networking error occured.')
-                req.flash('error', 'Password reset token is invalid or has expired. Or a networking error occured.');
-                return res.redirect('forgot');
+                req.flash('error', 'Password reset token is invalid or has expired. Or a networking error occured.')
+                return res.redirect('forgot')
             }
             res.render('reset', {
                 method: 'POST',
@@ -215,8 +216,8 @@ module.exports = {
                 button_value: 'submit',
                 buttonField: 'Reset'
 
-            });
-        });
+            })
+        })
     },
     // post user PW reset
     pwTokenPost: (req, res) => {
@@ -230,17 +231,17 @@ module.exports = {
                 }, function(err, user) {
                     if (!user) {
                         error('Password reset token is invalid or has expired.')
-                        req.flash('error', 'Password reset token is invalid or has expired.');
-                        return res.redirect('back');
+                        req.flash('error', 'Password reset token is invalid or has expired.')
+                        return res.redirect('back')
                     }
                     if (req.body.password !== req.body['password-confirmation']) {
-                        req.flash('error', 'Passwords do not match.');
-                        return res.redirect('back');
+                        req.flash('error', 'Passwords do not match.')
+                        return res.redirect('back')
                     }
-                    if(!module.exports.passwordVerify){
+                    if (!passwordVerify(req.body.password)) {
                         error('Password is too short. Must be at least eight characters.')
                         req.flash('info', 'Password is too short. Must be at least eight characters.')
-                        return res.redirect('back');
+                        return res.redirect('back')
                     }
                     // create hash from pw
                     bcrypt.hash(req.body.password, saltRounds).then(function(hash) {
@@ -264,7 +265,7 @@ module.exports = {
                     }).catch(err => {
                         error('There was an err in hashing', err)
                     })
-                });
+                })
             },
             function(user, done) {
                 var smtpTransport = nodemailer.createTransport({
@@ -273,36 +274,24 @@ module.exports = {
                         user: process.env.MAIL_USERNAME,
                         pass: process.env.MAIL_PASSWORD
                     }
-                });
+                })
                 var mailOptions = {
                     to: req.body.email,
                     from: 'chris@place-puppy.com',
                     subject: 'Your password has been changed',
                     text: 'Hello,\n\n' + 'This is a confirmation that the password for your account ' + user.email + ' has just been changed.\n'
-                };
+                }
                 smtpTransport.sendMail(mailOptions, function(err) {
                     log('Password changed')
-                    req.flash('success', 'Success! Your password has been changed.');
-                    done(err);
-                });
+                    req.flash('success', 'Success! Your password has been changed.')
+                    done(err)
+                })
             }
         ], function(err) {
-            error('a waterfall error occured');
+            error('a waterfall error occured')
             res.flash('error', 'And error occured during reset.')
-            res.redirect('forgot');
-        });
-    },
-    // check password length
-    passwordVerify: (pw) => {
-        if(typeof pw !== 'string'){
-            error('verify: fire must be a string block')
-            return false
-        }
-        if(pw.length < 8){
-            error('verify: fire too short block')
-            return false
-        }
-        return true
+            res.redirect('forgot')
+        })
     },
     // forgot password view page
     forgotPasswordView: (req, res) => {

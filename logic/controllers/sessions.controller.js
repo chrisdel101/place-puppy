@@ -5,8 +5,8 @@ const bcrypt = require('bcrypt')
 const saltRounds = 10
 const cookieParser = require('cookie-parser')
 const debug = require('debug')
-const log = debug('sessions:log')
-const error = debug('sessions:error')
+const log = debug('app:log')
+const error = debug('app:error')
 
 module.exports = {
     login: (req, res) => {
@@ -41,7 +41,7 @@ module.exports = {
             }
             // make sure only one user by name
             if (userArr.length > 1) {
-                cerror('Multiple users detected. Cannnot open')
+                error('Multiple users detected. Cannnot open')
                 req.flash('error', 'There is an error with that username.')
                 return res.redirect('login')
             }

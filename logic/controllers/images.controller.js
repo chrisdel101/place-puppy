@@ -21,8 +21,8 @@ const https = require('https')
 const streamTransform = require('stream').Transform
 const Stream = require('stream')
 const debug = require('debug')
-const log = debug('image:log')
-const error = debug('image:error')
+const log = debug('app:log')
+const error = debug('app:error')
 
 module.exports = {
     showImages: showImages,
@@ -74,7 +74,7 @@ function add(req, res) {
                 error('Unlink error', err)
             }
             log('unlinked')
-        });
+        })
         // save to DB
         try {
             let promise = image.save()
@@ -85,17 +85,17 @@ function add(req, res) {
                 return 'saved'
             }).catch(e => {
                 error(`image not saved, ${e}`)
-                req.flash('error', `Image not Saved: ${e}`);
+                req.flash('error', `Image not Saved: ${e}`)
                 res.redirect('add')
             })
         } catch (e) {
             error('A catch error occured', e)
-            req.flash('error', `Image not Saved: ${e}`);
+            req.flash('error', `Image not Saved: ${e}`)
             res.redirect('add')
         }
     }).catch(err => {
         error('An error occured', err)
-        req.flash('error', `Image not Saved: ${e}`);
+        req.flash('error', `Image not Saved: ${e}`)
         res.redirect('add')
     })
 }
@@ -160,9 +160,9 @@ function showImage(req, res, quality, format) {
             }
             let buffer = imgs[index][pathName]
             // Initiate the source
-            var bufferStream = new Stream.PassThrough();
+            var bufferStream = new Stream.PassThrough()
             // Write your buffer
-            bufferStream.end(new Buffer(buffer));
+            bufferStream.end(new Buffer(buffer))
             log('Serving from : cache')
             return resize(bufferStream, width, height, format).pipe(res)
         }
@@ -230,16 +230,16 @@ function showImage(req, res, quality, format) {
                 log('Quality src', img.src)
             }
             // set type
-            res.type(`image/${format || 'jpg'}`);
+            res.type(`image/${format || 'jpg'}`)
             // call url from cloudinary
             https.get(img.src, (response) => {
                 // check server okay
                 if (response.statusCode === 200) {
                     log('status of url call', response.statusCode)
                     // make data stream
-                    var data = new streamTransform();
+                    var data = new streamTransform()
                     response.on('data', (chunk) => {
-                        data.push(chunk);
+                        data.push(chunk)
                     })
                     response.on('end', () => {
                         // read data with.read()
@@ -247,9 +247,9 @@ function showImage(req, res, quality, format) {
                         // push to cache
                         https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
                         // Initiate the source
-                        var bufferStream = new Stream.PassThrough();
+                        var bufferStream = new Stream.PassThrough()
                         // Write your buffer
-                        bufferStream.end(new Buffer(data));
+                        bufferStream.end(new Buffer(data))
                         // add and remove from cache
                         manageImageCache(pathName, data)
                         log('serving from: cloud')
@@ -276,8 +276,8 @@ function resize(stream, width, height, format) {
         throw TypeError('resize error: Width or height must be of type number.')
     }
     var transformer = sharp().resize(width, height).on('info', function(info) {
-        log('Inside resize: resize okay');
-    });
+        log('Inside resize: resize okay')
+    })
     return stream.pipe(transformer)
 }
 function setImageQuality(urlStr, quality) {

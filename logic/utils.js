@@ -4,6 +4,10 @@ const Image = mongoose.models.Image || require('../models/image.model.js')
 const fs = require('fs')
 const cloudinary = require('cloudinary')
 const url = require('url')
+const debug = require('debug')
+const log = debug('app:log')
+const error = debug('app:error')
+
 
 module.exports = {
     fullSeed: fullSeed,
@@ -12,7 +16,21 @@ module.exports = {
     filterImages: filterImages,
     cloudinaryUploader: cloudinaryUploader,
     extractDims: extractDims,
-    removeFwdSlash: removeFwdSlash
+    removeFwdSlash: removeFwdSlash,
+    passwordVerify: passwordVerify
+}
+
+// check password length
+function passwordVerify(pw) {
+    if(typeof pw !== 'string'){
+        error('verify: fire must be a string block')
+        return false
+    }
+    if(pw.length < 8){
+        error('verify: fire too short block')
+        return false
+    }
+    return true
 }
 function removeFwdSlash(str) {
     // 	check if starts with /
@@ -52,12 +70,12 @@ function extractDims(str) {
         let reverseUrl = Array.from(newUrl.pathname).reverse().join('')
         // extract digits -
         let height = reverseUrl.match(re3).join('')
-        console.log('he', height)
         // un-reverse back to normal
         height = Array.from(height).reverse().join('')
-        console.log(height)
         // remove /
         height = removeFwdSlash(height)
+        log('width', width)
+        log('height', height)
         return {width: width, height: height}
     } else {
         if (!str.match(re4)) {
@@ -69,8 +87,9 @@ function extractDims(str) {
         let reverseDim = Array.from(extractDim).reverse().join('')
         // extract up until x - then use join to str
         let height = reverseDim.match(re2).join('')
-        // console.log(height.join(''))
         height = Array.from(height).reverse().join('')
+        log('width', width)
+        log('height', height)
         return {width: width, height: height}
     }
     return undefined

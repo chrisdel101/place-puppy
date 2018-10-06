@@ -29,23 +29,23 @@ const imageSchema = new mongoose.Schema({
         type: Date,
         default: Date.now()
     }
-});
+})
 const imageModel = mongoose.model('Image', imageSchema)
 
 module.exports = imageModel
 
-var image = new imageModel();
+var image = new imageModel()
 image.save(function(error) {
-	assert.equal(error.errors['title'].message, 'Path `title` is required.');
+	assert.equal(error.errors['title'].message, 'Path `title` is required.')
 
-	error = image.validateSync();
-	assert.equal(error.errors['title'].message, 'Path `title` is required.');
-});
+	error = image.validateSync()
+	assert.equal(error.errors['title'].message, 'Path `title` is required.')
+})
 
-var image2 = new imageModel({title: 'hello'});
+var image2 = new imageModel({title: 'hello'})
 image2.save(function(error) {
-	assert.equal(error.errors['src'].message, 'Path `src` is required.');
+	assert.equal(error.errors['src'].message, 'Path `src` is required.')
 
-	error = image2.validateSync();
-	assert.equal(error.errors['src'].message, 'Path `src` is required.');
-});
+	error = image2.validateSync()
+	assert.equal(error.errors['src'].message, 'Path `src` is required.')
+})
