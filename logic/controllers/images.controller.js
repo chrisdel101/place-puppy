@@ -1,7 +1,6 @@
 const path = require('path')
 const mongoose = require('mongoose')
 const Image = mongoose.models.Image || require('../models/image.model.js')
-
 const url = require('url')
 const multer = require('multer')
 const storage = multer.diskStorage({
@@ -12,12 +11,12 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + file.originalname)
     }
 })
-const upload = multer({storage: storage})
+const upload = multer({ storage: storage })
 const sharp = require('sharp')
 const fs = require('fs')
 const session = require('express-session')
 const cloudinary = require('cloudinary')
-const {cloudinaryUploader, extractDims} = require('../utils')
+const { cloudinaryUploader, extractDims } = require('../utils')
 const https = require('https')
 const streamTransform = require('stream').Transform
 const Stream = require('stream')
@@ -27,7 +26,7 @@ const error = debug('image:error')
 
 module.exports = {
     showImages: showImages,
-    // resize: resize,
+    resize: resize,
     imageFormat: imageFormat,
     showImage: showImage,
     add: add,
@@ -35,30 +34,27 @@ module.exports = {
     setImageQuality: setImageQuality,
     replaceUrlExt: replaceUrlExt
 }
-// module.exports.add = add
 function add(req, res) {
-    // console.log('req', req)
     // get file
     let file = req.file
-    // console.log(req.file.path)
+    log('file pathname', req.file.path)
     // if no file, kill
     if (!file) {
+        error('No file attached')
         req.flash('info', 'No file attached')
-        res.redirect('add')
-        return
+        return res.redirect('add')
     }
-    console.log('file', file)
+    log('file', file)
     // if not image, kill
     if (file.mimetype !== 'image/png' && file.mimetype !== 'image/jpeg') {
-        console.log('File type is not an image')
+        error('File type is not an image')
         req.flash('info', 'File is not a image. Upload images only')
-        res.redirect('add')
-        return
+        return res.redirect('add')
     }
     // put image into cloudinary
     let promise = cloudinaryUploader(file.path)
     promise.then(data => {
-        // console.log('data', data)
+        log('cloudindary data', data)
         // make image with data from cloudinary
         let image = new Image({
             id: data.public_id,
@@ -75,28 +71,31 @@ function add(req, res) {
 
         fs.unlink(file.path, function(err) {
             if (err) {
-                console.error('Unlink error', err)
+                error('Unlink error', err)
             }
-            console.log('unlinked')
+            log('unlinked')
         });
         // save to DB
         try {
             let promise = image.save()
             promise.then(image => {
-                console.log('SAVED', image)
+                log('SAVED', image)
                 req.flash('success', 'Image Saved')
                 res.redirect('add')
                 return 'saved'
             }).catch(e => {
-                console.log(`image not saved, ${e}`)
+                error(`image not saved, ${e}`)
                 req.flash('error', `Image not Saved: ${e}`);
                 res.redirect('add')
             })
         } catch (e) {
-            console.log(e)
+            error('A catch error occured', e)
+            req.flash('error', `Image not Saved: ${e}`);
+            res.redirect('add')
         }
     }).catch(err => {
-        console.error('An error occured', err)
+        error('An error occured', err)
+        req.flash('error', `Image not Saved: ${e}`);
         res.redirect('add')
     })
 }
@@ -107,6 +106,7 @@ function getCache(arr, pathname) {
     let paths = arr.map(key => {
         return Object.keys(key)[0]
     })
+    log('cache Paths', paths)
     return paths.includes(pathname)
 }
 // take image buff and push to arr
@@ -117,12 +117,11 @@ function manageImageCache(pathname, buffer) {
     // if more than 4, shift one off
     if (imgs.length > 4) {
         imgs.shift()
+        log('shifting off cache array')
     }
 }
 function retreiveBufferIndex(pathname, arr) {
     for (let i = 0; i < arr.length; i++) {
-        // console.log('KEYS', Object.keys(arr[i])[0])
-        // console.log('path', pathname)
         if (Object.keys(arr[i])[0] === pathname)
             return arr.indexOf(arr[i])
     }
@@ -141,20 +140,21 @@ function showImage(req, res, quality, format) {
             // slice out forward slash
             pathName = pathName.slice(1, pathName.length)
         }
-        console.log('pathname', pathName)
+        log('pathname', pathName)
 
         let dims = extractDims(pathName)
         //
         let width = parseInt(dims.width)
         let height = parseInt(dims.height)
         if (!width || !height) {
-            console.log('width or height is null')
+            error('width or height is null')
             throw TypeError('Width or height is null in showImage()')
         }
         // CACHE - if in cache call from cache
         if (getCache(imgs, pathName)) {
             let index = retreiveBufferIndex(pathName, imgs)
             if(index < 0){
+                error('Error: Indexing of cache is less than zero. Illegal index.')
                 throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
                 return
             }
@@ -163,7 +163,7 @@ function showImage(req, res, quality, format) {
             var bufferStream = new Stream.PassThrough();
             // Write your buffer
             bufferStream.end(new Buffer(buffer));
-            console.log('Serving from : cache')
+            log('Serving from : cache')
             return resize(bufferStream, width, height, format).pipe(res)
         }
 
@@ -192,8 +192,8 @@ function showImage(req, res, quality, format) {
                 // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
                 // Get the count of all users
                 Image.count().exec(function(err, count) {
-                    if (err)
-                        console.error(err)
+                    if (err) error(err)
+                    req.flash('error', `A networking error occured: ${e}`)
                         // Get a random entry
                     var random = Math.floor(Math.random() * count)
                     resolve(Image.findOne().skip(random).exec())
@@ -205,29 +205,29 @@ function showImage(req, res, quality, format) {
         promise.then(img => {
             // check not null
             if (!img) {
-                console.log('This data does not exist')
-                res.send('Error. This data does not exist')
-                return
+                error('This data does not exist')
+                throw  ReferenceError('Error. Data does not exist. Try reloading and check URL for errors.')
             }
-            console.log('img', img)
+            log('img', img)
 
             let format = imageFormat(img.contentType)
             if (!format) {
                 throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
+
             }
 
             // if format change in query, change img type
             if (format) {
                 let newSrc = replaceUrlExt(img.src, format)
                 img.src = newSrc
-                console.log('Format src', img.src)
+                log('Foramting changed in Url. New format src:', img.src)
 
             }
             // get qualiy and set new str
             if (quality) {
                 let newSrc = setImageQuality(img.src, quality)
                 img.src = newSrc
-                console.log('Quality src', img.src)
+                log('Quality src', img.src)
             }
             // set type
             res.type(`image/${format || 'jpg'}`);
@@ -235,7 +235,7 @@ function showImage(req, res, quality, format) {
             https.get(img.src, (response) => {
                 // check server okay
                 if (response.statusCode === 200) {
-                    console.log('status of url call', response.statusCode)
+                    log('status of url call', response.statusCode)
                     // make data stream
                     var data = new streamTransform();
                     response.on('data', (chunk) => {
@@ -252,36 +252,41 @@ function showImage(req, res, quality, format) {
                         bufferStream.end(new Buffer(data));
                         // add and remove from cache
                         manageImageCache(pathName, data)
-                        console.log('serving from: cloud')
+                        log('serving from: cloud')
                         // pass to resize func and pipe to res
-                        resize(bufferStream, width, height, format).pipe(res)
+                        return resize(bufferStream, width, height, format).pipe(res)
                     })
                 } else {
-                    console.error(`An http error occured`, response.statusCode)
+                    error(`An http error occured`, response.statusCode)
+                    throw Error('error', 'A networking error occured. Try reloading and check URL for errors.')
                 }
             })
         }).catch(err => {
-            console.error("An error in the promise ending show", err)
+            error("An error in the promise ending show", err)
             res.status(404).send(err)
         })
     } catch (err) {
-        console.error('A try/catch error occured', err)
+        error('A try/catch error occured', err)
+        throw Error('error', 'An unknown error occured')
     }
 }
 function resize(stream, width, height, format) {
     if (typeof width !== 'number' || typeof height !== 'number') {
+        error('resize error: Width or height must be of type number.')
         throw TypeError('resize error: Width or height must be of type number.')
     }
     var transformer = sharp().resize(width, height).on('info', function(info) {
-        console.log('Inside resize: resize okay');
+        log('Inside resize: resize okay');
     });
     return stream.pipe(transformer)
 }
 function setImageQuality(urlStr, quality) {
     if (typeof urlStr !== 'string' || typeof quality !== 'string') {
+        error('setImageQuality error: functions params must both be strings')
         throw TypeError('setImageQuality error: functions params must both be strings')
     }
     if (quality !== 'high' && quality !== 'good' && quality !== 'eco' && quality !== 'low') {
+        error('setImageQuality: quality setting is invalid. Must be high, good, eco, or low')
         throw TypeError('setImageQuality: quality setting is invalid. Must be high, good, eco, or low')
     }
     // this should take 'upload'
@@ -314,16 +319,17 @@ function setImageQuality(urlStr, quality) {
 function showImages(req, res) {
     // LOGIN REQUIRED
     if (req.session.user === undefined) {
+        log('must be signed in to see this route. Visit /login.')
         return res.status(401).send('401')
     }
     let promise = Image.find({})
-    // console.log(promise)
     return promise.then(imgs => {
-        // console.log(`imgs`, imgs)
-        // res.send(imgs)
+        log(`imgs`, imgs)
         res.render('images', {imgs: imgs})
     }).catch(err => {
-        console.error(`An err occured: ${err}`)
+        error(`An err occured: ${err}`)
+        req.flash('error', 'An unknown catch error occured.')
+        return res.redirect('images')
     })
 }
 
@@ -332,6 +338,7 @@ function imageFormat(imgSrc) {
     if (typeof imgSrc === 'string') {
         imgSrc = imgSrc.toLowerCase()
     } else {
+        error('imageFormat error: imgSrc must be a string')
         throw TypeError('imageFormat error: imgSrc must be a string')
     }
 
@@ -348,7 +355,7 @@ function imageFormat(imgSrc) {
 function addFile(req, res) {
     // no access without login
     if (!req.session.user) {
-        console.error('Not signed in')
+        error('Cannot access route before login. Visit /login.')
         return res.status(401).send()
     }
     return res.render('add', {
@@ -398,10 +405,12 @@ function addFile(req, res) {
 }
 function replaceUrlExt(imgUrl, newExt) {
     if (newExt !== 'jpg' && newExt !== 'png' && newExt !== 'gif' && newExt !== 'jpeg') {
+        error('Extension is not valid to replace url. Only png, jpg, and gif.')
         throw new TypeError('Extension is not valid to replace url. Only png, jpg, and gif.')
     }
     if (!imgUrl.includes('jpg') && !imgUrl.includes('png') && !imgUrl.includes('gif') && !imgUrl.includes('jpeg')) {
-        throw TypeError("Url is not has not extension. Must be jpg, png, or gif.")
+        error('Url is not has not extension. Must be jpg, png, or gif.')
+        throw TypeError('Url is not has not extension. Must be jpg, png, or gif.')
     }
     let fileNoExt = imgUrl.split('.').slice(0, -1).join('.')
     return `${fileNoExt}.${newExt}`

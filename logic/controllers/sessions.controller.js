@@ -1,4 +1,6 @@
 const session = require('express-session')
+const MongoStore = require('connect-mongo')(session);
+
 const User = require("../models/user.model.js")
 const bcrypt = require('bcrypt')
 const saltRounds = 10

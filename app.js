@@ -1,33 +1,22 @@
 require('dotenv').config()
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-// var formidable = require('formidable');
-// const upload = require('express-fileupload')
+const express = require('express');
+const path = require('path');
+const favicon = require('serve-favicon');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const multer = require('multer')
-var upload = multer({dest: 'uploads/'})
-var flash = require('express-flash')
-var session = require('express-session')
+const upload = multer({dest: 'uploads/'})
+const flash = require('express-flash')
+const session = require('express-session')
 const MongoStore = require('connect-mongo')(session);
 
 
 const debug = require('debug')
-
 const log = debug('app:log')
 const error = debug('app:error')
-// log.log = console.log.bind(console);
-if(debug.enabled){
-    console.log('true')
-}
-log('hello')
-console.log(process.env.npm_package_name)
-console.log('ENV', process.env.NODE_ENV)
 
-
-
+log('ENV', process.env.NODE_ENV)
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -36,16 +25,12 @@ var app = express();
 
 // / MONGO
 var mongoose = require('mongoose')
-var mongoDB = process.env.DB_URI;
-
-// console.log(mongoDB)
-//
+var mongoDB = process.env.DB_URI;//
 mongoose.connect(mongoDB)
 
-
-console.log('db connected')
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error'));
+log('db connected')
 db.once('open', function() {
 	// we're connected!
 });
@@ -65,8 +50,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(cookieParser('secret'));
 app.use(session({
-	maxAge: 60000, secret: process.env.SECRET,
-	store: new MongoStore({ mongooseConnection: mongoose.connection}),
+	maxAge: 60000,
+    secret: process.env.SECRET,
+	store: new MongoStore({ mongooseConnection: db}),
 	resave: true,
 	saveUninitialized: true
 
@@ -86,7 +72,6 @@ app.use(function(req, res, next) {
 	err.status = 404;
 	next(err);
 });
-// app.use(express.static(__dirname + '/node_modules/bootstrap/dist'));
 
 // error handler
 app.use(function(err, req, res, next) {

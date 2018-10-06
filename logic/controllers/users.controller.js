@@ -177,13 +177,13 @@ module.exports = {
     pwTokenGet: (req, res) => {
         User.findOne({
             resetPasswordToken: req.params.token,
-            // resetPasswordExpires: {
-            //     $gt: Date.now()
-            // }
+            resetPasswordExpires: {
+                $gt: Date.now()
+            }
         }, function(err, user) {
             console.log('USER', user)
             if (!user) {
-                req.flash('error', 'Password reset token is invalid or has expired.');
+                req.flash('error', 'Password reset token is invalid or has expired. Or a networking error occured.');
                 return res.redirect('/forgot');
             }
             res.render('reset', {
