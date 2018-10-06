@@ -11,6 +11,8 @@ const multer = require('multer')
 var upload = multer({dest: 'uploads/'})
 var flash = require('express-flash')
 var session = require('express-session')
+const MongoStore = require('connect-mongo')(session);
+
 
 const debug = require('debug')
 
@@ -22,21 +24,9 @@ if(debug.enabled){
 }
 log('hello')
 console.log(process.env.npm_package_name)
-console.log(process.env.DEBUG)
+console.log('ENV', process.env.NODE_ENV)
 
-error('error')
-function date(){
-    return Date.parse(new Date())
 
-}
-console.log('date', date())
-// var randtoken = require('rand-token');
-// console.log('log', log)
-// console.log('error', error)
-// //
-//  Generate a 16 character alpha-numeric token:
-// var token = randtoken.generate(32);
-// console.log(token)
 
 
 var index = require('./routes/index');
@@ -51,7 +41,7 @@ var mongoDB = process.env.DB_URI;
 // console.log(mongoDB)
 //
 mongoose.connect(mongoDB)
-// mongoose.connect("mongodb://<arssonist>:<eleven11>@ds121262.mlab.com:21262/placepuppy")
+
 
 console.log('db connected')
 var db = mongoose.connection;
@@ -76,11 +66,12 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser('secret'));
 app.use(session({
 	maxAge: 60000, secret: process.env.SECRET,
-	// store: db,  connect-mongo session store,
+	store: new MongoStore({ mongooseConnection: mongoose.connection}),
 	resave: true,
 	saveUninitialized: true
 
 }));
+
 app.use(flash());
 
 

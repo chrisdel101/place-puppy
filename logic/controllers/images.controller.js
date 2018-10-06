@@ -151,7 +151,7 @@ function showImage(req, res, quality, format) {
             console.log('width or height is null')
             throw TypeError('Width or height is null in showImage()')
         }
-        // if in cache call from cache
+        // CACHE - if in cache call from cache
         if (getCache(imgs, pathName)) {
             let index = retreiveBufferIndex(pathName, imgs)
             if(index < 0){
@@ -250,7 +250,7 @@ function showImage(req, res, quality, format) {
                         var bufferStream = new Stream.PassThrough();
                         // Write your buffer
                         bufferStream.end(new Buffer(data));
-
+                        // add and remove from cache
                         manageImageCache(pathName, data)
                         console.log('serving from: cloud')
                         // pass to resize func and pipe to res
