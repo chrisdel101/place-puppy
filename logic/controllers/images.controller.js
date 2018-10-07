@@ -193,7 +193,7 @@ function showImage(req, res, quality, format) {
                 // Get the count of all users
                 Image.count().exec(function(err, count) {
                     if (err) error(err)
-                    req.flash('error', `A networking error occured: ${e}`)
+                    req.flash('error', `A networking error occured: ${err}`)
                         // Get a random entry
                     var random = Math.floor(Math.random() * count)
                     resolve(Image.findOne().skip(random).exec())

@@ -111,14 +111,15 @@ function fullSeed(req, res) {
     //          res.send(result)
     //     })
     // }
+    let ADDED_DIR = "./public/public-images/seeds"
     // add dir to seed
-    let files = fs.readdirSync("./public/dev-images/seeds-copy")
+    let files = fs.readdirSync(ADDED_DIR)
     // filter out ext not in arr
     files = filterImages([
         'jpg', 'png'
-    ], "./public/dev-images/seeds-copy")
+    ], ADDED_DIR)
     // add call add db with createPromises as an arg
-    return addToDb(createPromises(files, "./public/dev-images/seeds-copy"), req, res)
+    return addToDb(createPromises(files, ADDED_DIR), req, res)
 
 }
 // makes array of promises with image files to upload
@@ -158,8 +159,7 @@ function addToDb(promiseArr, req, res) {
                     description: 'A puppy',
                     src: img.secure_url,
                     alt: 'a puppy',
-                    contentType: img.format,
-                    path: 'NA'
+                    contentType: img.format
                 })
                 counter++
                 log('RESOLVING')
