@@ -37,7 +37,7 @@ module.exports = {
 function add(req, res) {
     // get file
     let file = req.file
-    log('file pathname', req.file.path)
+    if(file) log('file pathname', req.file.path)
     // if no file, kill
     if (!file) {
         error('No file attached')
@@ -233,8 +233,10 @@ function showImage(req, res, quality, format) {
             res.type(`image/${format || 'jpg'}`)
             // call url from cloudinary
             https.get(img.src, (response) => {
+                console.log('response', response)
                 // check server okay
                 if (response.statusCode === 200) {
+
                     log('status of url call', response.statusCode)
                     // make data stream
                     var data = new streamTransform()
@@ -254,6 +256,7 @@ function showImage(req, res, quality, format) {
                         manageImageCache(pathName, data)
                         log('serving from: cloud')
                         // pass to resize func and pipe to res
+
                         resize(bufferStream, width, height, format).pipe(res)
                     })
                 } else {
@@ -278,7 +281,7 @@ function resize(stream, width, height, format) {
     var transformer = sharp().resize(width, height).on('info', function(info) {
         log('Inside resize: resize okay')
     })
-    console.log('stream', stream.pipe(transformer))
+    // console.log('WHST', stream.pipe(transformer))
     return stream.pipe(transformer)
 }
 function setImageQuality(urlStr, quality) {
