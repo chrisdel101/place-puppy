@@ -8,7 +8,6 @@ const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
 
-
 module.exports = {
     fullSeed: fullSeed,
     createPromises: createPromises,
@@ -17,16 +16,17 @@ module.exports = {
     cloudinaryUploader: cloudinaryUploader,
     extractDims: extractDims,
     removeFwdSlash: removeFwdSlash,
-    passwordVerify: passwordVerify
+    passwordVerify: passwordVerify,
+    sessionCheck: sessionCheck
 }
 
 // check password length
 function passwordVerify(pw) {
-    if(typeof pw !== 'string'){
+    if (typeof pw !== 'string') {
         error('verify: fire must be a string block')
         return false
     }
-    if(pw.length < 8){
+    if (pw.length < 8) {
         error('verify: fire too short block')
         return false
     }
@@ -42,8 +42,8 @@ function removeFwdSlash(str) {
 }
 function extractDims(str) {
     if (typeof str !== 'string') {
-        let error = new TypeError('Incorrect input: Needs to be a string')
-        throw error
+        error('Incorrect input: Needs to be a string')
+        throw new TypeError('Incorrect input: Needs to be a string')
     }
     // all nums before x starting with / - to extract
     let re = /\/\d+(?=\x)/g
@@ -55,6 +55,7 @@ function extractDims(str) {
     let re4 = /([0-9]+[x][0-9]+)/
     // check if string is a Url
     if (isValidURL(str)) {
+        log('extractDims: is valid URL')
         let newUrl = url.parse(str)
         // check str has the 100x100 format
         if (!newUrl.pathname.match(re)) {
@@ -81,6 +82,8 @@ function extractDims(str) {
         if (!str.match(re4)) {
             throw TypeError('extractDims error: input does not contain dims i.e. 100x100 neeeded for extract')
         }
+        log('extractDims: is not valid URL but still extract')
+        // if not valid url follow, cannot parse out using url mod  above
         let extractDim = str.match(re4)[0]
         let width = extractDim.match(re2).join('')
         // reverse the dims
@@ -88,9 +91,12 @@ function extractDims(str) {
         // extract up until x - then use join to str
         let height = reverseDim.match(re2).join('')
         height = Array.from(height).reverse().join('')
-        log('width', width)
-        log('height', height)
-        return {width: width, height: height}
+        let obj = {
+            width: width,
+            height: height
+        }
+        log('width/height', obj)
+        return obj
     }
     return undefined
 }
@@ -103,85 +109,44 @@ function fullSeed(req, res) {
     //          res.send(result)
     //     })
     // }
-
-    // let files = fs.readdirSync("./public/public-images/single")
-
-    let files = filterImages([
+    // add dir to seed
+    let files = fs.readdirSync("./public/dev-images/seeds-copy")
+    // filter out ext not in arr
+    files = filterImages([
         'jpg', 'png'
-    ], "./public/public-images/single")
-
-    addToDb(createPromises(files, "./public/public-images/single"), req, res)
-    // let promises = files.map((file) => {
-    //     console.log('file', file)
-    //      let file = `adorable-animal-canine-163685.jpg`
-    //     let src = `./public/public-images/for-seeds/${file}`
-    //      add new image
-    //     let promise = cloudinaryUploader(src)
-    //      promise returned from cloudinary
-    //     console.log('promise', promise)
-    // promise.then(img => {
-    //     console.log('img', img)
-    //     publicImageId = img.public_id
-    //      add bucket src to Image
-    //     let image = new Image({
-    //         filename: file,
-    //         title: 'puppy image',
-    //         photographer: 'NA',
-    //         description: 'A seeded puppy',
-    //         src: img.secure_url,
-    //         contentType: img.format,
-    //         path: '400x400'
-    //     })
-    //      remove all dogs everytime
-    //     Image.remove({}, () => {
-    //         let promise = image.save()
-    //
-    //         promise.then(image => {
-    //             console.log('saved')
-    //              req.flash('success', 'Image Saved')
-    //              res.send('saved')
-    //         }).catch(e => {
-    //             console.log(`image not saved, ${e}`)
-    //             req.flash('error', `Image not Saved: ${e}`);
-    //             res.redirect('single-seed')
-    //         })
-    //     })
-    // }).catch(err => {
-    //     console.error('An error occured', err)
-    //     res.send('An error at the end of the promise')
-    // })
-
-    // })
-    // let allPromises = Promise.all(promises)
-    // allPromises.then((results) => {
-    //     console.log('all Promises', results)
-    // })
+    ], "./public/dev-images/seeds-copy")
+    // add call add db with createPromises as an arg
+    return addToDb(createPromises(files, "./public/dev-images/seeds-copy"), req, res)
 
 }
 // makes array of promises with image files to upload
 function createPromises(files, dir) {
-    let arr = []
-    files.forEach((file) => {
-        console.log('file', file)
-        // let file = `adorable-animal-canine-163685.jpg`
-        let src = `${dir}/${file}`
-        // add new image\\
-        let promise = imageController.cloudinaryUploader(src)
-        // console.log('push in cloudinaryUploader')
-        arr.push(promise)
-        // console.log(promise)
-    })
-    return arr
+    try {
+        let arr = []
+        files.forEach((file) => {
+            console.log('file', file)
+            // make str for file
+            let src = `${dir}/${file}`
+            // add new image to loader
+            let promise = cloudinaryUploader(src)
+            log('push in cloudinaryUploader')
+            arr.push(promise)
+        })
+        return arr
+    } catch (err) {
+        error('An error occured in seeding:', err)
+    }
+
 }
+// takes array of promises with req and res
 function addToDb(promiseArr, req, res) {
-    // create array of promises
+    // create array of promises with cloud strs
     let imgPromises = []
     promiseArr.forEach((promise, i) => {
         counter = 1
         imgPromises.push(new Promise((resolve, reject) => {
             promise.then(img => {
-                // console.log('index', i)
-                console.log('img', img.public_id)
+                log('img', img.public_id)
                 // add bucket src to Image
                 let image = new Image({
                     id: img.public_id,
@@ -195,10 +160,10 @@ function addToDb(promiseArr, req, res) {
                     path: 'NA'
                 })
                 counter++
-                console.log('RESOLVING')
+                log('RESOLVING')
                 resolve(image)
             }).catch(e => {
-                console.error(`An error occured: ${e}`)
+                error(`An error occured: ${e}`)
                 reject(`An error occured: ${e}`)
             })
         }))
@@ -207,60 +172,32 @@ function addToDb(promiseArr, req, res) {
     let finishPromises = []
     // loop over array of pending promises
     imgPromises.forEach((promise) => {
-        console.log('promise', promise)
+        log('promise', promise)
         finishPromises.push(new Promise((resolve, reject) => {
             promise.then(img => {
                 // imgs.forEach(img => {
-                console.log('img', img)
-                // Image.remove({}, () => {
-                // let promise = Image.findOne({path: pathName}).exec()
+                log('img', img)
+                // find each img in db
                 Image.find({id: img.id}).exec().then(check => {
                     // check make sure not already in db- double save
                     if (check.length <= 0) {
                         let result = img.save()
-
+                        // if success
                         result.then(image => {
-                            console.log(`saved: ${img.id}`)
+                            log(`saved: ${img.id}`)
                             resolve('saved to db')
-                            // req.flash('success', 'Image Saved')
-                            // res.send('saved')
                         }).catch(e => {
-                            console.error(`image not saved, ${e}`)
-                            // req.flash('error', `Image not Saved: ${e}`);
-                            // res.redirect('single-seed')
+                            error(`image not saved, ${e}`)
                             reject(`reject :Image not Saved: ${e}`)
                         })
                     } else {
-                        console.error('Not saved. This is already in the db.')
+                        error('Not saved. This is already in the db.')
                     }
                 })
 
             })
         }))
     })
-    // })
-    // Image.remove({}, () => {
-    // let result = image.save()
-    //
-    // result.then(image => {
-    //     console.log('saved')
-    //     counter++
-    //      req.flash('success', 'Image Saved')
-    //      res.send('saved')
-    // }).catch(e => {
-    //     console.log(`image not saved, ${e}`)
-    //      req.flash('error', `Image not Saved: ${e}`);
-    //      res.redirect('single-seed')
-    // })
-    // })
-    // }).catch(err => {
-    //     console.error('An error occured', err)
-    //     res.send('An error at the end of the promise')
-    // })
-    // })
-    // if(counter === promiseArr.length){
-    //     resolve('complete')
-    // }
     return Promise.all((finishPromises)).then((result) => {
         // req.flash('success', 'Image Saved')
         console.log('SAVED')
@@ -277,7 +214,6 @@ function filterImages(stubsArr, dir) {
             if (file.includes(stub)) {
                 result.push(file)
             }
-
         })
     })
     return result
@@ -286,12 +222,12 @@ function cloudinaryUploader(image) {
     return new Promise((resolve, reject) => {
         cloudinary.v2.uploader.upload(image, {
             timeout: 10000000
-        }, (error, result) => {
-            if (error) {
-                console.error('Error in the cloudinary loader', error)
+        }, (err, result) => {
+            if (err) {
+                error('Error in the cloudinary loader', err)
                 reject(error)
             } else {
-                console.log('result', result)
+                log('result', result)
                 resolve(result)
             }
         })
@@ -303,4 +239,12 @@ function isValidURL(str) {
     var urlRegex = '^(?!mailto:)(?:(?:http|https|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[0-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))|localhost)(?::\\d{2,5})?(?:(/|\\?|#)[^\\s]*)?$';
     var url = new RegExp(urlRegex, 'i');
     return str.length < 2083 && url.test(str);
+}
+
+function sessionCheck(req, res){
+    if (!req.session.user) {
+        error('Cannot access route before login. Visit /login.')
+        return res.status(401).send()
+    }
+    return true
 }

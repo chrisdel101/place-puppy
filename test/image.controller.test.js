@@ -78,7 +78,6 @@ describe('images controller', function() {
             rwSUT.__set__('error', error)
             let result = rwSUT.addFile(req, fakeRes)
             expect(error.callCount).to.equal(1)
-
         })
     })
     describe('imageFormat()', function() {
@@ -366,21 +365,3 @@ describe('images controller', function() {
         })
     })
 })
-// rwSUT.__set__('console', console)
-
-// let stub = sinon.stub(Image, 'find').resolves('Image goes here')
-// let req = mockRequest({
-//     session: {
-//         user: ''
-//     }
-// })
-// let console = {
-//     log: sinon.spy(),
-//     error: sinon.spy()
-// }
-// rwSUT.__set__('console', console)
-// let result = rwSUT.addFile(req, fakeRes)
-// expect(console.error.callCount).to.equal(1)
-//
-// })
-// })

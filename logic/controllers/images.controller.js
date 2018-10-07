@@ -16,7 +16,7 @@ const sharp = require('sharp')
 const fs = require('fs')
 const session = require('express-session')
 const cloudinary = require('cloudinary')
-const { cloudinaryUploader, extractDims } = require('../utils')
+const { cloudinaryUploader, extractDims, sessionCheck } = require('../utils')
 const https = require('https')
 const streamTransform = require('stream').Transform
 const Stream = require('stream')
@@ -358,10 +358,8 @@ function imageFormat(imgSrc) {
 }
 function addFile(req, res) {
     // no access without login
-    if (!req.session.user) {
-        error('Cannot access route before login. Visit /login.')
-        return res.status(401).send()
-    }
+    sessionCheck(req, res)
+
     return res.render('add', {
         method: 'POST',
         action: '/add',
