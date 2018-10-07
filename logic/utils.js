@@ -17,7 +17,9 @@ module.exports = {
     extractDims: extractDims,
     removeFwdSlash: removeFwdSlash,
     passwordVerify: passwordVerify,
-    sessionCheck: sessionCheck
+    sessionCheck: sessionCheck,
+    displayCloud: displayCloud,
+    singleSeed: singleSeed
 }
 
 // check password length
@@ -241,10 +243,71 @@ function isValidURL(str) {
     return str.length < 2083 && url.test(str);
 }
 
-function sessionCheck(req, res){
+function sessionCheck(req, res) {
     if (!req.session.user) {
-        error('Cannot access route before login. Visit /login.')
-        return res.status(401).send()
+        error('No access')
+        res.status(401).send()
+        return false
     }
     return true
+}
+function displayCloud(req, res) {
+    cloudinary.v2.api.resources({
+        type: 'upload'
+    }, (err, result) => {
+        if (err)
+            error(err)
+        log('API call okay')
+        return res.send(result)
+    })
+}
+// input public_id or url of src
+function deleteCloudResource(url, id) {
+    function caller(input){
+        cloudinary.v2.api.delete_resources([input], (err, result) => {
+            if (err) error(err)
+            log('deleted')
+            return res.send(result)
+        })
+    }
+    if (id) {
+        return caller(id)
+    } else if (url) {
+        return caller(url)
+    }
+    return undefined
+}
+function singleSeed(req, res, imgSrc){
+    // let promise = cloudinaryUploader(`${__dirname}/adorable-animal-breed-1108099.jpg`)
+    let promise = cloudinaryUploader(imgSrc)
+    promise.then(img => {
+        log('img', img)
+        publicImageId = img.public_id
+        // add bucket src to Image
+        let image = new Image({
+            id: '1234',
+            filename: 'Some file',
+            title: 'Single seeded puppy',
+            photographer: 'NA',
+            description: 'A seeded puppy',
+            src: img.secure_url,
+            contentType: 'image/jpg',
+            alt: 'alt tag'
+        })
+            let promise = image.save()
+
+            promise.then(image => {
+                log('saved')
+                res.send('saved')
+            }).catch(e => {
+                error(`image not saved, ${e}`)
+                res.send('An error occured', e)
+            })
+    }).catch(err => {
+        error('An error occured', err)
+        res.send('An error at the end of the promise', err)
+    })
+}
+function makeJson(){
+
 }

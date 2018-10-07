@@ -23,6 +23,7 @@ const imageSchema = new mongoose.Schema({
 	contentType: String,
     path: {
         type: String,
+        default: null
     },
     alt: String,
     created: {

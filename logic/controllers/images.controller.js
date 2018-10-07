@@ -322,10 +322,8 @@ function setImageQuality(urlStr, quality) {
 }
 function showImages(req, res) {
     // LOGIN REQUIRED
-    if (req.session.user === undefined) {
-        log('must be signed in to see this route. Visit /login.')
-        return res.status(401).send('401')
-    }
+    if(!sessionCheck(req, res)) return
+
     let promise = Image.find({})
     return promise.then(imgs => {
         log(`imgs`, imgs)
@@ -358,7 +356,8 @@ function imageFormat(imgSrc) {
 }
 function addFile(req, res) {
     // no access without login
-    sessionCheck(req, res)
+    if(!sessionCheck(req, res)) return
+
 
     return res.render('add', {
         method: 'POST',

@@ -11,102 +11,71 @@ const upload = multer({dest: 'uploads/'})
 const cloudinary = require('cloudinary')
 let publicImageId = ''
 const fs = require('fs')
-const { sessionCheck, fullSeed } = require('../logic/utils')
+const {sessionCheck, fullSeed, displayCloud, cloudinaryUploader, singleSeed} = require('../logic/utils')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
 const session = require('express-session')
 
+// show index
 router.get('/', indexController.showIndex)
+// show img- use middleware when returning img dims
 router.get('^/:dimensions([0-9]+[x][0-9]+)', imageMiddleware.qualityMiddleware, imageMiddleware.returnImageFormat, (req, res) => {
     imageController.showImage(req, res, req.quality, req.format)
 })
-
+// show forgot password
 router.get('/forgot', usersController.forgotPasswordView)
+// send email
 router.post('/forgot', usersController.forgotPassword)
+// send user token
 router.get('/reset/:token', usersController.pwTokenGet)
+// change user password
 router.post('/reset/:token', usersController.pwTokenPost)
 
-router.get('/see-db', function(req, res) {
-    console.log('image id', publicImageId)
-    if (publicImageId) {
-        cloudinary.v2.api.delete_resources([publicImageId], function(error, result) {
-            log('deleted')
-            res.send(result)
-        })
-    }
-    // cloudinary.v2.search.expression("_id: 5b9eb63e36ebee0dd9d22cc4").execute(function(error, result) {
-    //     console.log(result)
-    // })
+// see all data in cloud
+router.get('/see-cloud', (req, res) => {
+    if(!sessionCheck(req, res)) return
+    displayCloud(req, res)
 })
-router.get('/full-seed', fullSeed)
-
-// hit route to add a single image to db, and to cloudinary
+// build a forn for this one
+// router.get('delete-cloud-resource', (req, res) => {
+//     sessionCheck(req, res)
+//      take inputs
+//     deleteCloudResource()
+// })
+// seed the db
+router.get('/full-seed', (req, res) => {
+    if(!sessionCheck(req, res)) return
+    fullSeed(req, res)
+})
+// add a ingle sees
+// hit route to add a single image to db, and to cloudinary- needs a form too
 router.get('/single-seed', (req, res) => {
-    // delete previous from cloudinary
-    console.log('image id', publicImageId)
-    if (publicImageId) {
-        cloudinary.v2.api.delete_resources([publicImageId], function(error, result) {
-            log('deleted')
-            // res.send(result)
-        })
-    }
-    // add new image from this dir
-    let promise = imageController.cloudinaryUploader(`${__dirname}/IMG_8010--2--NS.jpg`)
-    promise.then(img => {
-        log('img', img)
-        publicImageId = img.public_id
-        // add bucket src to Image
-        let image = new Image({
-            filename: 'Some file',
-            title: 'Single seeded puppy',
-            photographer: 'NA',
-            description: 'A seeded puppy',
-            src: img.secure_url,
-            contentType: 'image/jpg',
-            path: '400x400'
-        })
-        // remove all dogs everytime
-        Image.remove({}, () => {
-            let promise = image.save()
-
-            promise.then(image => {
-                log('saved')
-                req.flash('success', 'Image Saved')
-                res.send('saved')
-            }).catch(e => {
-                log(`image not saved, ${e}`)
-                req.flash('error', `Image not Saved: ${e}`)
-                res.redirect('single-seed')
-            })
-        })
-    }).catch(err => {
-        error('An error occured', err)
-        res.send('An error at the end of the promise')
-    })
+    if(!sessionCheck(req, res)) return
+    let url = `${__dirname}/adorable-animal-breed-1108099.jpg`
+    singleSeed(req, res, url)
 })
-// admin routes
-
+// login
 router.get('/login', sessionsController.loginDisplay)
 router.post('/login', sessionsController.login)
-
+// logout
 router.get('/logout', sessionsController.logoutDisplay)
 router.post('/logout', sessionsController.logout)
-
+// register
 router.get('/register', usersController.registerDisplay)
 router.post('/register', usersController.register)
+// add image
 router.get('/add', imageController.addFile)
 //  needs to match form val and name -using middleware
 router.post('/add', upload.single('file'), imageController.add)
-//
+// show images
 router.get('/images', imageController.showImages)
-
 
 // routes for data manipulation
 // MAKE JSON
-router.get('make-json', (req,res) => {
-    // no access without login
-    sessionCheck(req, res)
+router.get('/make-json', (req, res) => {
+
+    if(!sessionCheck(req, res)) return
     let promise = Image.find({contentType: /(jpg|png)/}).exec()
     promise.then(puppies => {
         puppies = JSON.stringify(puppies)
@@ -119,9 +88,9 @@ router.get('make-json', (req,res) => {
     })
 })
 // INSERTJSON
-router.get('insert-json', (req, res) => {
+router.get('/insert-json', (req, res) => {
     // no access without login
-    sessionCheck(req, res)
+    if(!sessionCheck(req, res)) return
     let arr = require("../json/puppy.json")
     arr = JSON.parse(JSON.stringify(arr))
     console.log(arr)
@@ -132,9 +101,9 @@ router.get('insert-json', (req, res) => {
 
 })
 // DROP INDEXES
-router.get('/drop-indexes', (req,res) => {
+router.get('/drop-indexes', (req, res) => {
     // no access without login
-    sessionCheck(req, res)
+    if(!sessionCheck(req, res)) return
     Image.collection.dropAllIndexes((err, results) => {
         if (err)
             console.error(err)
@@ -143,9 +112,9 @@ router.get('/drop-indexes', (req,res) => {
 
 })
 // DELETE MANY
-router.get('/delete-many', (req,res) => {
+router.get('/delete-many', (req, res) => {
     // no access without login
-    sessionCheck(req, res)
+    if(!sessionCheck(req, res)) return
     Image.deleteMany({
         path: "NA"
     }, (err) => {
