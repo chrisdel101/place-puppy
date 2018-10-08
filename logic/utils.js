@@ -308,6 +308,3 @@ function singleSeed(req, res, imgSrc){
         res.send('An error at the end of the promise', err)
     })
 }
-function makeJson(){
-
-}

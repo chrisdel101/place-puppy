@@ -45,7 +45,7 @@ router.get('/see-cloud', (req, res) => {
 // })
 // seed the db
 router.get('/full-seed', (req, res) => {
-    // if(!sessionCheck(req, res)) return
+    if(!sessionCheck(req, res)) return
     fullSeed(req, res)
 })
 // add a ingle sees
@@ -114,7 +114,7 @@ router.get('/drop-indexes', (req, res) => {
 // DELETE MANY
 router.get('/delete-many', (req, res) => {
     // no access without login
-    // if(!sessionCheck(req, res)) return
+    if(!sessionCheck(req, res)) return
     Image.deleteMany({
         path: null
     }, (err) => {

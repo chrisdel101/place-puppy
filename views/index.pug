@@ -2,6 +2,7 @@ extends layout
 
 block content
     div.index-container
+        include _flashes
         div.puppy-container
             div.puppy-box
                 h1= title
@@ -16,7 +17,6 @@ block content
                         a(href='http://place-puppy.com/g/200x200?f=png') http://place-puppy.com/g/200x200?f=png #[br]  
                         | [ high, good, eco, low ] 
                         a(href='http://place-puppy.com/g/200x200?q=high') http://place-puppy.com/g/200x200?q=high
-            include _flashes
             each imgObj in imgObjs
                 div.puppy-box
                     picture
