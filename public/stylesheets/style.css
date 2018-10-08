@@ -271,7 +271,8 @@ a {
     }
 
     .puppy-box:nth-child(1) h1 {
-        font-size: 3em;
+        font-size: 4em;
+        text-align: center;
     }
 
     .puppy-box img {

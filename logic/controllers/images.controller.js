@@ -120,6 +120,7 @@ function manageImageCache(pathname, buffer) {
         log('shifting off cache array')
     }
 }
+// get buffer from array of caches
 function retreiveBufferIndex(pathname, arr) {
     for (let i = 0; i < arr.length; i++) {
         if (Object.keys(arr[i])[0] === pathname)
@@ -127,7 +128,7 @@ function retreiveBufferIndex(pathname, arr) {
     }
     return -1
 }
-function showImage(req, res, quality, format) {
+function showImage(req, res, quality, strFormat) {
     try {
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
         // get pathname from url
@@ -150,21 +151,26 @@ function showImage(req, res, quality, format) {
             error('width or height is null')
             throw TypeError('Width or height is null in showImage()')
         }
-        // CACHE - if in cache call from cache
-        if (getCache(imgs, pathName)) {
-            let index = retreiveBufferIndex(pathName, imgs)
-            if(index < 0){
-                error('Error: Indexing of cache is less than zero. Illegal index.')
-                throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
-                return
+        // CACHE
+        // if quality or format in string, skip the cache
+        if(!strFormat && !strFormat){
+             // if in cache call from cache
+            if (getCache(imgs, pathName)) {
+                let index = retreiveBufferIndex(pathName, imgs)
+                if(index < 0){
+                    error('Error: Indexing of cache is less than zero. Illegal index.')
+                    throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
+                    return
+                }
+                let buffer = imgs[index][pathName]
+                // Initiate the source
+                var bufferStream = new Stream.PassThrough()
+                // Write your buffer
+                bufferStream.end(new Buffer(buffer))
+                log('Serving from : cache')
+                return resize(bufferStream, width, height, strFormat).pipe(res)
             }
-            let buffer = imgs[index][pathName]
-            // Initiate the source
-            var bufferStream = new Stream.PassThrough()
-            // Write your buffer
-            bufferStream.end(new Buffer(buffer))
-            log('Serving from : cache')
-            return resize(bufferStream, width, height, format).pipe(res)
+
         }
 
         let preSets = [
@@ -217,8 +223,8 @@ function showImage(req, res, quality, format) {
             }
 
             // if format change in query, change img type
-            if (format) {
-                let newSrc = replaceUrlExt(img.src, format)
+            if (strFormat) {
+                let newSrc = replaceUrlExt(img.src, strFormat)
                 img.src = newSrc
                 log('Foramting changed in Url. New format src:', img.src)
 
@@ -256,7 +262,7 @@ function showImage(req, res, quality, format) {
                         log('serving from: cloud')
                         // pass to resize func and pipe to res
 
-                        resize(bufferStream, width, height, format).pipe(res)
+                        resize(bufferStream, width, height, strFormat).pipe(res)
                     })
                 } else {
                     error(`An http error occured`, response.statusCode)
