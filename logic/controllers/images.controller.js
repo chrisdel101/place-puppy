@@ -198,8 +198,12 @@ function showImage(req, res, quality, strFormat) {
                 // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
                 // Get the count of all users
                 Image.count().exec(function(err, count) {
-                    if (err) error(err)
-                    req.flash('error', `A networking error occured: ${err}`)
+                    if (err) {
+                        error(err)
+                        req.flash('error', `A networking error occured: ${err}`)
+                        res.redirect('index', `A networking error occured. Try again.`)
+
+                    }
                         // Get a random entry
                     var random = Math.floor(Math.random() * count)
                     resolve(Image.findOne().skip(random).exec())
@@ -243,6 +247,7 @@ function showImage(req, res, quality, strFormat) {
                 if (response.statusCode === 200) {
 
                     log('status of url call', response.statusCode)
+                    log('called made to', img.src)
                     // make data stream
                     var data = new streamTransform()
                     response.on('data', (chunk) => {
