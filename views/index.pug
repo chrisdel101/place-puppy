@@ -1,8 +1,8 @@
 extends layout
 
 block content
+    include _flashes
     div.index-container
-        include _flashes
         div.puppy-container
             div.puppy-box
                 h1= title
@@ -14,9 +14,9 @@ block content
                     div(style={color:'white'}) Like this: &nbsp 
                         a(href='http://place-puppy.com/200x200') http://place-puppy.com/200x200 #[br]
                         | jpg or png: &nbsp 
-                        a(href='http://place-puppy.com/g/200x200?f=png') http://place-puppy.com/g/200x200?f=png #[br]  
+                        a(href='http://place-puppy.com/g/200x200?f=png') http://place-puppy.com/200x200?f=png #[br]  
                         | [ high, good, eco, low ] 
-                        a(href='http://place-puppy.com/g/200x200?q=high') http://place-puppy.com/g/200x200?q=high
+                        a(href='http://place-puppy.com/g/200x200?q=high') http://place-puppy.com/200x200?q=high
             each imgObj in imgObjs
                 div.puppy-box
                     picture
