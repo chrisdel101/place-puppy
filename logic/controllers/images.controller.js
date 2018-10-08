@@ -233,7 +233,6 @@ function showImage(req, res, quality, format) {
             res.type(`image/${format || 'jpg'}`)
             // call url from cloudinary
             https.get(img.src, (response) => {
-                console.log('response', response)
                 // check server okay
                 if (response.statusCode === 200) {
 
