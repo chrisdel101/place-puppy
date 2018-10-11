@@ -43,6 +43,7 @@ module.exports = {
 
         let dogObj = {}
         dogFolderArr.forEach(dogFile => {
+            log('dogfile', dogFile)
             if (dogFile.match(sm)) {
                 dogObj['sm'] = dogFile
             } else if (dogFile.match(md)) {
@@ -54,7 +55,8 @@ module.exports = {
             } else if (dogFile.match(fs)) {
                 dogObj['fs'] = dogFile
             } else {
-                log('No files match the size params')
+                log('No files match the size params', dogFile)
+                log('Not put in dogObj')
             }
         })
         log('dogObj', dogObj)
