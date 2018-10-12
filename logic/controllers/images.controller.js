@@ -11,12 +11,12 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + file.originalname)
     }
 })
-const upload = multer({ storage: storage })
+const upload = multer({storage: storage})
 const sharp = require('sharp')
 const fs = require('fs')
 const session = require('express-session')
 const cloudinary = require('cloudinary')
-const { cloudinaryUploader, extractDims, sessionCheck } = require('../utils')
+const {cloudinaryUploader, extractDims, sessionCheck} = require('../utils')
 const https = require('https')
 const streamTransform = require('stream').Transform
 const Stream = require('stream')
@@ -37,8 +37,9 @@ module.exports = {
 function add(req, res) {
     // get file
     let file = req.file
-    if(file) log('file pathname', req.file.path)
-    // if no file, kill
+    if (file)
+        log('file pathname', req.file.path)
+        // if no file, kill
     if (!file) {
         error('No file attached')
         req.flash('info', 'No file attached')
@@ -109,7 +110,7 @@ function getCache(arr, pathname) {
     log('cache Paths', paths)
     return paths.includes(pathname)
 }
-// take image buff and push to arr
+// take image buff and push to arr - call in http
 function manageImageCache(pathname, buffer) {
     let imgObj = {}
     imgObj[pathname] = buffer
@@ -119,6 +120,8 @@ function manageImageCache(pathname, buffer) {
         imgs.shift()
         log('shifting off cache array')
     }
+    // if this is called, image is coming from cloud
+    log('serving from: cloud')
 }
 // get buffer from array of caches
 function retreiveBufferIndex(pathname, arr) {
@@ -153,11 +156,11 @@ function showImage(req, res, quality, strFormat) {
         }
         // CACHE
         // if quality or format in string, skip the cache
-        if(!strFormat && !strFormat){
-             // if in cache call from cache
+        if (!strFormat && !strFormat) {
+            // if in cache call from cache
             if (getCache(imgs, pathName)) {
                 let index = retreiveBufferIndex(pathName, imgs)
-                if(index < 0){
+                if (index < 0) {
                     error('Error: Indexing of cache is less than zero. Illegal index.')
                     throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
                     return
@@ -204,7 +207,7 @@ function showImage(req, res, quality, strFormat) {
                         res.redirect('index', `A networking error occured. Try again.`)
 
                     }
-                        // Get a random entry
+                    // Get a random entry
                     var random = Math.floor(Math.random() * count)
                     resolve(Image.findOne().skip(random).exec())
                 })
@@ -216,7 +219,7 @@ function showImage(req, res, quality, strFormat) {
             // check not null
             if (!img) {
                 error('This data does not exist')
-                throw  ReferenceError('Error. Data does not exist. Try reloading and check URL for errors.')
+                throw ReferenceError('Error. Data does not exist. Try reloading and check URL for errors.')
             }
             log('img', img)
 
@@ -242,38 +245,44 @@ function showImage(req, res, quality, strFormat) {
             // set type
             res.type(`image/${format || 'jpg'}`)
             // call url from cloudinary
-            https.get(img.src, (response) => {
-                // check server okay
-                if (response.statusCode === 200) {
+            let httpPromise = httpCall(img.src, pathName)
 
-                    log('status of url call', response.statusCode)
-                    log('called made to', img.src)
-                    // make data stream
-                    var data = new streamTransform()
-                    response.on('data', (chunk) => {
-                        data.push(chunk)
-                    })
-                    response.on('end', () => {
-                        // read data with.read()
-                        data = data.read()
-                        // push to cache
-                        https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
-                        // Initiate the source
-                        var bufferStream = new Stream.PassThrough()
-                        // Write your buffer
-                        bufferStream.end(new Buffer(data))
-                        // add and remove from cache
-                        manageImageCache(pathName, data)
-                        log('serving from: cloud')
-                        // pass to resize func and pipe to res
-
-                        resize(bufferStream, width, height, strFormat).pipe(res)
-                    })
-                } else {
-                    error(`An http error occured`, response.statusCode)
-                    throw Error('error', 'A networking error occured. Try reloading and check URL for errors.')
-                }
+            httpPromise.then(stream => {
+               // pass to resize func and pipe to res
+                resize(stream, width, height, strFormat).pipe(res)
             })
+            // https.get(img.src, (response) => {
+            //     // check server okay
+            //     if (response.statusCode === 200) {
+            //
+            //         log('status of url call', response.statusCode)
+            //         log('called made to', img.src)
+            //         // make data stream
+            //         var data = new streamTransform()
+            //         response.on('data', (chunk) => {
+            //             data.push(chunk)
+            //         })
+            //         response.on('end', () => {
+            //             // read data with.read()
+            //             data = data.read()
+            //             // push to cache
+            //             https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
+            //             // Initiate the source
+            //             var bufferStream = new Stream.PassThrough()
+            //             // Write your buffer
+            //             bufferStream.end(new Buffer(data))
+            //             // add and remove from cache
+            //             manageImageCache(pathName, data)
+            //             log('serving from: cloud')
+            //             // pass to resize func and pipe to res
+            // //
+            //             resize(bufferStream, width, height, strFormat).pipe(res)
+            //         })
+            //     } else {
+            //         error(`An http error occured`, response.statusCode)
+            //         throw Error('error', 'A networking error occured. Try reloading and check URL for errors.')
+            //     }
+            // })
         }).catch(err => {
             error("An error in the promise ending show", err)
             res.status(404).send(err)
@@ -282,6 +291,38 @@ function showImage(req, res, quality, strFormat) {
         error('A try/catch error occured', err)
         throw Error('error', 'An unknown error occured')
     }
+}
+// makes http get, returns stream in promise - takes src and pathname
+function httpCall(src, pathname) {
+    return new Promise((resolve, reject) => {
+        https.get(src, (response) => {
+            if (response.statusCode === 200) {
+
+                log('status of url call', response.statusCode)
+                log('called made to', src)
+                var data = new streamTransform()
+                response.on('data', (chunk) => {
+                    data.push(chunk)
+                })
+                response.on('end', () => {
+                    // read data with.read()
+                    data = data.read()
+                    // push to cache
+                    https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
+                    // Initiate the source
+                    var bufferStream = new Stream.PassThrough()
+                    // Write your buffer
+                    bufferStream.end(new Buffer(data))
+                    // add and remove from cache
+                    manageImageCache(pathname, data)
+                    // add and remove from cache
+                    resolve(bufferStream)
+                })
+            } else {
+                reject('Not resolved')
+            }
+        })
+    })
 }
 function resize(stream, width, height, format) {
     if (typeof width !== 'number' || typeof height !== 'number') {
@@ -332,7 +373,8 @@ function setImageQuality(urlStr, quality) {
 }
 function showImages(req, res) {
     // LOGIN REQUIRED
-    if(!sessionCheck(req, res)) return
+    if (!sessionCheck(req, res))
+        return
 
     let promise = Image.find({})
     return promise.then(imgs => {
@@ -366,8 +408,8 @@ function imageFormat(imgSrc) {
 }
 function addFile(req, res) {
     // no access without login
-    if(!sessionCheck(req, res)) return
-
+    if (!sessionCheck(req, res))
+        return
 
     return res.render('add', {
         method: 'POST',

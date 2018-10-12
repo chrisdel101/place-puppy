@@ -322,7 +322,7 @@ describe('images controller', function() {
             }, 0);
         })
     })
-    describe.skip('showImage()', function() {
+    describe.only('showImage()', function() {
         let fakeReq
         let fakeRes
         let findOneResult
@@ -361,7 +361,7 @@ describe('images controller', function() {
             https.get.restore()
         })
         it('runs when called', function() {
-            let result = SUT.showImage(fakeReq, fakeRes, '', 'high')
+            let result = SUT.showImage(fakeReq, fakeRes, '', '')
         })
     })
 })

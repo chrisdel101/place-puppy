@@ -6,7 +6,7 @@
     "start": "DEBUG=app:* NODE_ENV=development nodemon ./bin/www",
     "prod": "NODE_ENV=production DEBUG=app:* node ./bin/www",
     "test": "mocha",
-    "test:watch": "mocha -w"
+    "test:watch": "DEBUG=app:* mocha -w"
   },
   "dependencies": {
     "bcrypt": "^3.0.1",
