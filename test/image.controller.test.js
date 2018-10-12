@@ -355,16 +355,19 @@ describe('images controller', function() {
                 // nock('https://fake-src.png')
                 // .get('/')
                 // .reply(200)
-            let stream1 = new Stream.Transform()
-            let stream2 = new Stream.Transform()
-            let rw = sinon.spy(stream2, 'pipe')
-
-            let httpCall = sinon.stub().resolves(stream1)
-            let resize = sinon.stub().returns(function(){})
-            let pipe = sinon.stub(resize, 'pipe')
+            // httpCall returns a stream
+            let mockStream = new Stream.Transform()
+            // resize returns a object with a pipe func
+            let resizeRes = {
+                pipe:sinon.spy()
+            }
+            nock('https://fake-src.png')
+            .get('/')
+            .reply(200)
+            let httpCall = sinon.stub().resolves(mockStream)
+            let resize = sinon.stub().returns(resizeRes)
             rwSUT.__set__('httpCall', httpCall)
             rwSUT.__set__('resize', resize)
-            rwSUT.__set__('pipe', pipe)
         })
         afterEach(function() {
             Image.findOne.restore()

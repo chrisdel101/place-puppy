@@ -237,7 +237,6 @@ function showImage(req, res, quality, strFormat) {
             // call url from cloudinary
             httpCall(img.src, pathName)
             .then(stream => {
-                console.log(stream)
                // pass to resize func and pipe to res
                 return resize(stream, width, height, strFormat)
                 .pipe(res)
