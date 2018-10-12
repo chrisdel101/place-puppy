@@ -327,6 +327,7 @@ describe('images controller', function() {
         let fakeRes
         let findOneResult
         let fakeCountResult
+        let ImageFind
         beforeEach(function() {
             fakeReq = mockRequest({
                 protocol: 'https',
@@ -343,18 +344,13 @@ describe('images controller', function() {
                 exec: sinon.stub().resolves(fakeImage)
             }
             // stub Image find
-            let imageFind = sinon.stub(Image, 'findOne')
+            imageFind = sinon.stub(Image, 'findOne')
             imageFind.returns(findOneResult)
             // stub Image Count and exec
             fakeCountResult = {
                 exec: sinon.stub().returns(1000)
             }
             let imageCount = sinon.stub(Image, 'count').returns(fakeCountResult)
-
-            // stub server since it won't work properly
-                // nock('https://fake-src.png')
-                // .get('/')
-                // .reply(200)
             // httpCall returns a stream
             let mockStream = new Stream.Transform()
             // resize returns a object with a pipe func
@@ -374,11 +370,9 @@ describe('images controller', function() {
             Image.count.restore()
             // https.get.restore()
         })
-        it('runs when called', function() {
+        it('calls findOne() when passed a preset set of dims', function() {
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
-            setTimeout(function() {
-                console.log('res', result)
-            }, 100)
+            sinon.assert.calledOnce(Image.findOne)
         })
     })
 })
