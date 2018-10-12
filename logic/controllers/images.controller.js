@@ -173,9 +173,7 @@ function showImage(req, res, quality, strFormat) {
                 log('Serving from : cache')
                 return resize(bufferStream, width, height, strFormat).pipe(res)
             }
-
         }
-
         let preSets = [
             '100x100',
             '150x150',
@@ -191,8 +189,7 @@ function showImage(req, res, quality, strFormat) {
             '650x650',
             '700x700'
         ]
-
-        let promise = new Promise((resolve, reject) => {
+        new Promise((resolve, reject) => {
             // if one of the preset images, send this
             if (preSets.includes(pathName)) {
                 resolve(Image.findOne({path: pathName}).exec())
@@ -205,36 +202,29 @@ function showImage(req, res, quality, strFormat) {
                         error(err)
                         req.flash('error', `A networking error occured: ${err}`)
                         res.redirect('index', `A networking error occured. Try again.`)
-
                     }
                     // Get a random entry
                     var random = Math.floor(Math.random() * count)
                     resolve(Image.findOne().skip(random).exec())
                 })
             }
-
-        })
-
-        promise.then(img => {
+        }).then(img => {
             // check not null
             if (!img) {
                 error('This data does not exist')
                 throw ReferenceError('Error. Data does not exist. Try reloading and check URL for errors.')
             }
             log('img', img)
-
+            // make sure img has prop type
             let format = imageFormat(img.contentType)
             if (!format) {
                 throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
-
             }
-
             // if format change in query, change img type
             if (strFormat) {
                 let newSrc = replaceUrlExt(img.src, strFormat)
                 img.src = newSrc
                 log('Foramting changed in Url. New format src:', img.src)
-
             }
             // get qualiy and set new str
             if (quality) {
@@ -245,44 +235,16 @@ function showImage(req, res, quality, strFormat) {
             // set type
             res.type(`image/${format || 'jpg'}`)
             // call url from cloudinary
-            let httpPromise = httpCall(img.src, pathName)
-
-            httpPromise.then(stream => {
+            httpCall(img.src, pathName)
+            .then(stream => {
+                console.log(stream)
                // pass to resize func and pipe to res
-                resize(stream, width, height, strFormat).pipe(res)
+                return resize(stream, width, height, strFormat)
+                .pipe(res)
+            }).catch(err => {
+                error("An error in the promise ending show", err)
+                res.status(404).send(err)
             })
-            // https.get(img.src, (response) => {
-            //     // check server okay
-            //     if (response.statusCode === 200) {
-            //
-            //         log('status of url call', response.statusCode)
-            //         log('called made to', img.src)
-            //         // make data stream
-            //         var data = new streamTransform()
-            //         response.on('data', (chunk) => {
-            //             data.push(chunk)
-            //         })
-            //         response.on('end', () => {
-            //             // read data with.read()
-            //             data = data.read()
-            //             // push to cache
-            //             https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
-            //             // Initiate the source
-            //             var bufferStream = new Stream.PassThrough()
-            //             // Write your buffer
-            //             bufferStream.end(new Buffer(data))
-            //             // add and remove from cache
-            //             manageImageCache(pathName, data)
-            //             log('serving from: cloud')
-            //             // pass to resize func and pipe to res
-            // //
-            //             resize(bufferStream, width, height, strFormat).pipe(res)
-            //         })
-            //     } else {
-            //         error(`An http error occured`, response.statusCode)
-            //         throw Error('error', 'A networking error occured. Try reloading and check URL for errors.')
-            //     }
-            // })
         }).catch(err => {
             error("An error in the promise ending show", err)
             res.status(404).send(err)
@@ -297,7 +259,6 @@ function httpCall(src, pathname) {
     return new Promise((resolve, reject) => {
         https.get(src, (response) => {
             if (response.statusCode === 200) {
-
                 log('status of url call', response.statusCode)
                 log('called made to', src)
                 var data = new streamTransform()
@@ -319,7 +280,8 @@ function httpCall(src, pathname) {
                     resolve(bufferStream)
                 })
             } else {
-                reject('Not resolved')
+                error(`An http error occured`, response.statusCode)
+                reject('promise in http.get rejected')
             }
         })
     })

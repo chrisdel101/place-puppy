@@ -336,11 +336,9 @@ describe('images controller', function() {
                 originalUrl: '/100x100'
 
             })
-            fakeRes = mockResponse({type: sinon.stub().returns('image/png')})
-            let getResponse = {
-                on: sinon.spy(),
-                end: sinon.spy()
-            }
+            fakeRes = mockResponse({
+                type: sinon.stub().returns('image/png')
+            })
             findOneResult = {
                 exec: sinon.stub().resolves(fakeImage)
             }
@@ -352,16 +350,32 @@ describe('images controller', function() {
                 exec: sinon.stub().returns(1000)
             }
             let imageCount = sinon.stub(Image, 'count').returns(fakeCountResult)
+
             // stub server since it won't work properly
-            let fakehttp = sinon.stub(https, 'get')
+                // nock('https://fake-src.png')
+                // .get('/')
+                // .reply(200)
+            let stream1 = new Stream.Transform()
+            let stream2 = new Stream.Transform()
+            let rw = sinon.spy(stream2, 'pipe')
+
+            let httpCall = sinon.stub().resolves(stream1)
+            let resize = sinon.stub().returns(function(){})
+            let pipe = sinon.stub(resize, 'pipe')
+            rwSUT.__set__('httpCall', httpCall)
+            rwSUT.__set__('resize', resize)
+            rwSUT.__set__('pipe', pipe)
         })
         afterEach(function() {
             Image.findOne.restore()
             Image.count.restore()
-            https.get.restore()
+            // https.get.restore()
         })
         it('runs when called', function() {
-            let result = SUT.showImage(fakeReq, fakeRes, '', '')
+            let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
+            setTimeout(function() {
+                console.log('res', result)
+            }, 100)
         })
     })
 })
