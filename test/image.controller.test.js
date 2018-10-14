@@ -322,12 +322,14 @@ describe('images controller', function() {
             }, 0);
         })
     })
-    describe.only('showImage()', function() {
+    describe.skip('showImage()', function() {
         let fakeReq
         let fakeRes
         let findOneResult
         let fakeCountResult
-        let ImageFind
+        let httpCall
+        let resize
+        console.log(rwSUT)
         beforeEach(function() {
             fakeReq = mockRequest({
                 protocol: 'https',
@@ -357,13 +359,15 @@ describe('images controller', function() {
             let resizeRes = {
                 pipe:sinon.spy()
             }
+            httpCall = sinon.stub().resolves(mockStream)
+            resize = sinon.stub().returns(resizeRes)
+            rwSUT.__set__('httpCall', httpCall)
+            rwSUT.__get__('httpCall')
+            rwSUT.__set__('resize', resize)
+            // console.log(x)
             nock('https://fake-src.png')
             .get('/')
             .reply(200)
-            let httpCall = sinon.stub().resolves(mockStream)
-            let resize = sinon.stub().returns(resizeRes)
-            rwSUT.__set__('httpCall', httpCall)
-            rwSUT.__set__('resize', resize)
         })
         afterEach(function() {
             Image.findOne.restore()
@@ -373,6 +377,12 @@ describe('images controller', function() {
         it('calls findOne() when passed a preset set of dims', function() {
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
             sinon.assert.calledOnce(Image.findOne)
+        })
+        it('does', function(){
+            let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
+            // httpCall.withArgs('https://fake-src.png', '2 2')
+            sinon.assert.calledOnce(resize)
+
         })
     })
 })

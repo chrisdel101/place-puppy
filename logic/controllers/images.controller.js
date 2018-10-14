@@ -32,7 +32,8 @@ module.exports = {
     add: add,
     addFile: addFile,
     setImageQuality: setImageQuality,
-    replaceUrlExt: replaceUrlExt
+    replaceUrlExt: replaceUrlExt,
+    httpCall: httpCall
 }
 function add(req, res) {
     // get file
@@ -236,6 +237,7 @@ function showImage(req, res, quality, strFormat) {
             res.type(`image/${format || 'jpg'}`)
             // call url from cloudinary
             httpCall(img.src, pathName)
+
             .then(stream => {
                // pass to resize func and pipe to res
                 return resize(stream, width, height, strFormat)
@@ -255,6 +257,7 @@ function showImage(req, res, quality, strFormat) {
 }
 // makes http get, returns stream in promise - takes src and pathname
 function httpCall(src, pathname) {
+    console.log('FIRED')
     return new Promise((resolve, reject) => {
         https.get(src, (response) => {
             if (response.statusCode === 200) {
@@ -292,8 +295,7 @@ function resize(stream, width, height, format) {
     }
     var transformer = sharp().resize(width, height).on('info', function(info) {
         log('Inside resize: resize okay')
-    })
-    // console.log('WHST', stream.pipe(transformer))
+    })  
     return stream.pipe(transformer)
 }
 function setImageQuality(urlStr, quality) {
