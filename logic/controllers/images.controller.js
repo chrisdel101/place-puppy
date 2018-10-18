@@ -345,7 +345,6 @@ function setImageQuality(urlStr, quality) {
 }
 function showImages(req, res) {
     // LOGIN REQUIRED
-        return
     if (!sessionCheck(req, res))
         return
 
@@ -390,8 +389,6 @@ function addFile(req, res) {
         error('No access without login')
         return res.status(404).send('404')
     }
-
-
     return res.render('add', {
         method: 'POST',
         action: '/add',
