@@ -241,7 +241,8 @@ function showImage(req, res, quality, strFormat) {
             .then(stream => {
                 log('str', strFormat)
                // pass to resize func and pipe to res
-                return resize(stream, width, height, strFormat || format)
+               // strFormat needs to be added after debug
+                return resize(stream, width, height, format)
                 .pipe(res)
             }).catch(err => {
                 error("An error in the promise ending show", err)
