@@ -239,8 +239,9 @@ function showImage(req, res, quality, strFormat) {
             httpCall(img.src, pathName)
 
             .then(stream => {
+                log('str', strFormat)
                // pass to resize func and pipe to res
-                return resize(stream, width, height, strFormat)
+                return resize(stream, width, height, strFormat || format)
                 .pipe(res)
             }).catch(err => {
                 error("An error in the promise ending show", err)
@@ -343,7 +344,7 @@ function setImageQuality(urlStr, quality) {
 }
 function showImages(req, res) {
     // LOGIN REQUIRED
-    return res.status(404).send('404')
+        return
     if (!sessionCheck(req, res))
         return
 
@@ -379,7 +380,6 @@ function imageFormat(imgSrc) {
 }
 function addFile(req, res) {
     // no access without login
-    return res.status(404).send('404')
     log(new Date(Date.now()).toLocaleString())
     log(req.session.user)
     log(req.session.cookie.maxAge)
