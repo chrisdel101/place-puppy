@@ -288,15 +288,22 @@ function httpCall(src, pathname) {
         })
     })
 }
+// returns an object - stream piped to res
 function resize(stream, width, height, format) {
-    if (typeof width !== 'number' || typeof height !== 'number') {
-        error('resize error: Width or height must be of type number.')
-        throw TypeError('resize error: Width or height must be of type number.')
-    }
-    var transformer = sharp().resize(width, height).on('info', function(info) {
-        log('Inside resize: resize okay')
-    })  
-    return stream.pipe(transformer)
+
+        if (typeof width !== 'number' || typeof height !== 'number') {
+            error('resize error: Width or height must be of type number.')
+            throw TypeError('resize error: Width or height must be of type number.')
+        }
+        if(!imageFormat(format)){
+            error('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
+            throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
+        }
+        var transformer = sharp().resize(width, height).on('info', function(info) {
+            log('Inside resize: resize okay')
+        })
+        return stream.pipe(transformer)
+
 }
 function setImageQuality(urlStr, quality) {
     if (typeof urlStr !== 'string' || typeof quality !== 'string') {
@@ -336,6 +343,7 @@ function setImageQuality(urlStr, quality) {
 }
 function showImages(req, res) {
     // LOGIN REQUIRED
+    return res.status(404).send('404')
     if (!sessionCheck(req, res))
         return
 
@@ -366,13 +374,22 @@ function imageFormat(imgSrc) {
     } else if (imgSrc.includes('gif')) {
         return 'gif'
     } else {
-        return 'jpg'
+        return false
     }
 }
 function addFile(req, res) {
     // no access without login
-    if (!sessionCheck(req, res))
-        return
+    return res.status(404).send('404')
+    log(new Date(Date.now()).toLocaleString())
+    log(req.session.user)
+    log(req.session.cookie.maxAge)
+    log(req.session.secret)
+    log(req.session)
+    if (!sessionCheck(req, res)){
+        error('No access without login')
+        return res.status(404).send('404')
+    }
+
 
     return res.render('add', {
         method: 'POST',

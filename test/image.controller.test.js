@@ -95,7 +95,7 @@ describe('images controller', function() {
             }).to.throw(TypeError, 'imageFormat error: imgSrc must be a string')
         })
     })
-    describe.skip('resize()', function() {
+    describe('resize()', function() {
         beforeEach(function() {
             mock({
                 'path/to/fake/dir': {
@@ -124,18 +124,9 @@ describe('images controller', function() {
             let result = SUT.resize(stream, 200, 200, 'png')
             assert.typeOf(result, 'object')
         })
-        it('contains the pipe method, becusae it is a stream', function() {
-            let result = SUT.resize('./path/to/some.png', 200, 200, 'png')
-            assert.typeOf(result.pipe, 'function')
-        })
-        it('returns a stream that contains the width/height input', function() {
-            let result = SUT.resize('./path/to/some.png', 'png', 100, 300)
-            expect(result.options.width).to.equal(100)
-            expect(result.options.height).to.equal(300)
-        })
         it('throws an error when given an incorrect format', function() {
             expect(function() {
-                let result = SUT.resize('./path/to/some.png', 'xhr', 200, 200)
+                let result = SUT.resize('./path/to/some.png', 200, 200, 'xhr')
             }).to.throw(TypeError, 'resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
         })
         it('throws an error when width/height is not a number', function() {

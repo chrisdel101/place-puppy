@@ -85,6 +85,7 @@ module.exports = {
     },
     // render register template
     registerDisplay: (req, res) => {
+        return res.status(404).send('404')
         return res.render('register', {
             method: 'POST',
             action: '/register',
