@@ -11,12 +11,12 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + file.originalname)
     }
 })
-const upload = multer({ storage: storage })
+const upload = multer({storage: storage})
 const sharp = require('sharp')
 const fs = require('fs')
 const session = require('express-session')
 const cloudinary = require('cloudinary')
-const { cloudinaryUploader, extractDims, sessionCheck } = require('../utils')
+const {cloudinaryUploader, extractDims, sessionCheck} = require('../utils')
 const https = require('https')
 const streamTransform = require('stream').Transform
 const Stream = require('stream')
@@ -32,13 +32,15 @@ module.exports = {
     add: add,
     addFile: addFile,
     setImageQuality: setImageQuality,
-    replaceUrlExt: replaceUrlExt
+    replaceUrlExt: replaceUrlExt,
+    httpCall: httpCall
 }
 function add(req, res) {
     // get file
     let file = req.file
-    if(file) log('file pathname', req.file.path)
-    // if no file, kill
+    if (file)
+        log('file pathname', req.file.path)
+        // if no file, kill
     if (!file) {
         error('No file attached')
         req.flash('info', 'No file attached')
@@ -109,7 +111,7 @@ function getCache(arr, pathname) {
     log('cache Paths', paths)
     return paths.includes(pathname)
 }
-// take image buff and push to arr
+// take image buff and push to arr - call in http
 function manageImageCache(pathname, buffer) {
     let imgObj = {}
     imgObj[pathname] = buffer
@@ -119,6 +121,8 @@ function manageImageCache(pathname, buffer) {
         imgs.shift()
         log('shifting off cache array')
     }
+    // if this is called, image is coming from cloud
+    log('serving from: cloud')
 }
 // get buffer from array of caches
 function retreiveBufferIndex(pathname, arr) {
@@ -153,11 +157,11 @@ function showImage(req, res, quality, strFormat) {
         }
         // CACHE
         // if quality or format in string, skip the cache
-        if(!strFormat && !strFormat){
-             // if in cache call from cache
+        if (!strFormat && !strFormat) {
+            // if in cache call from cache
             if (getCache(imgs, pathName)) {
                 let index = retreiveBufferIndex(pathName, imgs)
-                if(index < 0){
+                if (index < 0) {
                     error('Error: Indexing of cache is less than zero. Illegal index.')
                     throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
                     return
@@ -170,9 +174,7 @@ function showImage(req, res, quality, strFormat) {
                 log('Serving from : cache')
                 return resize(bufferStream, width, height, strFormat).pipe(res)
             }
-
         }
-
         let preSets = [
             '100x100',
             '150x150',
@@ -188,8 +190,7 @@ function showImage(req, res, quality, strFormat) {
             '650x650',
             '700x700'
         ]
-
-        let promise = new Promise((resolve, reject) => {
+        new Promise((resolve, reject) => {
             // if one of the preset images, send this
             if (preSets.includes(pathName)) {
                 resolve(Image.findOne({path: pathName}).exec())
@@ -202,36 +203,29 @@ function showImage(req, res, quality, strFormat) {
                         error(err)
                         req.flash('error', `A networking error occured: ${err}`)
                         res.redirect('index', `A networking error occured. Try again.`)
-
                     }
-                        // Get a random entry
+                    // Get a random entry
                     var random = Math.floor(Math.random() * count)
                     resolve(Image.findOne().skip(random).exec())
                 })
             }
-
-        })
-
-        promise.then(img => {
+        }).then(img => {
             // check not null
             if (!img) {
                 error('This data does not exist')
-                throw  ReferenceError('Error. Data does not exist. Try reloading and check URL for errors.')
+                throw ReferenceError('Error. Data does not exist. Try reloading and check URL for errors.')
             }
             log('img', img)
-
+            // make sure img has prop type
             let format = imageFormat(img.contentType)
             if (!format) {
                 throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
-
             }
-
             // if format change in query, change img type
             if (strFormat) {
                 let newSrc = replaceUrlExt(img.src, strFormat)
                 img.src = newSrc
                 log('Foramting changed in Url. New format src:', img.src)
-
             }
             // get qualiy and set new str
             if (quality) {
@@ -242,37 +236,16 @@ function showImage(req, res, quality, strFormat) {
             // set type
             res.type(`image/${format || 'jpg'}`)
             // call url from cloudinary
-            https.get(img.src, (response) => {
-                // check server okay
-                if (response.statusCode === 200) {
+            httpCall(img.src, pathName)
 
-                    log('status of url call', response.statusCode)
-                    log('called made to', img.src)
-                    // make data stream
-                    var data = new streamTransform()
-                    response.on('data', (chunk) => {
-                        data.push(chunk)
-                    })
-                    response.on('end', () => {
-                        // read data with.read()
-                        data = data.read()
-                        // push to cache
-                        https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
-                        // Initiate the source
-                        var bufferStream = new Stream.PassThrough()
-                        // Write your buffer
-                        bufferStream.end(new Buffer(data))
-                        // add and remove from cache
-                        manageImageCache(pathName, data)
-                        log('serving from: cloud')
-                        // pass to resize func and pipe to res
-
-                        resize(bufferStream, width, height, strFormat).pipe(res)
-                    })
-                } else {
-                    error(`An http error occured`, response.statusCode)
-                    throw Error('error', 'A networking error occured. Try reloading and check URL for errors.')
-                }
+            .then(stream => {
+                log('str', strFormat)
+               // pass to resize func and pipe to res
+                return resize(stream, width, height, strFormat || format)
+                .pipe(res)
+            }).catch(err => {
+                error("An error in the promise ending show", err)
+                res.status(404).send(err)
             })
         }).catch(err => {
             error("An error in the promise ending show", err)
@@ -283,16 +256,55 @@ function showImage(req, res, quality, strFormat) {
         throw Error('error', 'An unknown error occured')
     }
 }
-function resize(stream, width, height, format) {
-    if (typeof width !== 'number' || typeof height !== 'number') {
-        error('resize error: Width or height must be of type number.')
-        throw TypeError('resize error: Width or height must be of type number.')
-    }
-    var transformer = sharp().resize(width, height).on('info', function(info) {
-        log('Inside resize: resize okay')
+// makes http get, returns stream in promise - takes src and pathname
+function httpCall(src, pathname) {
+    console.log('FIRED')
+    return new Promise((resolve, reject) => {
+        https.get(src, (response) => {
+            if (response.statusCode === 200) {
+                log('status of url call', response.statusCode)
+                log('called made to', src)
+                var data = new streamTransform()
+                response.on('data', (chunk) => {
+                    data.push(chunk)
+                })
+                response.on('end', () => {
+                    // read data with.read()
+                    data = data.read()
+                    // push to cache
+                    https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
+                    // Initiate the source
+                    var bufferStream = new Stream.PassThrough()
+                    // Write your buffer
+                    bufferStream.end(new Buffer(data))
+                    // add and remove from cache
+                    manageImageCache(pathname, data)
+                    // add and remove from cache
+                    resolve(bufferStream)
+                })
+            } else {
+                error(`An http error occured`, response.statusCode)
+                reject('promise in http.get rejected')
+            }
+        })
     })
-    // console.log('WHST', stream.pipe(transformer))
-    return stream.pipe(transformer)
+}
+// returns an object - stream piped to res
+function resize(stream, width, height, format) {
+
+        if (typeof width !== 'number' || typeof height !== 'number') {
+            error('resize error: Width or height must be of type number.')
+            throw TypeError('resize error: Width or height must be of type number.')
+        }
+        if(!imageFormat(format)){
+            error('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
+            throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
+        }
+        var transformer = sharp().resize(width, height).on('info', function(info) {
+            log('Inside resize: resize okay')
+        })
+        return stream.pipe(transformer)
+
 }
 function setImageQuality(urlStr, quality) {
     if (typeof urlStr !== 'string' || typeof quality !== 'string') {
@@ -332,7 +344,9 @@ function setImageQuality(urlStr, quality) {
 }
 function showImages(req, res) {
     // LOGIN REQUIRED
-    if(!sessionCheck(req, res)) return
+        return
+    if (!sessionCheck(req, res))
+        return
 
     let promise = Image.find({})
     return promise.then(imgs => {
@@ -361,12 +375,20 @@ function imageFormat(imgSrc) {
     } else if (imgSrc.includes('gif')) {
         return 'gif'
     } else {
-        return 'jpg'
+        return false
     }
 }
 function addFile(req, res) {
     // no access without login
-    if(!sessionCheck(req, res)) return
+    log(new Date(Date.now()).toLocaleString())
+    log(req.session.user)
+    log(req.session.cookie.maxAge)
+    log(req.session.secret)
+    log(req.session)
+    if (!sessionCheck(req, res)){
+        error('No access without login')
+        return res.status(404).send('404')
+    }
 
 
     return res.render('add', {

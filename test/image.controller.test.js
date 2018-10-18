@@ -95,7 +95,7 @@ describe('images controller', function() {
             }).to.throw(TypeError, 'imageFormat error: imgSrc must be a string')
         })
     })
-    describe.skip('resize()', function() {
+    describe('resize()', function() {
         beforeEach(function() {
             mock({
                 'path/to/fake/dir': {
@@ -124,18 +124,9 @@ describe('images controller', function() {
             let result = SUT.resize(stream, 200, 200, 'png')
             assert.typeOf(result, 'object')
         })
-        it('contains the pipe method, becusae it is a stream', function() {
-            let result = SUT.resize('./path/to/some.png', 200, 200, 'png')
-            assert.typeOf(result.pipe, 'function')
-        })
-        it('returns a stream that contains the width/height input', function() {
-            let result = SUT.resize('./path/to/some.png', 'png', 100, 300)
-            expect(result.options.width).to.equal(100)
-            expect(result.options.height).to.equal(300)
-        })
         it('throws an error when given an incorrect format', function() {
             expect(function() {
-                let result = SUT.resize('./path/to/some.png', 'xhr', 200, 200)
+                let result = SUT.resize('./path/to/some.png', 200, 200, 'xhr')
             }).to.throw(TypeError, 'resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
         })
         it('throws an error when width/height is not a number', function() {
@@ -327,6 +318,9 @@ describe('images controller', function() {
         let fakeRes
         let findOneResult
         let fakeCountResult
+        let httpCall
+        let resize
+        console.log(rwSUT)
         beforeEach(function() {
             fakeReq = mockRequest({
                 protocol: 'https',
@@ -336,32 +330,50 @@ describe('images controller', function() {
                 originalUrl: '/100x100'
 
             })
-            fakeRes = mockResponse({type: sinon.stub().returns('image/png')})
-            let getResponse = {
-                on: sinon.spy(),
-                end: sinon.spy()
-            }
+            fakeRes = mockResponse({
+                type: sinon.stub().returns('image/png')
+            })
             findOneResult = {
                 exec: sinon.stub().resolves(fakeImage)
             }
             // stub Image find
-            let imageFind = sinon.stub(Image, 'findOne')
+            imageFind = sinon.stub(Image, 'findOne')
             imageFind.returns(findOneResult)
             // stub Image Count and exec
             fakeCountResult = {
                 exec: sinon.stub().returns(1000)
             }
             let imageCount = sinon.stub(Image, 'count').returns(fakeCountResult)
-            // stub server since it won't work properly
-            let fakehttp = sinon.stub(https, 'get')
+            // httpCall returns a stream
+            let mockStream = new Stream.Transform()
+            // resize returns a object with a pipe func
+            let resizeRes = {
+                pipe:sinon.spy()
+            }
+            httpCall = sinon.stub().resolves(mockStream)
+            resize = sinon.stub().returns(resizeRes)
+            rwSUT.__set__('httpCall', httpCall)
+            rwSUT.__get__('httpCall')
+            rwSUT.__set__('resize', resize)
+            // console.log(x)
+            nock('https://fake-src.png')
+            .get('/')
+            .reply(200)
         })
         afterEach(function() {
             Image.findOne.restore()
             Image.count.restore()
-            https.get.restore()
+            // https.get.restore()
         })
-        it('runs when called', function() {
-            let result = SUT.showImage(fakeReq, fakeRes, '', 'high')
+        it('calls findOne() when passed a preset set of dims', function() {
+            let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
+            sinon.assert.calledOnce(Image.findOne)
+        })
+        it('does', function(){
+            let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
+            // httpCall.withArgs('https://fake-src.png', '2 2')
+            sinon.assert.calledOnce(resize)
+
         })
     })
 })
