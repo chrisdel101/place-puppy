@@ -8,6 +8,7 @@ const {passwordVerify} = require('../utils')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
+const { sessionCheck } = require('../utils')
 
 module.exports = {
     // compare two string
@@ -85,7 +86,9 @@ module.exports = {
     },
     // render register template
     registerDisplay: (req, res) => {
-        return res.status(404).send('404')
+        if (!sessionCheck(req, res))
+            return
+
         return res.render('register', {
             method: 'POST',
             action: '/register',

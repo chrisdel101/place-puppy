@@ -34,28 +34,28 @@ router.get('/reset/:token', usersController.pwTokenGet)
 router.post('/reset/:token', usersController.pwTokenPost)
 
 // see all data in cloud
-// router.get('/see-cloud', (req, res) => {
-//     if(!sessionCheck(req, res)) return
-//     displayCloud(req, res)
-// })
-// build a forn for this one
-// router.get('delete-cloud-resource', (req, res) => {
-//     sessionCheck(req, res)
-//      take inputs
-//     deleteCloudResource()
-// })
+router.get('/see-cloud', (req, res) => {
+    if(!sessionCheck(req, res)) return
+    displayCloud(req, res)
+})
+// build a form for this one
+router.get('delete-cloud-resource', (req, res) => {
+    sessionCheck(req, res)
+     // take inputs
+    deleteCloudResource()
+})
 // seed the db
-// router.get('/full-seed', (req, res) => {
-//     if(!sessionCheck(req, res)) return
-//     fullSeed(req, res)
-// })
-// // add a ingle sees
-// // hit route to add a single image to db, and to cloudinary- needs a form too
-// router.get('/single-seed', (req, res) => {
-//     if(!sessionCheck(req, res)) return
-//     let url = `${__dirname}/adorable-animal-breed-1108099.jpg`
-//     singleSeed(req, res, url)
-// })
+router.get('/full-seed', (req, res) => {
+    if(!sessionCheck(req, res)) return
+    fullSeed(req, res)
+})
+// add a ingle sees
+// hit route to add a single image to db, and to cloudinary- needs a form too
+router.get('/single-seed', (req, res) => {
+    if(!sessionCheck(req, res)) return
+    let url = `${__dirname}/adorable-animal-breed-1108099.jpg`
+    singleSeed(req, res, url)
+})
 // login
 router.get('/login', sessionsController.loginDisplay)
 router.post('/login', sessionsController.login)
@@ -71,58 +71,58 @@ router.get('/add', imageController.addFile)
 router.post('/add', upload.single('file'), imageController.add)
 // show images
 router.get('/images', imageController.showImages)
-//
-// // routes for data manipulation
-// // MAKE JSON
-// router.get('/make-json', (req, res) => {
-//
-//     if(!sessionCheck(req, res)) return
-//     let promise = Image.find({contentType: /(jpg|png)/}).exec()
-//     promise.then(puppies => {
-//         puppies = JSON.stringify(puppies)
-//         console.log(puppies)
-//         fs.writeFile('./json/puppy.json', puppies, (err) => {
-//             if (err)
-//                 console.error(err)
-//             console.log('file done')
-//         })
-//     })
-// })
-// // INSERTJSON
-// router.get('/insert-json', (req, res) => {
-//     // no access without login
-//     if(!sessionCheck(req, res)) return
-//     let arr = require("../json/puppy.json")
-//     arr = JSON.parse(JSON.stringify(arr))
-//     console.log(arr)
-//     Image.insertMany(arr).then(data => {
-//         data.save()
-//         console.log('saved')
-//     })
-//
-// })
-// // DROP INDEXES
-// router.get('/drop-indexes', (req, res) => {
-//     // no access without login
-//     if(!sessionCheck(req, res)) return
-//     Image.collection.dropAllIndexes((err, results) => {
-//         if (err)
-//             console.error(err)
-//         console.log('dropped')
-//     })
-//
-// })
-// // DELETE MANY
-// router.get('/delete-many', (req, res) => {
-//     // no access without login
-//     if(!sessionCheck(req, res)) return
-//     Image.deleteMany({
-//         path: null
-//     }, (err) => {
-//         if (err)
-//             error(err)
-//         log('deleted')
-//     })
-// })
+
+// routes for data manipulation
+// MAKE JSON
+router.get('/make-json', (req, res) => {
+
+    if(!sessionCheck(req, res)) return
+    let promise = Image.find({contentType: /(jpg|png)/}).exec()
+    promise.then(puppies => {
+        puppies = JSON.stringify(puppies)
+        console.log(puppies)
+        fs.writeFile('./json/puppy.json', puppies, (err) => {
+            if (err)
+                console.error(err)
+            console.log('file done')
+        })
+    })
+})
+// INSERTJSON
+router.get('/insert-json', (req, res) => {
+    // no access without login
+    if(!sessionCheck(req, res)) return
+    let arr = require("../json/puppy.json")
+    arr = JSON.parse(JSON.stringify(arr))
+    console.log(arr)
+    Image.insertMany(arr).then(data => {
+        data.save()
+        console.log('saved')
+    })
+
+})
+// DROP INDEXES
+router.get('/drop-indexes', (req, res) => {
+    // no access without login
+    if(!sessionCheck(req, res)) return
+    Image.collection.dropAllIndexes((err, results) => {
+        if (err)
+            console.error(err)
+        console.log('dropped')
+    })
+
+})
+// DELETE MANY
+router.get('/delete-many', (req, res) => {
+    // no access without login
+    if(!sessionCheck(req, res)) return
+    Image.deleteMany({
+        path: null
+    }, (err) => {
+        if (err)
+            error(err)
+        log('deleted')
+    })
+})
 
 module.exports = router
