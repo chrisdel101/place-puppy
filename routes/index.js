@@ -21,6 +21,7 @@ const session = require('express-session')
 router.get('/', indexController.showIndex)
 // show img- use middleware when returning img dims
 router.get('^/:dimensions([0-9]+[x][0-9]+)', imageMiddleware.qualityMiddleware, imageMiddleware.returnImageFormat, (req, res) => {
+    console.log('format', req.format)
     imageController.showImage(req, res, req.quality, req.format)
 })
 // show forgot password

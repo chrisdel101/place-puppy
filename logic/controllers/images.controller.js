@@ -112,9 +112,12 @@ function getCache(arr, pathname) {
     return paths.includes(pathname)
 }
 // take image buff and push to arr - call in http
-function manageImageCache(pathname, buffer) {
+function manageImageCache(pathname, buffer, format) {
     let imgObj = {}
+    // add buffer to obj
     imgObj[pathname] = buffer
+    // add format to obj
+    imgObj['format'] = format
     imgs.push(imgObj)
     // if more than 4, shift one off
     if (imgs.length > 4) {
@@ -132,6 +135,7 @@ function retreiveBufferIndex(pathname, arr) {
     }
     return -1
 }
+// quality and strFormat are querys - blank by default
 function showImage(req, res, quality, strFormat) {
     try {
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
@@ -157,7 +161,7 @@ function showImage(req, res, quality, strFormat) {
         }
         // CACHE
         // if quality or format in string, skip the cache
-        if (!strFormat && !strFormat) {
+        if (!quality && !strFormat) {
             // if in cache call from cache
             if (getCache(imgs, pathName)) {
                 let index = retreiveBufferIndex(pathName, imgs)
@@ -166,13 +170,17 @@ function showImage(req, res, quality, strFormat) {
                     throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
                     return
                 }
+                // get by array index and key name
                 let buffer = imgs[index][pathName]
                 // Initiate the source
                 var bufferStream = new Stream.PassThrough()
                 // Write your buffer
                 bufferStream.end(new Buffer(buffer))
                 log('Serving from : cache')
-                return resize(bufferStream, width, height, strFormat).pipe(res)
+                // get format from imgObj
+                let format = imgs[index]['format']
+                // resize
+                return resize(bufferStream, width, height, format).pipe(res)
             }
         }
         let preSets = [
@@ -218,6 +226,7 @@ function showImage(req, res, quality, strFormat) {
             log('img', img)
             // make sure img has prop type
             let format = imageFormat(img.contentType)
+            // if no contentType, error
             if (!format) {
                 throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
             }
@@ -235,13 +244,11 @@ function showImage(req, res, quality, strFormat) {
             }
             // set type
             res.type(`image/${format || 'jpg'}`)
-            // call url from cloudinary
-            httpCall(img.src, pathName)
-
+            // call url from cloudinary- push to cache too
+            let x = httpCall(img.src, pathName)
             .then(stream => {
-                log('str', strFormat)
                // pass to resize func and pipe to res
-               // strFormat needs to be added after debug
+               ///// strFormat needs to be added after debug
                 return resize(stream, width, height, format)
                 .pipe(res)
             }).catch(err => {
@@ -259,8 +266,8 @@ function showImage(req, res, quality, strFormat) {
 }
 // makes http get, returns stream in promise - takes src and pathname
 function httpCall(src, pathname) {
-    console.log('FIRED')
     return new Promise((resolve, reject) => {
+        let format = imageFormat(src)
         https.get(src, (response) => {
             if (response.statusCode === 200) {
                 log('status of url call', response.statusCode)
@@ -278,8 +285,8 @@ function httpCall(src, pathname) {
                     var bufferStream = new Stream.PassThrough()
                     // Write your buffer
                     bufferStream.end(new Buffer(data))
-                    // add and remove from cache
-                    manageImageCache(pathname, data)
+                    // CACHE- add and remove from cache
+                    manageImageCache(pathname, data, format)
                     // add and remove from cache
                     resolve(bufferStream)
                 })
