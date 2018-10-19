@@ -16,7 +16,7 @@ const sharp = require('sharp')
 const fs = require('fs')
 const session = require('express-session')
 const cloudinary = require('cloudinary')
-const {cloudinaryUploader, extractDims, sessionCheck} = require('../utils')
+const {cloudinaryUploader, extractDims, sessionCheck, checkAllDigits} = require('../utils')
 const https = require('https')
 const streamTransform = require('stream').Transform
 const Stream = require('stream')
@@ -137,7 +137,6 @@ function retreiveBufferIndex(pathname, arr) {
 }
 // quality and strFormat are querys - blank by default
 function showImage(req, res, quality, strFormat) {
-    try {
         var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
         // get pathname from url
         let pathName = url.parse(fullUrl)
@@ -151,6 +150,10 @@ function showImage(req, res, quality, strFormat) {
         }
         log('pathname', pathName)
 
+        if (!checkAllDigits(pathName)) {
+            error('The dims provide include non-numeric chars. Must be all digits.')
+            throw Error('Non-numeric chars in the image dimensions.')
+        }
         let dims = extractDims(pathName)
         //
         let width = parseInt(dims.width)
@@ -165,6 +168,7 @@ function showImage(req, res, quality, strFormat) {
             // if in cache call from cache
             if (getCache(imgs, pathName)) {
                 let index = retreiveBufferIndex(pathName, imgs)
+                console.log('index', index)
                 if (index < 0) {
                     error('Error: Indexing of cache is less than zero. Illegal index.')
                     throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
@@ -245,12 +249,10 @@ function showImage(req, res, quality, strFormat) {
             // set type
             res.type(`image/${format || 'jpg'}`)
             // call url from cloudinary- push to cache too
-            let x = httpCall(img.src, pathName)
-            .then(stream => {
-               // pass to resize func and pipe to res
-               ///// strFormat needs to be added after debug
-                return resize(stream, width, height, format)
-                .pipe(res)
+            let x = httpCall(img.src, pathName).then(stream => {
+                // pass to resize func and pipe to res
+                ///// strFormat needs to be added after debug
+                return resize(stream, width, height, format).pipe(res)
             }).catch(err => {
                 error("An error in the promise ending show", err)
                 res.status(404).send(err)
@@ -259,10 +261,6 @@ function showImage(req, res, quality, strFormat) {
             error("An error in the promise ending show", err)
             res.status(404).send(err)
         })
-    } catch (err) {
-        error('A try/catch error occured', err)
-        throw Error('error', 'An unknown error occured')
-    }
 }
 // makes http get, returns stream in promise - takes src and pathname
 function httpCall(src, pathname) {
@@ -300,18 +298,18 @@ function httpCall(src, pathname) {
 // returns an object - stream piped to res
 function resize(stream, width, height, format) {
 
-        if (typeof width !== 'number' || typeof height !== 'number') {
-            error('resize error: Width or height must be of type number.')
-            throw TypeError('resize error: Width or height must be of type number.')
-        }
-        if(!imageFormat(format)){
-            error('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
-            throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
-        }
-        var transformer = sharp().resize(width, height).on('info', function(info) {
-            log('Inside resize: resize okay')
-        })
-        return stream.pipe(transformer)
+    if (typeof width !== 'number' || typeof height !== 'number') {
+        error('resize error: Width or height must be of type number.')
+        throw TypeError('resize error: Width or height must be of type number.')
+    }
+    if (!imageFormat(format)) {
+        error('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
+        throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
+    }
+    var transformer = sharp().resize(width, height).on('info', function(info) {
+        log('Inside resize: resize okay')
+    })
+    return stream.pipe(transformer)
 
 }
 function setImageQuality(urlStr, quality) {
@@ -387,12 +385,8 @@ function imageFormat(imgSrc) {
 }
 function addFile(req, res) {
     // no access without login
-    log(new Date(Date.now()).toLocaleString())
-    log(req.session.user)
-    log(req.session.cookie.maxAge)
-    log(req.session.secret)
-    log(req.session)
-    if (!sessionCheck(req, res)){
+
+    if (!sessionCheck(req, res)) {
         error('No access without login')
         return res.status(404).send('404')
     }

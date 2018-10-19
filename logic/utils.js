@@ -19,9 +19,24 @@ module.exports = {
     passwordVerify: passwordVerify,
     sessionCheck: sessionCheck,
     displayCloud: displayCloud,
-    singleSeed: singleSeed
+    singleSeed: singleSeed,
+    checkAllDigits: checkAllDigits
 }
-
+function checkAllDigits(pathName) {
+    // all before the x
+    let re = /[a-z0-9]+(?=\x)/g
+    let first = pathName.match(re).join('')
+    let reversePath = Array.from(pathName).reverse().join('')
+    let second = reversePath.match(re)
+    second = Array.from(second).reverse().join('')
+    // only match digits
+    let match1 = first.match(/^\d+$/)
+    let match2 = second.match(/^\d+$/)
+    if (!match1 || !match2) {
+        return false
+    }
+    return true
+}
 // check password length
 function passwordVerify(pw) {
     if (typeof pw !== 'string') {
@@ -55,6 +70,8 @@ function extractDims(str) {
     let re3 = /\d+(?=\x)/g
     // look for dims pattern
     let re4 = /([0-9]+[x][0-9]+)/
+    // check that all chars are digits
+    let re5 = /^\d+$/ //not used yet
     // check if string is a Url
     if (isValidURL(str)) {
         log('extractDims: is valid URL')
@@ -63,6 +80,7 @@ function extractDims(str) {
         if (!newUrl.pathname.match(re)) {
             throw TypeError('extractDims error: input url does not have dims to extract, or the dims are not in the right format. Must be in the pathname or url.')
         }
+
         // WIDTH
         // get first num
         let width = newUrl.pathname.match(re).join('')
@@ -88,6 +106,8 @@ function extractDims(str) {
         // if not valid url follow, cannot parse out using url mod  above
         let extractDim = str.match(re4)[0]
         let width = extractDim.match(re2).join('')
+        console.log('first width', width)
+
         // reverse the dims
         let reverseDim = Array.from(extractDim).reverse().join('')
         // extract up until x - then use join to str
@@ -263,9 +283,10 @@ function displayCloud(req, res) {
 }
 // input public_id or url of src
 function deleteCloudResource(url, id) {
-    function caller(input){
+    function caller(input) {
         cloudinary.v2.api.delete_resources([input], (err, result) => {
-            if (err) error(err)
+            if (err)
+                error(err)
             log('deleted')
             return res.send(result)
         })
@@ -277,7 +298,7 @@ function deleteCloudResource(url, id) {
     }
     return undefined
 }
-function singleSeed(req, res, imgSrc){
+function singleSeed(req, res, imgSrc) {
     // let promise = cloudinaryUploader(`${__dirname}/adorable-animal-breed-1108099.jpg`)
     let promise = cloudinaryUploader(imgSrc)
     promise.then(img => {
@@ -294,15 +315,15 @@ function singleSeed(req, res, imgSrc){
             contentType: 'image/jpg',
             alt: 'alt tag'
         })
-            let promise = image.save()
+        let promise = image.save()
 
-            promise.then(image => {
-                log('saved')
-                res.send('saved')
-            }).catch(e => {
-                error(`image not saved, ${e}`)
-                res.send('An error occured', e)
-            })
+        promise.then(image => {
+            log('saved')
+            res.send('saved')
+        }).catch(e => {
+            error(`image not saved, ${e}`)
+            res.send('An error occured', e)
+        })
     }).catch(err => {
         error('An error occured', err)
         res.send('An error at the end of the promise', err)
