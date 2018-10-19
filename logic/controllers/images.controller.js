@@ -33,7 +33,11 @@ module.exports = {
     addFile: addFile,
     setImageQuality: setImageQuality,
     replaceUrlExt: replaceUrlExt,
-    httpCall: httpCall
+    httpCall: httpCall,
+    getCache: getCache,
+    retreiveBufferIndex: retreiveBufferIndex,
+    manageImageCache: manageImageCache
+
 }
 function add(req, res) {
     // get file
@@ -101,166 +105,134 @@ function add(req, res) {
         res.redirect('add')
     })
 }
-let imgs = []
-// checks if called route is in queue T or F
-function getCache(arr, pathname) {
-    // make arr of only keys
-    let paths = arr.map(key => {
-        return Object.keys(key)[0]
-    })
-    log('cache Paths', paths)
-    return paths.includes(pathname)
-}
-// take image buff and push to arr - call in http
-function manageImageCache(pathname, buffer, format) {
-    let imgObj = {}
-    // add buffer to obj
-    imgObj[pathname] = buffer
-    // add format to obj
-    imgObj['format'] = format
-    imgs.push(imgObj)
-    // if more than 4, shift one off
-    if (imgs.length > 4) {
-        imgs.shift()
-        log('shifting off cache array')
-    }
-    // if this is called, image is coming from cloud
-    log('serving from: cloud')
-}
-// get buffer from array of caches
-function retreiveBufferIndex(pathname, arr) {
-    for (let i = 0; i < arr.length; i++) {
-        if (Object.keys(arr[i])[0] === pathname)
-            return arr.indexOf(arr[i])
-    }
-    return -1
-}
 // quality and strFormat are querys - blank by default
 function showImage(req, res, quality, strFormat) {
-        var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-        // get pathname from url
-        let pathName = url.parse(fullUrl)
-        // regex checks to see if starts w /
-        let re = /^\//ig
-        // get pathname from url
-        pathName = pathName.pathname
-        if (pathName.match(re)) {
-            // slice out forward slash
-            pathName = pathName.slice(1, pathName.length)
-        }
-        log('pathname', pathName)
+    var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+    // get pathname from url
+    let pathName = url.parse(fullUrl)
+    // regex checks to see if starts w /
+    let re = /^\//ig
+    // get pathname from url
+    pathName = pathName.pathname
+    if (pathName.match(re)) {
+        // slice out forward slash
+        pathName = pathName.slice(1, pathName.length)
+    }
+    log('pathname', pathName)
 
-        if (!checkAllDigits(pathName)) {
-            error('The dims provide include non-numeric chars. Must be all digits.')
-            throw Error('Non-numeric chars in the image dimensions.')
+    if (!checkAllDigits(pathName)) {
+        error('The dims provide include non-numeric chars. Must be all digits.')
+        throw Error('Non-numeric chars in the image dimensions.')
+    }
+
+    let dims = extractDims(pathName)
+    //
+    let width = parseInt(dims.width)
+    let height = parseInt(dims.height)
+    if (!width || !height) {
+        error('width or height is null')
+        throw TypeError('Width or height is null in showImage()')
+    }
+    // CACHE
+    // if quality or format in string, skip the cache
+    if (!quality && !strFormat) {
+        // if in cache call from cache
+        if (getCache(imgs, pathName)) {
+            let index = retreiveBufferIndex(pathName, imgs)
+            console.log('index', index)
+            if (index < 0) {
+                error('Error: Indexing of cache is less than zero. Illegal index.')
+                throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
+                return
+            }
+            // get by array index and key name
+            let buffer = imgs[index][pathName]
+            // Initiate the source
+            var bufferStream = new Stream.PassThrough()
+            // Write your buffer
+            bufferStream.end(new Buffer(buffer))
+            log('Serving from : cache')
+            // get format from imgObj
+            let format = imgs[index]['format']
+            // resize
+            return resize(bufferStream, width, height, format).pipe(res)
         }
-        let dims = extractDims(pathName)
-        //
-        let width = parseInt(dims.width)
-        let height = parseInt(dims.height)
-        if (!width || !height) {
-            error('width or height is null')
-            throw TypeError('Width or height is null in showImage()')
-        }
-        // CACHE
-        // if quality or format in string, skip the cache
-        if (!quality && !strFormat) {
-            // if in cache call from cache
-            if (getCache(imgs, pathName)) {
-                let index = retreiveBufferIndex(pathName, imgs)
-                console.log('index', index)
-                if (index < 0) {
-                    error('Error: Indexing of cache is less than zero. Illegal index.')
-                    throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
-                    return
+    }
+    let preSets = [
+        '100x100',
+        '150x150',
+        '200x200',
+        '250x250',
+        '300x300',
+        '350x350',
+        '400x400',
+        '450x450',
+        '500x500',
+        '550x550',
+        '600x600',
+        '650x650',
+        '700x700'
+    ]
+    new Promise((resolve, reject) => {
+        // if one of the preset images, send this
+        if (preSets.includes(pathName)) {
+            console.log('prom')
+            resolve(Image.findOne({path: pathName}).exec())
+        } else {
+            // else random
+            // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
+            // Get the count of all users
+            Image.count().exec(function(err, count) {
+                if (err) {
+                    error(err)
+                    req.flash('error', `A networking error occured: ${err}`)
+                    res.redirect('index', `A networking error occured. Try again.`)
                 }
-                // get by array index and key name
-                let buffer = imgs[index][pathName]
-                // Initiate the source
-                var bufferStream = new Stream.PassThrough()
-                // Write your buffer
-                bufferStream.end(new Buffer(buffer))
-                log('Serving from : cache')
-                // get format from imgObj
-                let format = imgs[index]['format']
-                // resize
-                return resize(bufferStream, width, height, format).pipe(res)
-            }
-        }
-        let preSets = [
-            '100x100',
-            '150x150',
-            '200x200',
-            '250x250',
-            '300x300',
-            '350x350',
-            '400x400',
-            '450x450',
-            '500x500',
-            '550x550',
-            '600x600',
-            '650x650',
-            '700x700'
-        ]
-        new Promise((resolve, reject) => {
-            // if one of the preset images, send this
-            if (preSets.includes(pathName)) {
-                resolve(Image.findOne({path: pathName}).exec())
-            } else {
-                // else random
-                // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
-                // Get the count of all users
-                Image.count().exec(function(err, count) {
-                    if (err) {
-                        error(err)
-                        req.flash('error', `A networking error occured: ${err}`)
-                        res.redirect('index', `A networking error occured. Try again.`)
-                    }
-                    // Get a random entry
-                    var random = Math.floor(Math.random() * count)
-                    resolve(Image.findOne().skip(random).exec())
-                })
-            }
-        }).then(img => {
-            // check not null
-            if (!img) {
-                error('This data does not exist')
-                throw ReferenceError('Error. Data does not exist. Try reloading and check URL for errors.')
-            }
-            log('img', img)
-            // make sure img has prop type
-            let format = imageFormat(img.contentType)
-            // if no contentType, error
-            if (!format) {
-                throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
-            }
-            // if format change in query, change img type
-            if (strFormat) {
-                let newSrc = replaceUrlExt(img.src, strFormat)
-                img.src = newSrc
-                log('Foramting changed in Url. New format src:', img.src)
-            }
-            // get qualiy and set new str
-            if (quality) {
-                let newSrc = setImageQuality(img.src, quality)
-                img.src = newSrc
-                log('Quality src', img.src)
-            }
-            // set type
-            res.type(`image/${format || 'jpg'}`)
-            // call url from cloudinary- push to cache too
-            let x = httpCall(img.src, pathName).then(stream => {
-                // pass to resize func and pipe to res
-                ///// strFormat needs to be added after debug
-                return resize(stream, width, height, format).pipe(res)
-            }).catch(err => {
-                error("An error in the promise ending show", err)
-                res.status(404).send(err)
+                // Get a random entry
+                var random = Math.floor(Math.random() * count)
+                resolve(Image.findOne().skip(random).exec())
             })
+        }
+    }).then(img => {
+        // check not null
+        if (!img) {
+            error('This data does not exist')
+            throw ReferenceError('Error. Data does not exist. Try reloading and check URL for errors.')
+        }
+        log('img', img)
+        // make sure img has prop type
+        let format = imageFormat(img.contentType)
+        // if no contentType, error
+        if (!format) {
+            throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
+        }
+        // if format change in query, change img type
+        if (strFormat) {
+            let newSrc = replaceUrlExt(img.src, strFormat)
+            img.src = newSrc
+            log('Foramting changed in Url. New format src:', img.src)
+        }
+        // get qualiy and set new str
+        if (quality) {
+            let newSrc = setImageQuality(img.src, quality)
+            img.src = newSrc
+            log('Quality src', img.src)
+        }
+        // set type
+        res.type(`image/${format || 'jpg'}`)
+        // call url from cloudinary- push to cache too
+        httpCall(img.src, pathName).then(stream => {
+            // pass to resize func and pipe to res
+            ///// strFormat needs to be added after debug
+            return resize(stream, width, height, format).pipe(res)
         }).catch(err => {
             error("An error in the promise ending show", err)
             res.status(404).send(err)
         })
+    }).catch(err => {
+        error("An error in the promise ending show", err)
+        res.status(404).send(err)
+    })
 }
 // makes http get, returns stream in promise - takes src and pathname
 function httpCall(src, pathname) {
@@ -446,4 +418,38 @@ function replaceUrlExt(imgUrl, newExt) {
     }
     let fileNoExt = imgUrl.split('.').slice(0, -1).join('.')
     return `${fileNoExt}.${newExt}`
+}
+let imgs = []
+// checks if called route is in queue T or F
+function getCache(arr, pathname) {
+    // make arr of only keys
+    let paths = arr.map(key => {
+        return Object.keys(key)[0]
+    })
+    log('cache Paths', paths)
+    return paths.includes(pathname)
+}
+// take image buff and push to arr - call in http
+function manageImageCache(pathname, buffer, format) {
+    let imgObj = {}
+    // add buffer to obj
+    imgObj[pathname] = buffer
+    // add format to obj
+    imgObj['format'] = format
+    imgs.push(imgObj)
+    // if more than 4, shift one off
+    if (imgs.length > 4) {
+        imgs.shift()
+        log('shifting off cache array')
+    }
+    // if this is called, image is coming from cloud
+    log('serving from: cloud')
+}
+// get buffer from array of caches
+function retreiveBufferIndex(pathname, arr) {
+    for (let i = 0; i < arr.length; i++) {
+        if (Object.keys(arr[i])[0] === pathname)
+            return arr.indexOf(arr[i])
+    }
+    return -1
 }

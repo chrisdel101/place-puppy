@@ -106,8 +106,6 @@ function extractDims(str) {
         // if not valid url follow, cannot parse out using url mod  above
         let extractDim = str.match(re4)[0]
         let width = extractDim.match(re2).join('')
-        console.log('first width', width)
-
         // reverse the dims
         let reverseDim = Array.from(extractDim).reverse().join('')
         // extract up until x - then use join to str

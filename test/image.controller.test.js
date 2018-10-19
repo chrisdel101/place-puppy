@@ -329,7 +329,9 @@ describe('images controller', function() {
                 originalUrl: '/100x100'
 
             })
-            fakeRes = mockResponse({type: sinon.stub().returns('image/png')})
+            fakeRes = mockResponse({
+                type: sinon.stub().returns('image/png')
+            })
             findOneResult = {
                 exec: sinon.stub().resolves(fakeImage)
             }
@@ -338,7 +340,7 @@ describe('images controller', function() {
             imageFind.returns(findOneResult)
             // stub Image Count and exec
             fakeCountResult = {
-                exec: sinon.stub().returns(1000)
+                exec: sinon.stub().resolves(1000)
             }
             let imageCount = sinon.stub(Image, 'count').returns(fakeCountResult)
             // httpCall returns a stream
@@ -350,18 +352,28 @@ describe('images controller', function() {
             httpCall = sinon.stub().resolves(mockStream)
             resize = sinon.stub().returns(resizeRes)
             rwSUT.__set__('httpCall', httpCall)
-            rwSUT.__get__('httpCall')
             rwSUT.__set__('resize', resize)
             nock('https://fake-src.png').get('/').reply(200)
         })
         afterEach(function() {
             Image.findOne.restore()
             Image.count.restore()
-            // https.get.restore()
         })
         it('calls findOne() when passed a preset set of dims 100x100', function() {
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
             sinon.assert.calledOnce(Image.findOne)
+        })
+        it('calls Count() when passed dims not in the presets', function(){
+            fakeReq = mockRequest({
+                protocol: 'https',
+                get: function() {
+                    return 'localhost:3000'
+                },
+                originalUrl: '/100x151'
+
+            })
+            let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
+            sinon.assert.calledOnce(Image.count)
         })
         it.skip('calls resize', function() {
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
@@ -370,13 +382,13 @@ describe('images controller', function() {
 
         })
         it('throws and error when given non-numeric dimension', function() {
+            // fake req with letters in pathname
             fakeReq = mockRequest({
                 protocol: 'https',
                 get: function() {
                     return 'localhost:3000'
                 },
                 originalUrl: '/2r2x4fr'
-
             })
             expect(function() {
                 let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
@@ -409,9 +421,28 @@ describe('images controller', function() {
             let log = sinon.spy()
             // inject error
             rwSUT.__set__('log', log)
+            after(function(){
+                // getCache.restore()
+            })
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
             // check log is called
             assert(log.calledWith('Serving from : cache'))
+        })
+    })
+    describe('httpCall()', function(){
+        beforeEach(function(){
+            let mockStream = new Stream.Transform()
+            // stub get
+            httpGet = sinon.stub(https, 'get').resolves(mockStream)
+        })
+        afterEach(function(){
+            https.get.restore()
+        })
+        it('returns a promise', function(){
+            let result = rwSUT.httpCall('fakePng.png', '100x100')
+            let promise = result instanceof Promise
+            expect(promise).to.be.true
+
         })
     })
 
