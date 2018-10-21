@@ -430,19 +430,29 @@ describe('images controller', function() {
         })
     })
     describe('httpCall()', function(){
-        beforeEach(function(){
-            let mockStream = new Stream.Transform()
-            // stub get
-            httpGet = sinon.stub(https, 'get').resolves(mockStream)
-        })
-        afterEach(function(){
-            https.get.restore()
-        })
         it('returns a promise', function(){
+            before(function(){
+                let mockStream = new Stream.Transform()
+                // stub get
+                httpGet = sinon.stub(https, 'get').resolves(mockStream)
+            })
+            after(function(){
+                https.get.restore()
+            })
+           //  let mockStream = new Stream.Transform()
+           // // // stub get
+           // httpGet = sinon.stub(https, 'get').resolves(mockStream)
             let result = rwSUT.httpCall('fakePng.png', '100x100')
             let promise = result instanceof Promise
             expect(promise).to.be.true
-
+        })
+        it('mocks server', function(){
+                nock('https://fake-src.png').get('/').reply(200,  'what what')
+            let result = rwSUT.httpCall('https://fake-src.png', '100x100')
+            return result.then(res => {
+                // check length of string passed into Nock
+                expect(res._readableState.length).to.equal(9)
+            })
         })
     })
 
