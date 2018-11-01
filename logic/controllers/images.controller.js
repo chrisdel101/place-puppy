@@ -137,7 +137,8 @@ function showImage(req, res, quality, strFormat) {
     // if quality or format in string, skip the cache
     if (!quality && !strFormat) {
         // if in cache call from cache
-        if (getCache(imgs, pathName)) {
+        if (getCache(imgs, pathName )) {
+            log('getCache', imgs)
             let index = retreiveBufferIndex(pathName, imgs)
             console.log('index', index)
             if (index < 0) {
@@ -243,16 +244,20 @@ function httpCall(src, pathname) {
                 log('status of url call', response.statusCode)
                 log('called made to', src)
                 var data = new streamTransform()
+
                 response.on('data', (chunk) => {
+                    log('chunk', chunk)
                     data.push(chunk)
                 })
                 response.on('end', () => {
                     // read data with.read()
                     data = data.read()
+                    log('data', data)
                     // push to cache
                     https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
                     // Initiate the source
                     var bufferStream = new Stream.PassThrough()
+
                     // Write your buffer
                     bufferStream.end(new Buffer(data))
                     // CACHE- add and remove from cache
@@ -420,13 +425,20 @@ function replaceUrlExt(imgUrl, newExt) {
     return `${fileNoExt}.${newExt}`
 }
 let imgs = []
-// checks if called route is in queue T or F
+// checks if pathname is inside the cache
+// take arr of objects with path/buffer key vals, + pathname
 function getCache(arr, pathname) {
+    if(!Array.isArray(arr)){
+        throw TypeError('First input of getCache must be an array.')
+    }
+    if(typeof pathname !== 'string'){
+        throw TypeError('Second input of getCache must be a string.')
+    }
     // make arr of only keys
     let paths = arr.map(key => {
+        // arr of string buffer pairs
         return Object.keys(key)[0]
     })
-    log('cache Paths', paths)
     return paths.includes(pathname)
 }
 // take image buff and push to arr - call in http

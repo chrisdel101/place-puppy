@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "DEBUG=app:* NODE_ENV=development nodemon ./bin/www",
+    "start:nolog": "NODE_ENV=development nodemon ./bin/www",
     "prod": "NODE_ENV=production DEBUG=app:* node ./bin/www",
     "test": "mocha",
     "test:watch": "DEBUG=app:* mocha -w"
