@@ -107,6 +107,7 @@ function add(req, res) {
 }
 // quality and strFormat are querys - blank by default
 function showImage(req, res, quality, strFormat) {
+    // console.log('cache', closureCache())
     var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     // get pathname from url
     let pathName = url.parse(fullUrl)
@@ -137,24 +138,25 @@ function showImage(req, res, quality, strFormat) {
     // if quality or format in string, skip the cache
     if (!quality && !strFormat) {
         // if in cache call from cache
-        if (getCache(imgs, pathName )) {
-            log('getCache', imgs)
-            let index = retreiveBufferIndex(pathName, imgs)
-            console.log('index', index)
+        let currentCache = closureCache()
+        if (getCache(currentCache, pathName)) {
+            log('getCache', currentCache)
+            let index = retreiveBufferIndex(pathName, currentCache)
+
             if (index < 0) {
                 error('Error: Indexing of cache is less than zero. Illegal index.')
                 throw TypeError('Error: Indexing of cache is less than zero. Illegal index.')
                 return
             }
             // get by array index and key name
-            let buffer = imgs[index][pathName]
+            let buffer = currentCache[index][pathName]
             // Initiate the source
             var bufferStream = new Stream.PassThrough()
             // Write your buffer
             bufferStream.end(new Buffer(buffer))
             log('Serving from : cache')
             // get format from imgObj
-            let format = imgs[index]['format']
+            let format = currentCache[index]['format']
             // resize
             return resize(bufferStream, width, height, format).pipe(res)
         }
@@ -177,7 +179,7 @@ function showImage(req, res, quality, strFormat) {
     new Promise((resolve, reject) => {
         // if one of the preset images, send this
         if (preSets.includes(pathName)) {
-            console.log('prom')
+
             resolve(Image.findOne({path: pathName}).exec())
         } else {
             // else random
@@ -221,8 +223,12 @@ function showImage(req, res, quality, strFormat) {
         }
         // set type
         res.type(`image/${format || 'jpg'}`)
-        // call url from cloudinary- push to cache too
-        httpCall(img.src, pathName).then(stream => {
+        // call url from cloudinary
+        httpCall(img.src, pathName).then(array => {
+            // val one is stream2
+            let stream = array[0]
+            // val 2 is cache
+            let cache = array[1]
             // pass to resize func and pipe to res
             ///// strFormat needs to be added after debug
             return resize(stream, width, height, format).pipe(res)
@@ -246,13 +252,11 @@ function httpCall(src, pathname) {
                 var data = new streamTransform()
 
                 response.on('data', (chunk) => {
-                    log('chunk', chunk)
                     data.push(chunk)
                 })
                 response.on('end', () => {
                     // read data with.read()
                     data = data.read()
-                    log('data', data)
                     // push to cache
                     https : //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
                     // Initiate the source
@@ -261,9 +265,11 @@ function httpCall(src, pathname) {
                     // Write your buffer
                     bufferStream.end(new Buffer(data))
                     // CACHE- add and remove from cache
-                    manageImageCache(pathname, data, format)
+                    // manageImageCache(pathname, data, format)
+                    let result = closureCache(pathname, data, format)
+                    log('serving from: cloud')
                     // add and remove from cache
-                    resolve(bufferStream)
+                    resolve([bufferStream, result])
                 })
             } else {
                 error(`An http error occured`, response.statusCode)
@@ -284,7 +290,7 @@ function resize(stream, width, height, format) {
         throw TypeError('resize error: Invalid format. Must be jpg, jpeg, png, or gif.')
     }
     var transformer = sharp().resize(width, height).on('info', function(info) {
-        log('Inside resize: resize okay')
+        log('Resize: okay')
     })
     return stream.pipe(transformer)
 
@@ -424,6 +430,31 @@ function replaceUrlExt(imgUrl, newExt) {
     let fileNoExt = imgUrl.split('.').slice(0, -1).join('.')
     return `${fileNoExt}.${newExt}`
 }
+// stores imags cache in a closure
+let closureCache = (function(){
+	let imgs = []
+	return function(pathname, buffer, format){
+        // getter
+    if(arguments.length <= 0){
+        return imgs
+    }
+    // setter
+	let imgObj = {}
+	imgObj[pathname] = buffer
+    // add format to obj
+    imgObj['format'] = format
+	// console.log('imgObj', imgObj)
+    imgs.push(imgObj)
+    // if more than 4, shift one off
+    if (imgs.length > 4) {
+        imgs.shift()
+        log('shifting off cache array')
+    }
+    // if this is called, image is coming from cloud
+	return imgs
+	}
+})();
+
 let imgs = []
 // checks if pathname is inside the cache
 // take arr of objects with path/buffer key vals, + pathname
@@ -441,6 +472,7 @@ function getCache(arr, pathname) {
     })
     return paths.includes(pathname)
 }
+// create and remove images from cache
 // take image buff and push to arr - call in http
 function manageImageCache(pathname, buffer, format) {
     let imgObj = {}
