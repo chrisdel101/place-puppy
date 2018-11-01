@@ -36,8 +36,8 @@ module.exports = {
     httpCall: httpCall,
     getCache: getCache,
     retreiveBufferIndex: retreiveBufferIndex,
-    manageImageCache: manageImageCache
-
+    manageImageCache: manageImageCache,
+    closureCache: closureCache
 }
 function add(req, res) {
     // get file
@@ -107,7 +107,6 @@ function add(req, res) {
 }
 // quality and strFormat are querys - blank by default
 function showImage(req, res, quality, strFormat) {
-    // console.log('cache', closureCache())
     var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     // get pathname from url
     let pathName = url.parse(fullUrl)
@@ -141,6 +140,8 @@ function showImage(req, res, quality, strFormat) {
         let currentCache = closureCache()
         if (getCache(currentCache, pathName)) {
             log('getCache', currentCache)
+            console.log(currentCache)
+            console.log(pathName)
             let index = retreiveBufferIndex(pathName, currentCache)
 
             if (index < 0) {
@@ -430,7 +431,7 @@ function replaceUrlExt(imgUrl, newExt) {
     let fileNoExt = imgUrl.split('.').slice(0, -1).join('.')
     return `${fileNoExt}.${newExt}`
 }
-// stores imags cache in a closure
+// stores imgs cache in a closure
 let closureCache = (function(){
 	let imgs = []
 	return function(pathname, buffer, format){
@@ -454,8 +455,6 @@ let closureCache = (function(){
 	return imgs
 	}
 })();
-
-let imgs = []
 // checks if pathname is inside the cache
 // take arr of objects with path/buffer key vals, + pathname
 function getCache(arr, pathname) {

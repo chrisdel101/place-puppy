@@ -11,7 +11,7 @@ let fakeRes = mockResponse()
 const sinon = require('sinon')
 const rewire = require('rewire')
 const rwSUT = rewire('../logic/controllers/images.controller');
-let rewiredAdd = rewire('../logic/controllers/images.controller').add
+
 const mongoose = require('mongoose')
 const cloudinary = require('cloudinary')
 const Image = mongoose.models.Image || require('../models/image.model.js')
@@ -356,6 +356,8 @@ describe('images controller', function() {
         afterEach(function() {
             Image.findOne.restore()
             Image.count.restore()
+
+
         })
         it('calls findOne() when passed a preset set of dims 100x100', function() {
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
@@ -402,22 +404,23 @@ describe('images controller', function() {
                 originalUrl: '/100x100'
 
             })
-            // fake imgs arr
-            let imgs = [
+            // fake cache to send
+            let cache = [
                 {
                     "100x100": Buffer.from([1, 2, 3])
                 }
             ]
+            // stub actual clousureCache
+            let cacheStub = sinon.stub().returns(cache)
             // stub get cache
             let getCache = sinon.stub().returns(true)
             // inject getCache
             rwSUT.__set__('getCache', getCache)
-            // inject imgs
-            rwSUT.__set__('imgs', imgs)
+            // inject closureCache
+            rwSUT.__set__('closureCache', cacheStub)
             // mock log
-
             let log = sinon.spy()
-            // inject error
+            // inject log
             rwSUT.__set__('log', log)
             after(function() {
                 // getCache.restore()
@@ -425,6 +428,7 @@ describe('images controller', function() {
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
             // check log is called
             assert(log.calledWith('Serving from : cache'))
+
         })
     })
     describe('httpCall()', function() {
@@ -460,7 +464,7 @@ describe('images controller', function() {
 
         })
     })
-    describe.only('getCache()', function() {
+    describe('getCache()', function() {
         it('returns true', function() {
             let result = SUT.getCache([
                 {
@@ -486,6 +490,11 @@ describe('images controller', function() {
             expect(function() {
                 SUT.getCache([{'100x100': 'hello'}], 44)
             }).to.throw(TypeError, 'Second input of getCache must be a string.')
+        })
+    })
+    describe('closureCache()', function(){
+        it('returns a function', function(){
+            
         })
     })
 
