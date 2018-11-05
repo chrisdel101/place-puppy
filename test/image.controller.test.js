@@ -457,7 +457,6 @@ describe('images controller', function() {
                 let result = rwSUT.httpCall('https://fake-src.png', '100x100')
                 return result.then(res => {
                     // check length of string passed into Nock
-                    console.log('res', res)
                     // expect(res._readableState.length).to.equal(9)
                 })
             })
@@ -493,8 +492,28 @@ describe('images controller', function() {
         })
     })
     describe('closureCache()', function(){
-        it('returns a function', function(){
-            
+        it('returns an array', function(){
+            let result = SUT.closureCache('100x100', Buffer.from([8,6,7,5,3,0,9]), 'jpg')
+            expect(Array.isArray(result)).to.be.true
+        })
+        it('creates an object with key:buffer format:string layout', function(){
+            let result = SUT.closureCache('100x100', Buffer.from([8,6,7,5,3,0,9]), 'jpg')
+            expect(result[0]).to.have.all.keys('100x100', 'format')
+        })
+        it('returns cache as getter func when no args given & holds cache', function(){
+            let result = SUT.closureCache()
+            expect(result.length).to.equal(2)
+        })
+    })
+    describe('retreiveBufferIndex()', function(){
+        let cache = [{'100x100':'My Buffer'}, {'300x300':'Another Buffer'}]
+        it('returns an index - positive integer', function(){
+            let result = SUT.retreiveBufferIndex('300x300', cache)
+            expect(result).to.equal(1)
+        })
+        it('returns -1 when no index is found', function(){
+            let result = SUT.retreiveBufferIndex('323x001', cache)
+            expect(result).to.equal(-1)
         })
     })
 

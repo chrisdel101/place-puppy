@@ -23,22 +23,9 @@ const Stream = require('stream')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
+let closureCache
 
-module.exports = {
-    showImages: showImages,
-    resize: resize,
-    imageFormat: imageFormat,
-    showImage: showImage,
-    add: add,
-    addFile: addFile,
-    setImageQuality: setImageQuality,
-    replaceUrlExt: replaceUrlExt,
-    httpCall: httpCall,
-    getCache: getCache,
-    retreiveBufferIndex: retreiveBufferIndex,
-    manageImageCache: manageImageCache,
-    closureCache: closureCache
-}
+
 function add(req, res) {
     // get file
     let file = req.file
@@ -140,8 +127,6 @@ function showImage(req, res, quality, strFormat) {
         let currentCache = closureCache()
         if (getCache(currentCache, pathName)) {
             log('getCache', currentCache)
-            console.log(currentCache)
-            console.log(pathName)
             let index = retreiveBufferIndex(pathName, currentCache)
 
             if (index < 0) {
@@ -266,7 +251,6 @@ function httpCall(src, pathname) {
                     // Write your buffer
                     bufferStream.end(new Buffer(data))
                     // CACHE- add and remove from cache
-                    // manageImageCache(pathname, data, format)
                     let result = closureCache(pathname, data, format)
                     log('serving from: cloud')
                     // add and remove from cache
@@ -431,8 +415,9 @@ function replaceUrlExt(imgUrl, newExt) {
     let fileNoExt = imgUrl.split('.').slice(0, -1).join('.')
     return `${fileNoExt}.${newExt}`
 }
+// to call cache, call func without args
 // stores imgs cache in a closure
-let closureCache = (function(){
+closureCache = (function(){
 	let imgs = []
 	return function(pathname, buffer, format){
         // getter
@@ -455,6 +440,7 @@ let closureCache = (function(){
 	return imgs
 	}
 })();
+
 // checks if pathname is inside the cache
 // take arr of objects with path/buffer key vals, + pathname
 function getCache(arr, pathname) {
@@ -473,22 +459,22 @@ function getCache(arr, pathname) {
 }
 // create and remove images from cache
 // take image buff and push to arr - call in http
-function manageImageCache(pathname, buffer, format) {
-    let imgObj = {}
-    // add buffer to obj
-    imgObj[pathname] = buffer
-    // add format to obj
-    imgObj['format'] = format
-    imgs.push(imgObj)
-    // if more than 4, shift one off
-    if (imgs.length > 4) {
-        imgs.shift()
-        log('shifting off cache array')
-    }
-    // if this is called, image is coming from cloud
-    log('serving from: cloud')
-}
-// get buffer from array of caches
+// function manageImageCache(pathname, buffer, format) {
+//     let imgObj = {}
+//     // add buffer to obj
+//     imgObj[pathname] = buffer
+//     // add format to obj
+//     imgObj['format'] = format
+//     imgs.push(imgObj)
+//     // if more than 4, shift one off
+//     if (imgs.length > 4) {
+//         imgs.shift()
+//         log('shifting off cache array')
+//     }
+//     // if this is called, image is coming from cloud
+//     log('serving from: cloud')
+// }
+// get buffer from array of caches - '100x100', cache
 function retreiveBufferIndex(pathname, arr) {
     for (let i = 0; i < arr.length; i++) {
         if (Object.keys(arr[i])[0] === pathname)
@@ -496,3 +482,32 @@ function retreiveBufferIndex(pathname, arr) {
     }
     return -1
 }
+
+module.exports = {
+    showImages: showImages,
+    resize: resize,
+    imageFormat: imageFormat,
+    showImage: showImage,
+    add: add,
+    addFile: addFile,
+    setImageQuality: setImageQuality,
+    replaceUrlExt: replaceUrlExt,
+    httpCall: httpCall,
+    getCache: getCache,
+    retreiveBufferIndex: retreiveBufferIndex,
+    // manageImageCache: manageImageCache,
+    closureCache: closureCache
+}
+
+// showImages
+// resize
+// imageFormat
+// showImage
+// add
+// addFile
+// setImageQuality
+// replaceUrlExt
+// httpCall
+// getCache
+// retreiveBufferIndex
+// closureCache
