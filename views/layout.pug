@@ -1,11 +1,16 @@
 doctype html
 html
     head
+        meta(property="og:url"               content="http://place-puppy.com")
+        meta(property="og:type"               content="website")
+        meta(property="og:title"              content="Placepuppy: An image placeholder API")
+        meta(property="og:description"        content="Get pictures of puppies as placeholders in your designs and websites")
+        meta(property="og:image"             content="public/public-images/dim-images/500x500.jpg")
+        meta(name="viewport" content="width=device-width,initial-scale=1.0")
         title= '{placepuppy}'
         link(rel='stylesheet', href='/stylesheets/style.css')
         link(rel="stylesheet", href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css")
         link(rel="icon" type="image" href="http://placekitten.com/favicon.ico")
-        meta(name="viewport" content="width=device-width,initial-scale=1.0")
 
     body
         block content
