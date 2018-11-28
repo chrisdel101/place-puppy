@@ -70,7 +70,6 @@ module.exports = {
         })
     },
     loginDisplay: (req, res) => {
-        console.log(req.session.user)
         return res.render('login', {
             method: 'POST',
             action: '/login',

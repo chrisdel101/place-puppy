@@ -11,7 +11,7 @@ let fakeRes = mockResponse()
 const sinon = require('sinon')
 const rewire = require('rewire')
 const rwSUT = rewire('../logic/controllers/images.controller');
-let rewiredAdd = rewire('../logic/controllers/images.controller').add
+
 const mongoose = require('mongoose')
 const cloudinary = require('cloudinary')
 const Image = mongoose.models.Image || require('../models/image.model.js')
@@ -313,14 +313,13 @@ describe('images controller', function() {
             }, 0);
         })
     })
-    describe.skip('showImage()', function() {
+    describe('showImage()', function() {
         let fakeReq
         let fakeRes
         let findOneResult
         let fakeCountResult
         let httpCall
         let resize
-        console.log(rwSUT)
         beforeEach(function() {
             fakeReq = mockRequest({
                 protocol: 'https',
@@ -330,9 +329,7 @@ describe('images controller', function() {
                 originalUrl: '/100x100'
 
             })
-            fakeRes = mockResponse({
-                type: sinon.stub().returns('image/png')
-            })
+            fakeRes = mockResponse({type: sinon.stub().returns('image/png')})
             findOneResult = {
                 exec: sinon.stub().resolves(fakeImage)
             }
@@ -341,39 +338,183 @@ describe('images controller', function() {
             imageFind.returns(findOneResult)
             // stub Image Count and exec
             fakeCountResult = {
-                exec: sinon.stub().returns(1000)
+                exec: sinon.stub().resolves(1000)
             }
             let imageCount = sinon.stub(Image, 'count').returns(fakeCountResult)
             // httpCall returns a stream
             let mockStream = new Stream.Transform()
             // resize returns a object with a pipe func
             let resizeRes = {
-                pipe:sinon.spy()
+                pipe: sinon.spy()
             }
             httpCall = sinon.stub().resolves(mockStream)
             resize = sinon.stub().returns(resizeRes)
             rwSUT.__set__('httpCall', httpCall)
-            rwSUT.__get__('httpCall')
             rwSUT.__set__('resize', resize)
-            // console.log(x)
-            nock('https://fake-src.png')
-            .get('/')
-            .reply(200)
+            nock('https://fake-src.png').get('/').reply(200)
         })
         afterEach(function() {
             Image.findOne.restore()
             Image.count.restore()
-            // https.get.restore()
+
+
         })
-        it('calls findOne() when passed a preset set of dims', function() {
+        it('calls findOne() when passed a preset set of dims 100x100', function() {
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
             sinon.assert.calledOnce(Image.findOne)
         })
-        it('does', function(){
+        it('calls Count() when passed dims not in the presets', function() {
+            fakeReq = mockRequest({
+                protocol: 'https',
+                get: function() {
+                    return 'localhost:3000'
+                },
+                originalUrl: '/100x151'
+
+            })
+            let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
+            sinon.assert.calledOnce(Image.count)
+        })
+        it.skip('calls resize', function() {
             let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
             // httpCall.withArgs('https://fake-src.png', '2 2')
             sinon.assert.calledOnce(resize)
 
         })
+        it('throws and error when given non-numeric dimension', function() {
+            // fake req with letters in pathname
+            fakeReq = mockRequest({
+                protocol: 'https',
+                get: function() {
+                    return 'localhost:3000'
+                },
+                originalUrl: '/2r2x4fr'
+            })
+            expect(function() {
+                let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
+            }).to.throw(Error, 'Non-numeric chars in the image dimensions')
+        })
+        it('returns image from the cache', function() {
+            // CACHE STUBs
+            fakeReq = mockRequest({
+                protocol: 'https',
+                get: function() {
+                    return 'localhost:3000'
+                },
+                originalUrl: '/100x100'
+
+            })
+            // fake cache to send
+            let cache = [
+                {
+                    "100x100": Buffer.from([1, 2, 3])
+                }
+            ]
+            // stub actual clousureCache
+            let cacheStub = sinon.stub().returns(cache)
+            // stub get cache
+            let getCache = sinon.stub().returns(true)
+            // inject getCache
+            rwSUT.__set__('getCache', getCache)
+            // inject closureCache
+            rwSUT.__set__('closureCache', cacheStub)
+            // mock log
+            let log = sinon.spy()
+            // inject log
+            rwSUT.__set__('log', log)
+            after(function() {
+                // getCache.restore()
+            })
+            let result = rwSUT.showImage(fakeReq, fakeRes, '', '')
+            // check log is called
+            assert(log.calledWith('Serving from : cache'))
+
+        })
     })
+    describe('httpCall()', function() {
+        describe('httpCall returns a promise', function() {
+            beforeEach(function() {
+                let mockStream = new Stream.Transform()
+                // stub get
+                httpGet = sinon.stub(https, 'get').resolves(mockStream)
+            })
+            afterEach(function() {
+                https.get.restore()
+            })
+            it('returns a promise', function() {
+                //  let mockStream = new Stream.Transform()
+                //   stub get
+                // httpGet = sinon.stub(https, 'get').resolves(mockStream)
+                let result = rwSUT.httpCall('fakePng.png', '100x100')
+                let promise = result instanceof Promise
+                expect(promise).to.be.true
+            })
+
+        })
+        describe.skip('httpCall make mock server call', function() {
+            nock('https://fake-src.png').get('/').reply(200, 'what what')
+            it('mocks server', function() {
+                let result = rwSUT.httpCall('https://fake-src.png', '100x100')
+                return result.then(res => {
+                    // check length of string passed into Nock
+                    // expect(res._readableState.length).to.equal(9)
+                })
+            })
+
+        })
+    })
+    describe('getCache()', function() {
+        it('returns true', function() {
+            let result = SUT.getCache([
+                {
+                    '100x100': Buffer.from([8,6,7,5,3,0,9])
+                }
+        ], '100x100')
+            expect(result).to.be.true
+        })
+        it('returns false', function() {
+            let result = SUT.getCache([
+                {
+                    '100x100': Buffer.from([8,6,7,5,3,0,9])
+                }
+        ], '200x200')
+            expect(result).to.be.false
+        })
+        it('throws an error when a first arg is not passed an array', function() {
+            expect(function() {
+                SUT.getCache(44, '100x100')
+            }).to.throw(TypeError, 'First input of getCache must be an array.')
+        })
+        it('throws an error when a second arg is not passed a string', function() {
+            expect(function() {
+                SUT.getCache([{'100x100': 'hello'}], 44)
+            }).to.throw(TypeError, 'Second input of getCache must be a string.')
+        })
+    })
+    describe('closureCache()', function(){
+        it('returns an array', function(){
+            let result = SUT.closureCache('100x100', Buffer.from([8,6,7,5,3,0,9]), 'jpg')
+            expect(Array.isArray(result)).to.be.true
+        })
+        it('creates an object with key:buffer format:string layout', function(){
+            let result = SUT.closureCache('100x100', Buffer.from([8,6,7,5,3,0,9]), 'jpg')
+            expect(result[0]).to.have.all.keys('100x100', 'format')
+        })
+        it('returns cache as getter func when no args given & holds cache', function(){
+            let result = SUT.closureCache()
+            expect(result.length).to.equal(2)
+        })
+    })
+    describe('retreiveBufferIndex()', function(){
+        let cache = [{'100x100':'My Buffer'}, {'300x300':'Another Buffer'}]
+        it('returns an index - positive integer', function(){
+            let result = SUT.retreiveBufferIndex('300x300', cache)
+            expect(result).to.equal(1)
+        })
+        it('returns -1 when no index is found', function(){
+            let result = SUT.retreiveBufferIndex('323x001', cache)
+            expect(result).to.equal(-1)
+        })
+    })
+
 })
