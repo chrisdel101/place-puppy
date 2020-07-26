@@ -2,43 +2,44 @@ extends layout
 
 block content
     include _flashes
-    div.index-container
-        div.puppy-container
-            div.puppy-box
-                h1= title
-                p <strong>
-                | A quick and simple service for getting pictures of puppies for use as placeholders in your designs or code.</strong> Just put your image size (width 
-                span.amp & 
-                | height) after our URL and you'll get a placeholder.
-                div.links
-                    div(style={color:'white'}) Like this: &nbsp 
-                        a(href='http://place-puppy.com/200x200') http://place-puppy.com/200x200 #[br]
-                        //- comment out until bug fix
-                        //- | jpg or png: &nbsp 
-                        //- a(href='http://place-puppy.com/g/200x200?f=png') http://place-puppy.com/300x300?f=png #[br]  
-
-                        //- | [ high, good, eco, low ] 
-                        //- a(href='http://place-puppy.com/g/200x200?q=high') http://place-puppy.com/200x200?q=high
-            each imgObj in imgObjs
+    .index-page
+        div.index-container
+            div.puppy-container
                 div.puppy-box
-                    picture
-                        source(media=`(max-width: 638px)` srcset=`${imgObj.sm}`)
-                        source(media=`(max-width: 852px)` srcset=`${imgObj.md}`)
-                        source(media=`(min-width:853px)` srcset=`${imgObj.lg}`)
-                        //- source(media=`(max-width:900px)` srcset=`${imgObj.cn}`)
-                        //- source(media=`(max-width:1099px)` srcset=`${imgObj.lg}`)
-                        //- source(media=`(min-width:1100px)` srcset=`${imgObj.fs}`) 
-                        img.image(src=`${imgObj.fs}` alt=`A dog`)
-            |
-    hr
-    footer.footer
-        div.inpspiration
-            p 
-            | Delivered by 
-            a(href='https://github.com/chrisdel101') Chris Del —  
-            | All images licensed via 
-            a(href='https://pixabay.com/en/service/terms/#usage') Creative Commons 0 
-            span.amp & 
-            a(href='https://www.pexels.com/photo-license/') Pexels License — 
-            | Inspired by 
-            a(href='http://placekitten.com') placekitten
+                    h1= title
+                    p <strong>
+                    | A quick and simple service for getting pictures of puppies for use as placeholders in your designs or code.</strong> Just put your image size (width 
+                    span.amp & 
+                    | height) after our URL and you'll get a placeholder.
+                    div.links
+                        div(style={color:'white'}) Like this: &nbsp 
+                            a(href='http://place-puppy.com/200x200') http://place-puppy.com/200x200 #[br]
+                            //- comment out until bug fix
+                            //- | jpg or png: &nbsp 
+                            //- a(href='http://place-puppy.com/g/200x200?f=png') http://place-puppy.com/300x300?f=png #[br]  
+
+                            //- | [ high, good, eco, low ] 
+                            //- a(href='http://place-puppy.com/g/200x200?q=high') http://place-puppy.com/200x200?q=high
+                each imgObj in imgObjs
+                    div.puppy-box
+                        picture
+                            source(media=`(max-width: 638px)` srcset=`${imgObj.sm}`)
+                            source(media=`(max-width: 852px)` srcset=`${imgObj.md}`)
+                            source(media=`(min-width:853px)` srcset=`${imgObj.lg}`)
+                            source(media=`(max-width:900px)` srcset=`${imgObj.cn}`)
+                            source(media=`(max-width:1099px)` srcset=`${imgObj.lg}`)
+                            source(media=`(min-width:1100px)` srcset=`${imgObj.fs}`) 
+                            img.image(src=`${imgObj.fs}` alt=`A dog`)
+                |
+        hr
+        footer.footer
+            div.inpspiration
+                p 
+                | Delivered by 
+                a(href='https://github.com/chrisdel101') Chris Del —  
+                | All images licensed via 
+                a(href='https://pixabay.com/en/service/terms/#usage') Creative Commons 0 
+                span.amp & 
+                a(href='https://www.pexels.com/photo-license/') Pexels License — 
+                | Inspired by 
+                a(href='http://placekitten.com') placekitten

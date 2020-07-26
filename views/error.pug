@@ -1,6 +1,18 @@
 extends layout
 
 block content
-  h1= message
-  h2= error.status
-  pre #{error.stack}
+  .error-page
+    .puppy-box
+      //- - console.log('ERR', errorObj)
+      h1= errorObj.status
+      h2= errorObj.errMsg
+      if process.env.NODE_ENV != 'development'
+        pre #{errorObj.stack}
+      else
+        each imgObj in imgObjs
+          picture
+            source(media=`(max-width: 638px)` srcset=`${imgObj.sm}`)
+            source(media=`(max-width: 725px)` srcset=`${imgObj.md}`)
+            source(media=`(max-width:853px)` srcset=`${imgObj.lg}`)
+            source(media=`(max-width:1100px)` srcset=`${imgObj.fs}`) 
+            img.image(src=`${imgObj.lg}` alt=`A dog`)
