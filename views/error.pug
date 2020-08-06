@@ -3,7 +3,6 @@ extends layout
 block content
   .error-page
     .puppy-box
-      //- - console.log('ERR', errorObj)
       h1= errorObj.status
       h2= errorObj.errMsg
       if process.env.NODE_ENV != 'development'

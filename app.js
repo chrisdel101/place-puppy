@@ -1,11 +1,9 @@
 require('dotenv').config()
 const express = require('express')
 const path = require('path')
-const favicon = require('serve-favicon')
 const logger = require('morgan')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
-const flash = require('express-flash')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')(session)
 
@@ -35,8 +33,6 @@ app.set('view engine', 'pug')
 
 app.locals.title = 'placepuppy'
 
-// uncomment after placing your favicon in /public
-
 app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -51,8 +47,6 @@ app.use(
     cookie: { maxAge: 60000 },
   })
 )
-
-app.use(flash())
 
 app.use(express.static(path.join(__dirname, 'public')))
 app.use('/', index)

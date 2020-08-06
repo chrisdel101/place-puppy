@@ -1,6 +1,6 @@
 const fs = require('fs')
 const dir = `./public/public-images/index-page`
-const { extractDims, isValidURL, filterImages } = require('../utils')
+const { filterImages } = require('../utils')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
@@ -17,9 +17,7 @@ module.exports = {
       // filter out non-image dirs
       dirs = filterImages(['image'], dir)
       let imgObjs = []
-      console.log('dir', dirs)
       dirs.forEach((imgDir) => {
-        log('imgDir', imgDir)
         let filesArr = fs.readdirSync(`${dir}/${imgDir}`)
         // loop over dir and make into valid paths
         let imgStrs = filesArr.map((file) => {
@@ -43,7 +41,6 @@ module.exports = {
 
     let dogObj = {}
     dogFolderArr.forEach((dogFile) => {
-      log('dogfile', dogFile)
       if (dogFile.match(sm)) {
         dogObj['sm'] = dogFile
       } else if (dogFile.match(md)) {
