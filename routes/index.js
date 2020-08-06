@@ -2,12 +2,10 @@ const express = require('express')
 const router = express.Router()
 const Image = require('../logic/models/image.model')
 const imageController = require('../logic/controllers/images.controller')
-const sessionsController = require('../logic/controllers/sessions.controller')
-const usersController = require('../logic/controllers/users.controller')
+
 const indexController = require('../logic/controllers/index.controller')
 const imageMiddleware = require('../logic/middleware/images.middleware.js')
-const multer = require('multer')
-const upload = multer({ dest: 'uploads/' })
+
 const cloudinary = require('cloudinary')
 let publicImageId = ''
 const fs = require('fs')

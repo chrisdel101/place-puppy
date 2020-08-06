@@ -6,9 +6,9 @@ const log = debug('app:log')
 const error = debug('app:error')
 
 module.exports = {
-  showError: (req, res, errorObj) => {
+  showErrorPage: (req, res, errorObj = {}) => {
     // read dir of dirs
-    fs.readdir(dir, (err, dirs) => {
+    return fs.readdir(dir, (err, dirs) => {
       if (err) {
         error('An error occured', err)
         req.flash('error', 'An error occured')
@@ -36,6 +36,7 @@ module.exports = {
         errorObj,
       })
     })
+    return 'HEllo'
   },
   // make an obj to use in the template
   makeDogObj: (dogFolderArr) => {
