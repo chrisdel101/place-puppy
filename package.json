@@ -11,7 +11,6 @@
     "test:watch:nolog": "mocha -w"
   },
   "dependencies": {
-    "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
     "cloudinary": "^1.14.0",
     "connect-mongo": "^2.0.3",
@@ -19,17 +18,10 @@
     "debug": "^4.1.1",
     "dotenv": "^6.2.0",
     "express": "^4.17.1",
-    "express-flash": "0.0.2",
-    "express-session": "^1.16.1",
-    "fresh": "^0.5.2",
-    "helmet": "^3.18.0",
+    "express-session": "^1.17.1",
     "mongoose": "^5.7.5",
     "morgan": "^1.9.1",
-    "multer": "^1.4.1",
-    "nodemailer": "^4.7.0",
     "pug": "~2.0.0-beta10",
-    "rand-token": "^0.4.0",
-    "serve-favicon": "^2.5.0",
     "sharp": "^0.20.8"
   },
   "devDependencies": {
