@@ -1,22 +1,3 @@
-/* @media (min-width:853px) {
-    .index-container {
-        background-color: yellow;
-    }
-}
-
-@media (max-width:852px) {
-    .index-container {
-        background-color: blue;
-    }
-}
-
-@media (max-width:450px) {
-    .index-container {
-        background-color: green;
-    }
-
-} */
-
 body {
   padding: 50px;
   font: 14px 'Lucida Grande', Helvetica, Arial, sans-serif;
