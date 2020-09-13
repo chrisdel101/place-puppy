@@ -5,7 +5,8 @@ block content
     .puppy-box
       h1= errorObj.status
       h2= errorObj.errMsg
-      if process.env.NODE_ENV != 'development'
+      //- only show trace in dev
+      if process.env.NODE_ENV == 'development'
         pre #{errorObj.stack}
       else
         each imgObj in imgObjs
