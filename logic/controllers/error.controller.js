@@ -1,14 +1,14 @@
 const fs = require('fs')
-const dir = `./public/public-images/index-page`
+const dir = `./public/public-images/error-page`
 const { filterImages } = require('../utils')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
 
 module.exports = {
-  showIndex: (req, res) => {
+  showErrorPage: (req, res, errorObj = {}) => {
     // read dir of dirs
-    fs.readdir(dir, (err, dirs) => {
+    return fs.readdir(dir, (err, dirs) => {
       if (err) {
         error('An error occured', err)
         req.flash('error', 'An error occured')
@@ -18,18 +18,24 @@ module.exports = {
       dirs = filterImages(['image'], dir)
       let imgObjs = []
       dirs.forEach((imgDir) => {
+        log('imgDir', imgDir)
         let filesArr = fs.readdirSync(`${dir}/${imgDir}`)
         // loop over dir and make into valid paths
         let imgStrs = filesArr.map((file) => {
-          return `./public-images/index-page/${imgDir}/${file}`
+          return `./public-images/error-page/${imgDir}/${file}`
         })
         // log('imgStrs', imgStrs)
         let obj = module.exports.makeDogObj(imgStrs)
         imgObjs.push(obj)
       })
       log('imgObjs', imgObjs)
-      return res.render('index', { imgObjs: imgObjs })
+      errorObj.errMsg = module.exports.setErrorMessage(errorObj)
+      return res.render('error', {
+        imgObjs,
+        errorObj,
+      })
     })
+    return 'HEllo'
   },
   // make an obj to use in the template
   makeDogObj: (dogFolderArr) => {
@@ -52,11 +58,20 @@ module.exports = {
       } else if (dogFile.match(fs)) {
         dogObj['fs'] = dogFile
       } else {
-        log('No files match the size params', dogFile)
-        log('Not put in dogObj')
+        log('No files match the size sm, md, cn, or lg')
+        log(`nothing from ${dogFile} put in dogObj`)
       }
     })
-    log('dogObj', dogObj)
+    log('dogErrorObj', dogObj)
     return dogObj
+  },
+  setErrorMessage(errObj) {
+    if (errObj.status === 404) {
+      return "We didn't find what you're looking for here."
+    } else if (errObj.status == 500) {
+      return 'A server error occured.'
+    } else {
+      return 'An error occured.'
+    }
   },
 }
