@@ -22,7 +22,7 @@
     "mongoose": "^5.7.5",
     "morgan": "^1.9.1",
     "pug": "~2.0.0-beta10",
-    "sharp": "^0.20.8"
+    "sharp": "^0.30.3"
   },
   "devDependencies": {
     "chai": "^4.2.0",
