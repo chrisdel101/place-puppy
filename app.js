@@ -18,6 +18,7 @@ var app = express()
 var mongoose = require('mongoose')
 
 var mongoDB = process.env.DB_URI //
+console.log('mongo CONX:', mongoDB)
 mongoose.connect(mongoDB)
 
 var db = mongoose.connection
