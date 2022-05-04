@@ -1,15 +1,12 @@
-const path = require('path')
 const mongoose = require('mongoose')
 const Image = mongoose.models.Image || require('../models/image.model.js')
 const url = require('url')
 const sharp = require('sharp')
-const cloudinary = require('cloudinary')
 const {
-  cloudinaryUploader,
   extractDims,
-  sessionCheck,
   checkAllDigits,
 } = require('../utils')
+const images = require('../../images.json')
 const https = require('https')
 const streamTransform = require('stream').Transform
 const Stream = require('stream')
@@ -90,70 +87,53 @@ function showImage(req, res, quality, strFormat) {
     '650x650',
     '700x700',
   ]
-  new Promise((resolve, reject) => {
-    // if one of the preset images, send this
-    if (preSets.includes(pathName)) {
-      resolve(Image.findOne({ path: pathName }).exec())
-    } else {
-      // else random
-      // https://stackoverflow.com/questions/39277670/how-to-find-random-record-in-mongoose
-      // Get the count of all users
-      Image.count().exec(function (err, count) {
-        if (err) {
-          error(err)
-          req.flash('error', `A networking error occured: ${err}`)
-          res.redirect('index', `A networking error occured. Try again.`)
-        }
-        // Get a random entry
-        var random = Math.floor(Math.random() * count)
-        resolve(Image.findOne().skip(random).exec())
-      })
+  let img
+  // if one of the preset images, send this
+  if (preSets.includes(pathName)) {
+    for (let i = 0; i < images.length; i++) {
+      if (images[i].path === pathName) {
+        img = images[i]
+        break
+      }
     }
-  })
-    .then((img) => {
-      // check not null
-      if (!img) {
-        error('This data does not exist')
-        throw ReferenceError(
-          'Error. Data does not exist. Try reloading and check URL for errors.'
-        )
-      }
-      log('img', img)
-      // make sure img has prop type
-      let format = imageFormat(img.contentType)
-      // if no contentType, error
-      if (!format) {
-        throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
-      }
-      // if format change in query, change img type
-      if (strFormat) {
-        let newSrc = replaceUrlExt(img.src, strFormat)
-        img.src = newSrc
-        log('Foramting changed in Url. New format src:', img.src)
-      }
-      // get qualiy and set new str
-      if (quality) {
-        let newSrc = setImageQuality(img.src, quality)
-        img.src = newSrc
-        log('Quality src', img.src)
-      }
-      // set type
-      res.type(`image/${format || 'jpg'}`)
-      // call url from cloudinary
-      httpCall(img.src, pathName)
-        .then((array) => {
-          // val one is stream2
-          let stream = array[0]
-          // val 2 is cache
-          let cache = array[1]
-          // pass to resize func and pipe to res
-          ///// strFormat needs to be added after debug
-          return resize(stream, width, height, format).pipe(res)
-        })
-        .catch((err) => {
-          error('An error in the promise ending show', err)
-          res.status(404).send(err)
-        })
+  } else {
+    // get one at random
+    img = images[Math.floor(Math.random() * 20)]
+  }
+
+
+  let format = imageFormat(img.contentType)
+  // if no contentType, error
+  if (!format) {
+    throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
+  }
+  // if format change in query, change img type
+  if (strFormat) {
+    let newSrc = replaceUrlExt(img.src, strFormat)
+    img.src = newSrc
+    log('Foramting changed in Url. New format src:', img.src)
+  }
+  // get qualiy and set new str
+  if (quality) {
+    let newSrc = setImageQuality(img.src, quality)
+    img.src = newSrc
+    log('Quality src', img.src)
+  }
+  // set type
+  res.type(`image/${format || 'jpg'}`)
+  httpCall(img.src, pathName)
+    .then((array) => {
+      // val one is stream2
+      let stream = array[0]
+      // val 2 is cache
+      let cache = array[1]
+      // pass to resize func and pipe to res
+      ///// strFormat needs to be added after debug
+      return resize(stream, width, height, format).pipe(res)
+    })
+    .catch((err) => {
+      error('An error in the promise ending show', err)
+      res.status(404).send(err)
     })
     .catch((err) => {
       error('An error in the promise ending show', err)
