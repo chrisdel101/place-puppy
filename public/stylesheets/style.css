@@ -21,8 +21,12 @@ a {
   width: 100%;
   font-weight: bold;
   padding: 8px;
-  overflow-y: scroll;
+  overflow-y: auto;
   max-height: 75px;
+}
+
+footer {
+  text-align: center;
 }
 
 .links a {
@@ -69,11 +73,13 @@ a {
   font-family: Baskerville, Palatino, 'Book Antiqua', serif;
   color: #999;
 }
+
 .error-page .puppy-box {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 /* INDEX PAGE STYLES */
 /* 853 and up */
 @media (min-width: 853px) {

@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 const Image = mongoose.models.Image || require('../models/image.model.js')
 const fs = require('fs')
-const cloudinary = require('cloudinary')
 const url = require('url')
 const debug = require('debug')
 const log = debug('app:log')

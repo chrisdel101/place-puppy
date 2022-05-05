@@ -12,13 +12,14 @@ exports.qualityMiddleware = (req, res, next) => {
                 break
             case 'low':
                 req.quality = 'low'
-                break
+            default:
+                console.error("Error: Invalid query string in qualityMiddleware")
         }
     }
     next()
 }
 exports.returnImageFormat = (req, res, next) => {
-    if(req.query.f){
+    if (req.query.f) {
         switch (req.query.f) {
             case 'jpg':
                 req.format = 'jpg'
@@ -35,15 +36,4 @@ exports.returnImageFormat = (req, res, next) => {
         }
     }
     next()
-}
-
-function replaceUrlExt(imgUrl, newExt) {
-    if (newExt !== 'jpg' && newExt !== 'png' && newExt !== 'gif' && newExt !== 'jpeg') {
-        throw new TypeError('Extension is not valid to replace url. Only png, jpg, and gif.')
-    }
-    if (!imgUrl.includes('jpg') && !imgUrl.includes('png') && !imgUrl.includes('gif') && !imgUrl.includes('jpeg')) {
-        throw TypeError("Url is not an image to use replacer")
-    }
-    let fileNoExt = imgUrl.split('.').slice(0, -1).join('.')
-    return `${fileNoExt}.${newExt}`
 }
