@@ -12,6 +12,7 @@ let closureCache
 
 // quality and strFormat are querys - blank by default
 function showImage(req, res, quality, strFormat) {
+  if (quality) log('Quality', quality,)
   var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
   // get pathname from url
   let pathName = url.parse(fullUrl)
@@ -19,11 +20,12 @@ function showImage(req, res, quality, strFormat) {
   let re = /^\//gi
   // get pathname from url
   pathName = pathName.pathname
+  console.log('pathName', pathName)
+
   if (pathName.match(re)) {
     // slice out forward slash
     pathName = pathName.slice(1, pathName.length)
   }
-  log('pathname', pathName)
 
   if (!checkAllDigits(pathName)) {
     error('The dims provide include non-numeric chars. Must be all digits.')
@@ -31,7 +33,6 @@ function showImage(req, res, quality, strFormat) {
   }
 
   let dims = extractDims(pathName)
-  //
   let width = parseInt(dims.width)
   let height = parseInt(dims.height)
   if (!width || !height) {
@@ -40,33 +41,33 @@ function showImage(req, res, quality, strFormat) {
   }
   // CACHE
   // if quality or format in string, skip the cache
-  if (!quality && !strFormat) {
-    // if in cache call from cache
-    let currentCache = closureCache()
-    if (getCache(currentCache, pathName)) {
-      log('getCache', currentCache)
-      let index = retreiveBufferIndex(pathName, currentCache)
+  // if (!quality && !strFormat) {
+  //   // if in cache call from cache
+  //   let currentCache = closureCache()
+  //   if (getCache(currentCache, pathName)) {
+  //     log('getCache', currentCache)
+  //     let index = retreiveBufferIndex(pathName, currentCache)
 
-      if (index < 0) {
-        error('Error: Indexing of cache is less than zero. Illegal index.')
-        throw TypeError(
-          'Error: Indexing of cache is less than zero. Illegal index.'
-        )
-        return
-      }
-      // get by array index and key name
-      let buffer = currentCache[index][pathName]
-      // Initiate the source
-      var bufferStream = new Stream.PassThrough()
-      // Write your buffer
-      bufferStream.end(new Buffer(buffer))
-      log('Serving from : cache')
-      // get format from imgObj
-      let format = currentCache[index]['format']
-      // resize
-      return resize(bufferStream, width, height, format).pipe(res)
-    }
-  }
+  //     if (index < 0) {
+  //       error('Error: Indexing of cache is less than zero. Illegal index.')
+  //       throw TypeError(
+  //         'Error: Indexing of cache is less than zero. Illegal index.'
+  //       )
+  //       return
+  //     }
+  //     // get by array index and key name
+  //     let buffer = currentCache[index][pathName]
+  //     // Initiate the source
+  //     var bufferStream = new Stream.PassThrough()
+  //     // Write your buffer
+  //     bufferStream.end(new Buffer(buffer))
+  //     log('Serving from : cache')
+  //     // get format from imgObj
+  //     let format = currentCache[index]['format']
+  //     // resize
+  //     return resize(bufferStream, width, height, format).pipe(res)
+  //   }
+  // }
   let preSets = [
     '100x100',
     '150x150',
@@ -82,12 +83,12 @@ function showImage(req, res, quality, strFormat) {
     '650x650',
     '700x700',
   ]
-  let img
+  let img = {}
   // if one of the preset images, send this
   if (preSets.includes(pathName)) {
     for (let i = 0; i < images.length; i++) {
       if (images[i].path === pathName) {
-        img = images[i]
+        img = { ...images[i] }
         break
       }
     }
@@ -110,18 +111,15 @@ function showImage(req, res, quality, strFormat) {
   // get qualiy and set new str
   if (quality) {
     let newSrc = setImageQuality(img.src, quality)
+    log('IMG', newSrc)
     img.src = newSrc
     log('Quality src', img.src)
   }
   // set type
   res.type(`image/${format || 'jpg'}`)
+  // log('IMG:3', images[2])
   httpCall(img.src, pathName)
-    .then((array) => {
-      // val one is stream2
-      let stream = array[0]
-      // val 2 is cache
-      let cache = array[1]
-      // pass to resize func and pipe to res
+    .then((stream) => {
       ///// strFormat needs to be added after debug
       return resize(stream, width, height, format).pipe(res)
     })
@@ -135,7 +133,7 @@ function showImage(req, res, quality, strFormat) {
     })
 }
 // makes http get, returns stream in promise - takes src and pathname
-function httpCall(src, pathname) {
+function httpCall(src) {
   return new Promise((resolve, reject) => {
     let format = imageFormat(src)
     https.get(src, (response) => {
@@ -158,10 +156,10 @@ function httpCall(src, pathname) {
           // Write your buffer
           bufferStream.end(new Buffer(data))
           // CACHE- add and remove from cache
-          let result = closureCache(pathname, data, format)
+          // let result = closureCache(pathname, data, format)
           log('serving from: cloud')
           // add and remove from cache
-          resolve([bufferStream, result])
+          resolve(bufferStream)
         })
       } else {
         error(`An http error occured`, response.statusCode)
@@ -185,56 +183,37 @@ function resize(stream, width, height, format) {
   var transformer = sharp()
     .resize(width, height)
     .on('info', function (info) {
-      log('Resize: okay')
+      log('Resize: okay', info)
     })
   return stream.pipe(transformer)
 }
 function setImageQuality(urlStr, quality) {
-  if (typeof urlStr !== 'string' || typeof quality !== 'string') {
-    error('setImageQuality error: functions params must both be strings')
-    throw TypeError(
-      'setImageQuality error: functions params must both be strings'
-    )
+  try {
+    switch (quality) {
+      case 'high':
+        quality = `q_auto:best`
+        break
+      case 'good':
+        quality = `q_auto:good`
+        break
+      case 'eco':
+        quality = `q_auto:eco`
+        break
+      case 'low':
+        quality = `q_auto:low`
+        break
+      default:
+        quality = 'q_auto'
+    }
+    const splitArr = urlStr.split('/')
+    // console.log('splitArr', splitArr)
+    const index = splitArr.indexOf('q_auto:eco')
+    splitArr[index] = quality
+    // console.log('JOIN', splitArr.join('/'))
+    return splitArr.join('/')
+  } catch (e) {
+    console.error("An error in setImageQuality", e)
   }
-  if (
-    quality !== 'high' &&
-    quality !== 'good' &&
-    quality !== 'eco' &&
-    quality !== 'low'
-  ) {
-    error(
-      'setImageQuality: quality setting is invalid. Must be high, good, eco, or low'
-    )
-    throw TypeError(
-      'setImageQuality: quality setting is invalid. Must be high, good, eco, or low'
-    )
-  }
-  // this should take 'upload'
-  let beforeRegex = /(.+)upload/
-  // pin on quality to start of string
-  let afterRegex = /upload(.+)/
-
-  let before = urlStr.match(beforeRegex)[0]
-  let after = urlStr.match(afterRegex)[1]
-
-  let insertStr = ``
-  switch (quality) {
-    case 'high':
-      insertStr = `q_auto:best`
-      break
-    case 'good':
-      insertStr = `q_auto:good`
-      break
-    case 'eco':
-      insertStr = `q_auto:eco`
-      break
-    case 'low':
-      insertStr = `q_auto:low`
-      break
-    default:
-      insertStr = 'q_auto'
-  }
-  return `${before}/${insertStr}${after}`
 }
 
 function imageFormat(imgSrc) {
@@ -278,7 +257,7 @@ function replaceUrlExt(imgUrl, newExt) {
     throw TypeError('Url is not has not extension. Must be jpg, png, or gif.')
   }
   let fileNoExt = imgUrl.split('.').slice(0, -1).join('.')
-  return `${fileNoExt}.${newExt}`
+  return `${fileNoExt}.${newExt} `
 }
 // to call cache, call func without args
 // stores imgs cache in a closure

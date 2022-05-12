@@ -1,4 +1,6 @@
-exports.qualityMiddleware = (req, res, next) => {
+const debug = require('debug')
+const log = debug('app:log')
+exports.qualityMiddleware = (req, _, next) => {
     if (req.query.q) {
         switch (req.query.q) {
             case 'high':
@@ -9,13 +11,15 @@ exports.qualityMiddleware = (req, res, next) => {
                 break
             case 'low':
                 req.quality = 'low'
+                break
             default:
-                console.error("Error: Invalid query string in qualityMiddleware")
+                log(`Invalid query string ${req.query.q} qualityMiddleware: Default to eco`)
+                req.quality = 'eco'
         }
     }
     next()
 }
-exports.returnImageFormat = (req, res, next) => {
+exports.returnImageFormat = (req, _, next) => {
     if (req.query.f) {
         switch (req.query.f) {
             case 'jpg':
