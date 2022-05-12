@@ -72,6 +72,8 @@ footer {
   line-height: normal;
   font-family: Baskerville, Palatino, 'Book Antiqua', serif;
   color: #999;
+  margin-top:0;
+  padding-top: 0;
 }
 
 .error-page .puppy-box {
@@ -95,7 +97,8 @@ footer {
   .index-page .puppy-box:nth-child(1) {
     grid-row: 1 / 3;
     grid-column: 1 / 3;
-    padding: 5px 10px;
+    padding: 0 10px;
+    padding-bottom: 5px
   }
 
   .index-page .puppy-box:nth-child(2) {

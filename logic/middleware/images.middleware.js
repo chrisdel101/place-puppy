@@ -4,11 +4,8 @@ exports.qualityMiddleware = (req, res, next) => {
             case 'high':
                 req.quality = 'high'
                 break
-            case 'medium':
+            case 'good':
                 req.quality = 'good'
-                break
-            case 'eco':
-                req.quality = 'eco'
                 break
             case 'low':
                 req.quality = 'low'

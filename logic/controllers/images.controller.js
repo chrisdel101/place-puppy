@@ -1,11 +1,6 @@
-const mongoose = require('mongoose')
-const Image = mongoose.models.Image || require('../models/image.model.js')
 const url = require('url')
 const sharp = require('sharp')
-const {
-  extractDims,
-  checkAllDigits,
-} = require('../utils')
+const { extractDims, checkAllDigits } = require('../utils')
 const images = require('../../images.json')
 const https = require('https')
 const streamTransform = require('stream').Transform
@@ -100,7 +95,6 @@ function showImage(req, res, quality, strFormat) {
     // get one at random
     img = images[Math.floor(Math.random() * 20)]
   }
-
 
   let format = imageFormat(img.contentType)
   // if no contentType, error

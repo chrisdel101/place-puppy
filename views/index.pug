@@ -6,10 +6,14 @@ block content
             div.puppy-container
                 div.puppy-box
                     h1= title
-                    p <strong>
-                    | A quick and simple service for getting pictures of puppies for use as placeholders in your designs or code.</strong> Just put your image size (width 
-                    span.amp & 
-                    | height) after our URL and you'll get a placeholder.
+                    p. 
+                        #[strong A quick and simple service for getting pictures of puppies for use as placeholders in your designs or codes]. Just put your image size
+                        (width <span class='amp'> & </span>height) after our URL and you'll get a placeholder.
+                    div.links
+                        div(style={color:'white'}) Like this: &nbsp 
+                            a(href='https://place-puppy.com/300x300') https://place-puppy.com/300x300 #[br]
+                    p. 
+                        #[strong New: Image quality paramaters.] Choose from <code>/best</code>, <code>/good</code> or <code>/low</code>.
                     div.links
                         div(style={color:'white'}) Like this: &nbsp 
                             a(href='https://place-puppy.com/300x300') https://place-puppy.com/300x300 #[br]

@@ -4,8 +4,6 @@ const path = require('path')
 const logger = require('morgan')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
-const session = require('express-session')
-const MongoStore = require('connect-mongo')(session)
 
 const debug = require('debug')
 const log = debug('app:log')
@@ -14,19 +12,6 @@ const error = debug('app:error')
 var index = require('./routes/index')
 
 var app = express()
-// / MONGO
-var mongoose = require('mongoose')
-
-var mongoDB = process.env.DB_URI //
-console.log('mongo CONX:', mongoDB)
-mongoose.connect(mongoDB)
-
-var db = mongoose.connection
-db.on('error', console.error.bind(console, 'MongoDB connection error'))
-log('db connected')
-db.once('open', function () {
-  // we're connected!
-})
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -39,15 +24,6 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 app.use(cookieParser(''))
-app.use(
-  session({
-    secret: process.env.SECRET,
-    store: new MongoStore({ mongooseConnection: db }),
-    resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 60000 },
-  })
-)
 
 app.use(express.static(path.join(__dirname, 'public')))
 app.use('/', index)
