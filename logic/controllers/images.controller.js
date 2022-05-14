@@ -8,129 +8,130 @@ const Stream = require('stream')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
+const errorController = require('./error.controller')
 let closureCache
 
 // quality and strFormat are querys - blank by default
 function showImage(req, res, quality, strFormat) {
-  if (quality) log('Quality', quality,)
-  var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-  // get pathname from url
-  let pathName = url.parse(fullUrl)
-  // regex checks to see if starts w /
-  let re = /^\//gi
-  // get pathname from url
-  pathName = pathName.pathname
-  console.log('pathName', pathName)
+  try {
+    throw Error
+    if (quality) log('Quality', quality)
+    if (strFormat) log('Format', strFormat)
+    var fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+    // get pathname from url
+    let pathName = url.parse(fullUrl)
+    // regex checks to see if starts w /
+    let re = /^\//gi
+    // get pathname from url
+    pathName = pathName.pathname
+    console.log('pathName', pathName)
 
-  if (pathName.match(re)) {
-    // slice out forward slash
-    pathName = pathName.slice(1, pathName.length)
-  }
-
-  if (!checkAllDigits(pathName)) {
-    error('The dims provide include non-numeric chars. Must be all digits.')
-    throw Error('Non-numeric chars in the image dimensions.')
-  }
-
-  let dims = extractDims(pathName)
-  let width = parseInt(dims.width)
-  let height = parseInt(dims.height)
-  if (!width || !height) {
-    error('width or height is null')
-    throw TypeError('Width or height is null in showImage()')
-  }
-  // CACHE
-  // if quality or format in string, skip the cache
-  // if (!quality && !strFormat) {
-  //   // if in cache call from cache
-  //   let currentCache = closureCache()
-  //   if (getCache(currentCache, pathName)) {
-  //     log('getCache', currentCache)
-  //     let index = retreiveBufferIndex(pathName, currentCache)
-
-  //     if (index < 0) {
-  //       error('Error: Indexing of cache is less than zero. Illegal index.')
-  //       throw TypeError(
-  //         'Error: Indexing of cache is less than zero. Illegal index.'
-  //       )
-  //       return
-  //     }
-  //     // get by array index and key name
-  //     let buffer = currentCache[index][pathName]
-  //     // Initiate the source
-  //     var bufferStream = new Stream.PassThrough()
-  //     // Write your buffer
-  //     bufferStream.end(new Buffer(buffer))
-  //     log('Serving from : cache')
-  //     // get format from imgObj
-  //     let format = currentCache[index]['format']
-  //     // resize
-  //     return resize(bufferStream, width, height, format).pipe(res)
-  //   }
-  // }
-  let preSets = [
-    '100x100',
-    '150x150',
-    '200x200',
-    '250x250',
-    '300x300',
-    '350x350',
-    '400x400',
-    '450x450',
-    '500x500',
-    '550x550',
-    '600x600',
-    '650x650',
-    '700x700',
-  ]
-  let img = {}
-  // if one of the preset images, send this
-  if (preSets.includes(pathName)) {
-    for (let i = 0; i < images.length; i++) {
-      if (images[i].path === pathName) {
-        img = { ...images[i] }
-        break
-      }
+    if (pathName.match(re)) {
+      // slice out forward slash
+      pathName = pathName.slice(1, pathName.length)
     }
-  } else {
-    // get one at random
-    img = images[Math.floor(Math.random() * 20)]
-  }
 
-  let format = imageFormat(img.contentType)
-  // if no contentType, error
-  if (!format) {
-    throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
+    const dims = extractDims(pathName)
+    const width = parseInt(dims.width)
+    const height = parseInt(dims.height)
+
+    // CACHE
+    // if quality or format in string, skip the cache
+    // if (!quality && !strFormat) {
+    //   // if in cache call from cache
+    //   let currentCache = closureCache()
+    //   if (getCache(currentCache, pathName)) {
+    //     log('getCache', currentCache)
+    //     let index = retreiveBufferIndex(pathName, currentCache)
+
+    //     if (index < 0) {
+    //       error('Error: Indexing of cache is less than zero. Illegal index.')
+    //       throw TypeError(
+    //         'Error: Indexing of cache is less than zero. Illegal index.'
+    //       )
+    //       return
+    //     }
+    //     // get by array index and key name
+    //     let buffer = currentCache[index][pathName]
+    //     // Initiate the source
+    //     var bufferStream = new Stream.PassThrough()
+    //     // Write your buffer
+    //     bufferStream.end(new Buffer(buffer))
+    //     log('Serving from : cache')
+    //     // get format from imgObj
+    //     let format = currentCache[index]['format']
+    //     // resize
+    //     return resize(bufferStream, width, height, format).pipe(res)
+    //   }
+    // }
+    let preSets = [
+      '100x100',
+      '150x150',
+      '200x200',
+      '250x250',
+      '300x300',
+      '350x350',
+      '400x400',
+      '450x450',
+      '500x500',
+      '550x550',
+      '600x600',
+      '650x650',
+      '700x700',
+    ]
+    let img = {}
+    // if one of the preset images, send this
+    if (preSets.includes(pathName)) {
+      for (let i = 0; i < images.length; i++) {
+        if (images[i].path === pathName) {
+          img = { ...images[i] }
+          break
+        }
+      }
+    } else {
+      // get one at random
+      img = images[Math.floor(Math.random() * 20)]
+    }
+
+    let format = imageFormat(img.contentType)
+    // if no contentType, error
+    if (!format) {
+      throw TypeError('Invalid format. Must be jpg, jpeg, png, or gif.')
+    }
+    // if format change in query, change img type
+    if (strFormat) {
+      let newSrc = replaceUrlExt(img.src, strFormat)
+      img.src = newSrc
+      log('Foramting changed in Url. New format src:', img.src)
+    }
+    // get qualiy and set new str
+    if (quality) {
+      let newSrc = setImageQuality(img.src, quality)
+      log('IMG', newSrc)
+      img.src = newSrc
+      log('Quality src', img.src)
+    }
+    // set type
+    res.type(`image/${format || 'jpg'}`)
+    // log('IMG:3', images[2])
+    log('IMG:3', width)
+    log('IMG:3', height)
+    httpCall(img.src, pathName)
+      .then((stream) => {
+        ///// strFormat needs to be added after debug
+        return resize(stream, width, height, format).pipe(res)
+      })
+      .catch((err) => {
+        error('An error in the promise ending show', err)
+        res.status(404).send(err)
+      })
+  } catch (e) {
+    let errorObj = {}
+    errorObj.errMsg = `Error occured loading image`
+    errorObj.stack = e
+    console.error('Error in showImage:', e)
+    errorController.showErrorPage(req, res, errorObj)
   }
-  // if format change in query, change img type
-  if (strFormat) {
-    let newSrc = replaceUrlExt(img.src, strFormat)
-    img.src = newSrc
-    log('Foramting changed in Url. New format src:', img.src)
-  }
-  // get qualiy and set new str
-  if (quality) {
-    let newSrc = setImageQuality(img.src, quality)
-    log('IMG', newSrc)
-    img.src = newSrc
-    log('Quality src', img.src)
-  }
-  // set type
-  res.type(`image/${format || 'jpg'}`)
-  // log('IMG:3', images[2])
-  httpCall(img.src, pathName)
-    .then((stream) => {
-      ///// strFormat needs to be added after debug
-      return resize(stream, width, height, format).pipe(res)
-    })
-    .catch((err) => {
-      error('An error in the promise ending show', err)
-      res.status(404).send(err)
-    })
-    .catch((err) => {
-      error('An error in the promise ending show', err)
-      res.status(404).send(err)
-    })
 }
 // makes http get, returns stream in promise - takes src and pathname
 function httpCall(src) {
@@ -154,7 +155,7 @@ function httpCall(src) {
           https: var bufferStream = new Stream.PassThrough()
 
           // Write your buffer
-          bufferStream.end(new Buffer(data))
+          bufferStream.end(new Buffer.from(data))
           // CACHE- add and remove from cache
           // let result = closureCache(pathname, data, format)
           log('serving from: cloud')
@@ -212,7 +213,7 @@ function setImageQuality(urlStr, quality) {
     // console.log('JOIN', splitArr.join('/'))
     return splitArr.join('/')
   } catch (e) {
-    console.error("An error in setImageQuality", e)
+    console.error('An error in setImageQuality', e)
   }
 }
 

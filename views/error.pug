@@ -3,11 +3,15 @@ extends layout
 block content
   .error-page
     .puppy-box
+      - console.log('STA', errorObj)
       h1= errorObj.status
       h2= errorObj.errMsg
       //- only show trace in dev
       if process.env.NODE_ENV == 'development'
-        pre #{errorObj.stack}
+        if errorObj.stack == typeof 'function'
+          pre #{errorObj.stack()}
+        else
+          pre #{errorObj.stack}
       else
         each imgObj in imgObjs
           picture

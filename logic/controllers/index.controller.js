@@ -11,7 +11,7 @@ module.exports = {
     fs.readdir(dir, (err, dirs) => {
       if (err) {
         error('An error occured', err)
-        req.flash('error', 'An error occured')
+        req.flash('error', `An error occured: ${err}`)
         return res.redirect('/')
       }
       // filter out non-image dirs
