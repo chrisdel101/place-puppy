@@ -7,36 +7,20 @@ const error = debug('app:error')
 const indexController = require('./index.controller')
 
 module.exports = {
-  showErrorPage: (req, res, error = {}) => {
-    console.log('ERR', error)
+  showErrorPage: (req, res, errorObj = {}) => {
     let imgObjs = [
       {
-        sm: './public-images/error-page/250x172-sm.jpg',
-        md: './public-images/error-page/400x275-md.jpg',
-        lg: './public-images/error-page/550x380-lg.jpg',
-        fs: './public-images/error-page/650x488-fs.jpg',
+        sm: './public-images/error-page/image1/250x172-sm.jpg',
+        md: './public-images/error-page/image1/400x275-md.jpg',
+        lg: './public-images/error-page/image1/550x380-lg.jpg',
+        fs: './public-images/error-page/image1/650x488-fs.jpg',
       },
     ]
-    error.errMsg = module.exports.setErrorMessage(error)
-    if (!error.status) error.status = 500
-    console.log('STA', error)
+    errorObj.errMsg = module.exports.setErrorMessage(errorObj)
     return res.render('error', {
       imgObjs,
-      error,
+      errorObj,
     })
-  },
-  setMissingStatus(errObj) {
-    if (!errObj.status === 404) {
-      return "We didn't find what you're looking for here."
-    } else if (errObj.status == 500) {
-      return 'A server error occured.'
-    } else {
-      if (errObj?.errMsg) {
-        return 'A server error occured.'
-      } else {
-        return 'An error occured.'
-      }
-    }
   },
   setErrorMessage(errObj) {
     if (errObj.status === 404) {
@@ -44,11 +28,7 @@ module.exports = {
     } else if (errObj.status == 500) {
       return 'A server error occured.'
     } else {
-      if (errObj?.errMsg) {
-        return 'A server error occured.'
-      } else {
-        return 'An error occured.'
-      }
+      return 'An error occured.'
     }
   },
 }

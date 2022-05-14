@@ -126,11 +126,8 @@ function showImage(req, res, quality, strFormat) {
         res.status(404).send(err)
       })
   } catch (e) {
-    let errorObj = {}
-    errorObj.errMsg = `Error occured loading image`
-    errorObj.stack = e
     console.error('Error in showImage:', e)
-    errorController.showErrorPage(req, res, errorObj)
+    errorController.showErrorPage(req, res, e)
   }
 }
 // makes http get, returns stream in promise - takes src and pathname
