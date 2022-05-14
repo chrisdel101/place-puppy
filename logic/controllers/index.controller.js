@@ -7,6 +7,7 @@ const error = debug('app:error')
 
 module.exports = {
   showIndex: (req, res) => {
+    console.log('req', req.ip)
     // read dir of dirs
     fs.readdir(dir, (err, dirs) => {
       if (err) {

@@ -19,6 +19,8 @@ var app = express()
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
 
+app.set('trust proxy', 'loopback')
+
 app.locals.title = 'placepuppy'
 
 app.use(morgan('dev'))
