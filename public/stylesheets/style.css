@@ -43,13 +43,6 @@ footer {
   font-family: Baskerville, Palatino, 'Book Antiqua', serif;
 }
 
-/* not visible- only for connecting js */
-.state-indicator {
-  position: absolute;
-  top: -999em;
-  left: -999em;
-}
-
 .index-container {
   display: flex;
   justify-content: center;
@@ -101,9 +94,6 @@ footer {
 /* INDEX PAGE STYLES */
 /* 853 and up */
 @media (min-width: 853px) {
-  .index-page .state-indicator {
-    z-index: 1;
-  }
 
   .index-page .puppy-container {
     grid-template-columns: 200px 200px 100px 100px 100px 100px;
@@ -150,9 +140,6 @@ footer {
 
 /* 852 down next media */
 @media (max-width: 852px) {
-  .state-indicator {
-    z-index: 2;
-  }
 
   .index-page .puppy-container {
     grid-template-columns: 125px 125px 75px 75px 75px 75px;
@@ -199,9 +186,6 @@ footer {
 
 /* 639 and down */
 @media (max-width: 639px) {
-  .index-page .state-indicator {
-    z-index: 3;
-  }
 
   .index-page .puppy-box:nth-child(1) h1 {
     font-size: 5em;
@@ -261,9 +245,6 @@ footer {
 }
 
 @media (max-width: 450px) {
-  .index-page .state-indicator {
-    z-index: 4;
-  }
 
   .index-page .puppy-container {
     display: flex;

@@ -25,25 +25,25 @@ exports.returnImageFormat = (req, _, next) => {
   if (req.query.f) {
     switch (req.query.f) {
       case 'jpg':
-        req.format = req.query.f
+        req.customFormat = req.query.f
         break
       case 'png':
-        req.format = req.query.f
+        req.customFormat = req.query.f
         break
       case 'gif':
-        req.format = req.query.f
+        req.customFormat = req.query.f
         break
       case 'bmp':
-        req.format = req.query.f
+        req.customFormat = req.query.f
         break
       case 'jpeg':
-        req.format = 'jpg'
+        req.customFormat = 'jpg'
         break
       default:
         log(
-          `Format Params: Invalid query string ${req.query.q} qualityMiddleware: Default to jpg`
+          `customFormat Params: Invalid query string ${req.query.q} qualityMiddleware: Default to jpg`
         )
-        req.format = 'jpg'
+        req.customFormat = 'jpg'
         break
     }
   }

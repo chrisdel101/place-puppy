@@ -1,39 +1,24 @@
 const fs = require('fs')
-const url = require('url')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
 
-module.exports = {
-  filterImages: filterImages,
-  extractDims: extractDims,
-  removeFwdSlash: removeFwdSlash,
-  checkAllDigits: checkAllDigits,
-}
-function checkAllDigits(pathName) {
-  // all before the x
-  let re = /[a-z0-9]+(?=\x)/g
-  let first = pathName.match(re).join('')
-  let reversePath = Array.from(pathName).reverse().join('')
-  let second = reversePath.match(re)
-  second = Array.from(second).reverse().join('')
-  // only match digits
-  let match1 = first.match(/^\d+$/)
-  let match2 = second.match(/^\d+$/)
-  if (!match1 || !match2) {
-    return false
-  }
-  return true
-}
+let preSetImages = [
+  '100x100',
+  '150x150',
+  '200x200',
+  '250x250',
+  '300x300',
+  '350x350',
+  '400x400',
+  '450x450',
+  '500x500',
+  '550x550',
+  '600x600',
+  '650x650',
+  '700x700',
+]
 
-function removeFwdSlash(str) {
-  // 	check if starts with /
-  let re = /^\//gi
-  if (str.match(re)) {
-    return str.slice(1, str.length)
-  }
-  return str
-}
 // pass in the path in format 300x300
 function extractDims(dimensionsStr) {
   try {
@@ -49,7 +34,7 @@ function extractDims(dimensionsStr) {
     const [width, height] = dimensionsStr.split('x')
     log('width', width)
     log('height', height)
-    return { width, height }
+    return [parseInt(width), parseInt(height)]
   } catch (e) {
     error('Error in extractDims', e)
     throw new TypeError('Error in the URL. Check format')
@@ -67,4 +52,10 @@ function filterImages(stubsArr, dir) {
     })
   })
   return result
+}
+
+module.exports = {
+  filterImages,
+  extractDims,
+  preSetImages,
 }

@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const imageController = require('../logic/controllers/images.controller')
-
 const indexController = require('../logic/controllers/index.controller')
 const imageMiddleware = require('../logic/middleware/images.middleware.js')
 
@@ -13,7 +12,7 @@ router.get(
   imageMiddleware.qualityMiddleware,
   imageMiddleware.returnImageFormat,
   (req, res) => {
-    imageController.showImage(req, res, req.quality, req.format)
+    imageController.showImage(req, res)
   }
 )
 

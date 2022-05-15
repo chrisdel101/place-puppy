@@ -24,7 +24,6 @@ module.exports = {
         let imgStrs = filesArr.map((file) => {
           return `./public-images/index-page/${imgDir}/${file}`
         })
-        // log('imgStrs', imgStrs)
         let obj = module.exports.makeDogObj(imgStrs)
         imgObjs.push(obj)
       })
