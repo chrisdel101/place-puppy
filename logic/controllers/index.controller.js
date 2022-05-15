@@ -1,6 +1,6 @@
 const fs = require('fs')
 const dir = `./public/public-images/index-page`
-const { filterImages } = require('../utils')
+const { filterImages, hasFileExtension } = require('../utils')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
@@ -38,24 +38,26 @@ module.exports = {
     var lg = /-lg\./
     var fs = /-fs\./
 
-    let dogObj = {}
-    dogFolderArr.forEach((dogFile) => {
-      if (dogFile.match(sm)) {
-        dogObj['sm'] = dogFile
-      } else if (dogFile.match(md)) {
-        dogObj['md'] = dogFile
-      } else if (dogFile.match(cn)) {
-        dogObj['cn'] = dogFile
-      } else if (dogFile.match(lg)) {
-        dogObj['lg'] = dogFile
-      } else if (dogFile.match(fs)) {
-        dogObj['fs'] = dogFile
+    let dogDTO = {}
+    dogFolderArr.forEach((dogFilePath) => {
+      if (dogFilePath.match(sm)) {
+        dogDTO['sm'] = dogFilePath
+      } else if (dogFilePath.match(md)) {
+        dogDTO['md'] = dogFilePath
+      } else if (dogFilePath.match(cn)) {
+        dogDTO['cn'] = dogFilePath
+      } else if (dogFilePath.match(lg)) {
+        dogDTO['lg'] = dogFilePath
+      } else if (dogFilePath.match(fs)) {
+        dogDTO['fs'] = dogFilePath
       } else {
-        log('No files match the size params', dogFile)
-        log('Not put in dogObj')
+        const lastItemInPath = dogFilePath?.split('/')?.slice(-1).join('')
+        const imgFile = hasFileExtension(lastItemInPath)
+        if (imgFile) {
+          dogDTO[lastItemInPath] = dogFilePath
+        }
       }
     })
-    log('dogObj', dogObj)
-    return dogObj
+    return dogDTO
   },
 }

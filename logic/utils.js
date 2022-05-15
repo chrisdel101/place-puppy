@@ -54,7 +54,12 @@ function filterImages(stubsArr, dir) {
   return result
 }
 
+function hasFileExtension(str) {
+  return str.includes('.jpg' || '.png' || '.gif' || '.bmp' || '.jpeg')
+}
+
 module.exports = {
+  hasFileExtension,
   filterImages,
   extractDims,
   preSetImages,
