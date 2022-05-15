@@ -21,7 +21,7 @@ const app = express()
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
 
-app.set('trust proxy', 'loopback')
+if (ENV === 'production') app.set('trust proxy', 'loopback')
 
 app.locals = {
   title: 'placepuppy',
