@@ -6,3 +6,4 @@ node_modules
 error.log
 access.log
 .jsbeautifyrc
+error.log
