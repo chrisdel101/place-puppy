@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-var app = require('../app')
+var { app } = require('../app')
 var debugListen = require('debug')('placepuppy:server')
 var http = require('http')
 const debug = require('debug')

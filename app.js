@@ -10,10 +10,12 @@ const expressWinston = require('express-winston')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
+const ENV =
+  process.env?.NODE_ENV === 'development' ? 'development' : ' production'
 
-var index = require('./routes/index')
+const index = require('./routes/index')
 
-var app = express()
+const app = express()
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -21,7 +23,10 @@ app.set('view engine', 'pug')
 
 app.set('trust proxy', 'loopback')
 
-app.locals.title = 'placepuppy'
+app.locals = {
+  title: 'placepuppy',
+  ENV,
+}
 
 app.use(morgan('dev'))
 app.use(bodyParser.json())
@@ -44,7 +49,7 @@ app.use(
 )
 // // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  var err = new Error('404 Not Found')
+  const err = new Error('404 Not Found')
   err.status = 404
   next(err)
 })
@@ -56,6 +61,21 @@ const accessLogStream = fs.createWriteStream(
   }
 )
 
+// express-winston errorLogger makes sense AFTER the router.
+app.use(
+  expressWinston.errorLogger({
+    transports: [
+      new winston.transports.File({
+        filename: 'error.log',
+        level: 'error',
+      }),
+    ],
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.json()
+    ),
+  })
+)
 const errorController = require('./logic/controllers/error.controller')
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
@@ -66,4 +86,5 @@ app.use(function (err, req, res, next) {
   errorController.showErrorPage(req, res, err)
 })
 
-module.exports = app
+exports.app = app
+exports.ENV = ENV

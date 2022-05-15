@@ -10,10 +10,10 @@ module.exports = {
   showErrorPage: (req, res, errorObj = {}) => {
     let imgObjs = [
       {
-        sm: './public-images/error-page/image1/250x172-sm.jpg',
-        md: './public-images/error-page/image1/400x275-md.jpg',
-        lg: './public-images/error-page/image1/550x380-lg.jpg',
-        fs: './public-images/error-page/image1/650x488-fs.jpg',
+        sm: './public-images/error-page/250x172-sm.jpg',
+        md: './public-images/error-page/400x275-md.jpg',
+        lg: './public-images/error-page/550x380-lg.jpg',
+        fs: './public-images/error-page/650x488-fs.jpg',
       },
     ]
     errorObj.errMsg = module.exports.setErrorMessage(errorObj)
