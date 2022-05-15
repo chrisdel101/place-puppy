@@ -18,6 +18,7 @@ let imagesRetrievedCache = 0
 // quality and customFormat are querys - blank by default
 function showImage(req, res) {
   try {
+    log('IP', req.ip)
     stats('imageRequests', imageRequests)
     stats('imagesCached', imagesCached)
     stats('imagesRetrievedCache', imagesRetrievedCache)
