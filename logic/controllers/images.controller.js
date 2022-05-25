@@ -80,6 +80,7 @@ function showImage(req, res) {
       let newSrc = setImageQuality(img?.src, req?.quality)
       img.src = newSrc
     }
+    img.src = embedDimensionsIntoLink(img.src, width, height)
     // set type
     res.type(`image/${imgFormatType ?? 'jpg'}`)
     httpCall(img.src, dimensions)
@@ -97,8 +98,9 @@ function showImage(req, res) {
         currentUserIp = req?.ip
         imageRequests++
         imagesCached++
+        return stream.pipe(res)
         ///// customFormat needs to be added after debug
-        return resize(stream, width, height).pipe(res)
+        // return resize(stream, width, height).pipe(res)
       })
       .catch((err) => {
         error('An error in the promise ending show', err)
@@ -109,9 +111,20 @@ function showImage(req, res) {
     errorController.showErrorPage(req, res, e)
   }
 }
+// format is /w_400,h_400,c_fill/
+function embedDimensionsIntoLink(src, width, height) {
+  let strsArr = src.split('/')
+  const w = `w_${width}`
+  const h = `h_${height}`
+  // find upload in arr
+  const uploadIndex = strsArr.indexOf('upload')
+  strsArr.splice(uploadIndex + 1, 0, `${w},${h},c_fill`)
+  return strsArr.join('/')
+}
 function httpCall(src) {
   return new Promise((resolve, reject) => {
     let format = imageFormat(src)
+    log('Calling: ', src)
     https.get(src, (response) => {
       if (response.statusCode === 200) {
         const transform = new streamTransform()
