@@ -40,7 +40,7 @@ function showImage(req, res) {
       currentUserIp = req?.ip
       // empty cache
       cache = {}
-    } else {
+    } else if(process.env.CACHE !== 'OFF'){
       // if in cache call from cache
       if (cache?.[req.originalUrl]) {
         //originalUrl is all combined - 300x300?q=good?f=png
@@ -98,9 +98,7 @@ function showImage(req, res) {
         currentUserIp = req?.ip
         imageRequests++
         imagesCached++
-        return stream.pipe(res)
-        ///// customFormat needs to be added after debug
-        // return resize(stream, width, height).pipe(res)
+        return stream.pipe(res)      
       })
       .catch((err) => {
         error('An error in the promise ending show', err)
@@ -142,27 +140,10 @@ function httpCall(src) {
     })
   })
 }
-// returns an object - stream piped to res
-function resize(stream, width, height) {
-  try {
-    var transformer = sharp()
-      .resize(width, height)
-      .on('info', function (info) {
-        log('Resize: okay', info)
-      })
-      .on('error', (e) => {
-        log('Error in Resize', e)
-      })
-    return stream.pipe(transformer)
-  } catch (e) {
-    console.error('Error in Resize', e)
-    throw TypeError('Error resizing image', e)
-  }
-}
 function setImageQuality(urlStr, quality) {
   try {
     switch (quality) {
-      case 'high':
+      case 'best':
         quality = `q_auto:best`
         break
       case 'good':
@@ -215,7 +196,6 @@ const setCache = ({ path, buffer }) => {
 }
 
 module.exports = {
-  resize: resize,
   imageFormat: imageFormat,
   showImage: showImage,
   setImageQuality: setImageQuality,

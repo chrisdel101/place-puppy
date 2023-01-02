@@ -13,15 +13,15 @@ block content
                         div(style={color:'white'}) Like this: &nbsp 
                             a(href='https://place-puppy.com/300x300') https://place-puppy.com/300x300 #[br]
                     p. 
-                        #[strong New: Add Image quality paramaters.] Choose from <code>/high</code>, <code>/good</code> or <code>/low</code>.
+                        - #[strong [optional] Format by extension. Choose from <code>jpg</code> (default), <code>png</code>, <code>gif</code> or <code>bmp</code>.
                     div.links
                         div(style={color:'white'}) Like this: &nbsp 
-                            a(href=' https://place-puppy.com/300x300?q=best') https://place-puppy.com/300x300?q=best #[br]
+                            a(href='https://place-puppy.com/300x300?q=high&f=gif') https://place-puppy.com/300x300?f=gif #[br]
                     p. 
-                        #[strong New: Request image format by extention.] Choose from <code>jpg</code>(default), <code>png</code>, <code>gif</code> or <code>bmp</code>.
+                        - #[strong [optional]]  Quality params: Choose <code>/best</code>, <code>/good</code> or <code>/low</code>. jpg <span class='amp'> & </span> png only.
                     div.links
                         div(style={color:'white'}) Like this: &nbsp 
-                            a(href=' https://place-puppy.com/300x300?q=high&f=gif') https://place-puppy.com/300x300?q=high&f=gif #[br]
+                            a(href='https://place-puppy.com/300x300?q=best') https://place-puppy.com/300x300?f=png&q=low #[br]
                         
                 each imgObj in imgObjs
                     div.puppy-box

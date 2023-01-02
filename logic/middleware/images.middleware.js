@@ -3,8 +3,8 @@ const log = debug('app:log')
 exports.qualityMiddleware = (req, _, next) => {
   if (req.query.q) {
     switch (req.query.q) {
-      case 'high':
-        req.quality = 'high'
+      case 'best':
+        req.quality = 'best'
         break
       case 'good':
         req.quality = 'good'
