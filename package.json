@@ -21,7 +21,7 @@
     "express-winston": "^4.2.0",
     "morgan": "^1.9.1",
     "pug": "~3.0.1",
-    "sharp": "^0.30.3",
+    "sharp": "^0.30.5",
     "winston": "^3.7.2"
   },
   "devDependencies": {
