@@ -53,7 +53,7 @@ function showImage(req, res) {
         imageRequests++
         imagesRetrievedCache++
         // resize
-        return resize(bufferStream, width, height).pipe(res)
+        return resizeCached(bufferStream, width, height).pipe(res)
       }
     }
     let img = {}
@@ -140,6 +140,23 @@ function httpCall(src) {
     })
   })
 }
+// returns an object - stream piped to res
+function resizeCached(stream, width, height) {
+  try {
+    var transformer = sharp()
+      .resize(width, height)
+      .on('info', function (info) {
+        log('Resize: okay', info)
+      })
+      .on('error', (e) => {
+        log('Error in resizeCached', e)
+      })
+    return stream.pipe(transformer)
+  } catch (e) {
+    console.error('Error in resizeCached', e)
+    throw TypeError('Error resizing image', e)
+  }
+}
 function setImageQuality(urlStr, quality) {
   try {
     switch (quality) {
@@ -196,6 +213,7 @@ const setCache = ({ path, buffer }) => {
 }
 
 module.exports = {
+  resizeCached: resizeCached,
   imageFormat: imageFormat,
   showImage: showImage,
   setImageQuality: setImageQuality,
