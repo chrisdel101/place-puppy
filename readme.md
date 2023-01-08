@@ -1,5 +1,14 @@
 ## Placepuppy
 
+ ****
+**Maintenance Notice**
+There is currently on-going maintenance happening to try and get the site optimized and working reliably. Temporary outages may occur.
+
+If an outage persists for more than a few hours, please create an issue.
+****
+
+
+
 ### An image placeholder api
 
 [place-puppy.com](https://place-puppy.com)
@@ -10,15 +19,3 @@ Use the url to call images of any size by switching out the dimensions:
 
 [place-puppy.com/300x300](https://place-puppy.com/300x300)
 
-**Additional Options**
-
-Choose from four different image qualities:
-
-- `high`
-- `good`
-- `low` (for fastest load time)
-- `eco` (default)
-
-[place-puppy.com/300x300?q=low](https://place-puppy.com/300x300?q=low)
-
-![300x300 px puppy](https://place-puppy.com/300x300)

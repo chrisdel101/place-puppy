@@ -16,6 +16,7 @@ exports.qualityMiddleware = (req, _, next) => {
         log(
           `Qualituy Params: Invalid query string ${req.query.q} qualityMiddleware: Default to eco`
         )
+        req.invalidUrlForm = true
         req.quality = 'eco'
     }
   }
@@ -43,6 +44,7 @@ exports.returnImageFormat = (req, _, next) => {
         log(
           `customFormat Params: Invalid query string ${req.query.q} qualityMiddleware: Default to jpg`
         )
+        req.invalidUrlForm = true
         req.customFormat = 'jpg'
         break
     }

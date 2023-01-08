@@ -19,6 +19,17 @@ let preSetImages = [
   '700x700',
 ]
 
+
+// IP used to cache images
+function availableIP(req){
+  // check for x-forwared
+  let xForwardedIp = req.headers['x-forwarded-for']
+  log('LOG: xForwardedIp', xForwardedIp)
+  // if no x-forward then skip IP checking
+  let clientIp = xForwardedIp ? xForwardedIp.split(',')[0] : undefined
+  return clientIp
+}
+
 // pass in the path in format 300x300
 function extractDims(dimensionsStr) {
   try {
@@ -32,8 +43,8 @@ function extractDims(dimensionsStr) {
       throw new TypeError('Incorrect URL path: Needs to ###x### format')
     }
     const [width, height] = dimensionsStr.split('x')
-    log('width', width)
-    log('height', height)
+    log('LOG: width', width)
+    log('LOG: height', height)
     return [parseInt(width), parseInt(height)]
   } catch (e) {
     error('Error in extractDims', e)
@@ -59,6 +70,7 @@ function hasFileExtension(str) {
 }
 
 module.exports = {
+  availableIP,
   hasFileExtension,
   filterImages,
   extractDims,
