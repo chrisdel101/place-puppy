@@ -15,7 +15,6 @@ let imagesRetrievedCache = 0;
 const dayjs = require('dayjs');
 const Item = require('mock-fs/lib/item');
 let cacheResetTime = dayjs();
-images = JSON.parse(JSON.stringify(images))
 
 // reset cache after iterval - free memory reset any err
 function resetCacheInterval() {
@@ -110,7 +109,6 @@ function showImage(req, res) {
       // get cached data by IP and path
       const cachedIPContent = getCache(IP, req.originalUrl ?? req.path);
       // if cache, serve cache
-      console.log('cachedIPContent', cachedIPContent);
       if (cachedIPContent) {
         var stream = new Stream.PassThrough();
         stream.end(
@@ -132,8 +130,6 @@ function showImage(req, res) {
         if (images[i].path === dimensions) {
            //copy obj, no alter original data
           img = { ...images[i] };
-          console.log('IMG', img)
-          console.log('img', images[i])
           break;
         }
       }
@@ -142,22 +138,17 @@ function showImage(req, res) {
     //copy obj, no alter original data
       img = {...images[Math.floor(Math.random() * 20)]}
     }
-    console.log('img', images)
-    console.log('IMG', img)
     let imgFormatType = imageFormat(img.contentType);
     // set custom format from query
     if (req?.customFormat) {
       let newSrc = replaceUrlExt(img?.src, req.customFormat);
       img.src = newSrc;
-      console.log('customFormat', img.src)
     }
     // set custom quality from query
     if (req?.quality) {
       let newSrc = setImageQuality(img?.src, req?.quality);
       img.src = newSrc;
-      console.log('quality', img.src)
     }
-    console.log('HERE', img.src)
     img.src = embedDimensionsIntoLink(img.src, width, height);
     // set type
     res.type(`image/${imgFormatType ?? 'jpg'}`);
@@ -169,7 +160,6 @@ function showImage(req, res) {
         if (IP && process.env.CACHE !== 'OFF') {
           // if invalid query params cache the correct path - req?.path
           if (req.invalidUrlForm) {
-            console.log('invalid url form');
             setCache(IP, req?.path, parsedBuffer);
           } else {
             // if no url err then cache actual if exists - req?.originalUrl
@@ -180,7 +170,7 @@ function showImage(req, res) {
         var stream = new Stream.PassThrough();
         // Write your buffer
         stream.end(new Buffer.from(parsedBuffer));
-        // store current user IP
+        // track nums for fun
         imageRequests++;
         imagesCached++;
         return stream.pipe(res);
@@ -202,7 +192,6 @@ function embedDimensionsIntoLink(src, width, height) {
   // find upload in arr
   const uploadIndex = strsArr.indexOf('upload');
   strsArr.splice(uploadIndex + 1, 0, `${w},${h},c_fill`);
-  console.log('LINK',strsArr )
   return strsArr.join('/');
 }
 function httpCall(src) {
