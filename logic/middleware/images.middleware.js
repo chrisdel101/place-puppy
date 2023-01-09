@@ -1,5 +1,7 @@
 const debug = require('debug')
 const log = debug('app:log')
+// middleware different than controller - fires mid-request the passes the req on
+
 exports.qualityMiddleware = (req, _, next) => {
   if (req.query.q) {
     switch (req.query.q) {

@@ -1,5 +1,5 @@
 const { extractDims, preSetImages, availableIP } = require('../utils');
-const images = require('../../images.json');
+let images = require('../../images.json');
 const https = require('https');
 const streamTransform = require('stream').Transform;
 const Stream = require('stream');
@@ -13,62 +13,79 @@ let imageRequests = 0;
 let imagesCached = 0;
 let imagesRetrievedCache = 0;
 const dayjs = require('dayjs');
-const cacheResetTime = dayjs()
+const Item = require('mock-fs/lib/item');
+let cacheResetTime = dayjs();
+images = JSON.parse(JSON.stringify(images))
 
-function resetCacheInterval(){
-  if(dayjs().diff(dayjs().diff(cacheResetTime, 'hour') >= 12, 'hour') < 1){
+// reset cache after iterval - free memory reset any err
+function resetCacheInterval() {
+  const hourDiff = dayjs().diff(cacheResetTime, 'hours');
+
+  if (hourDiff >= 12) {
+    log('LOG: reset full cache timer');
     // empty cache
-    cache = {}
+    cache = {};
     // reset start time
-    cacheResetTime = dayjs()
+    cacheResetTime = dayjs();
   }
 }
-
-function addToCache(IP, path, data) {
+// based on IP - add to cache after fetch
+function setCache(IP, path, data) {
   if (!IP) {
-    error('ERROR: no IP or localhost in handleCache');
+    error('ERROR: no IP or localhost in getCache');
     return;
   }
   // adding to cache
   log('LOG: adding to cache');
   log('LOG: current cache', cache);
-  if(cache[IP]){
-    log('LOG: add path to existing IP')
+  if (cache[IP]) {
+    log('LOG: add path to existing IP');
     cache[IP][path] = {
       data: data,
       time: dayjs(),
-    }
+    };
   } else {
-    log('LOG: add new IP')
+    log('LOG: add new IP');
     cache[IP] = {
       [path]: {
         data: data,
         time: dayjs(),
       },
     };
-
   }
 }
-function handleCache(IP, path) {
+function getCache(IP, path) {
   if (!IP) {
-    error('ERROR: no IP or localhost in handleCache');
+    error('ERROR: no IP or localhost in getCache');
     return;
   }
   log('LOG: checking cache', path);
   log('LOG: current cache', cache);
-  // getting from cache
   if (cache[IP]) {
     if (cache[IP]?.[path]) {
-      // expire user cache after 1 hour
-      if (dayjs().diff(cache[IP]?.[path].time, 'hour') < 1) {
-        return cache[IP];
-      } 
+      // if item was removed no cache
+      if (resetUserCachePath(IP, path)) {
+        return false;
+      }
+      // if item not removed then cache okay
+      return cache[IP];
     }
   }
 }
+// return true if path deleted
+function resetUserCachePath(IP, path) {
+  const hourDiff = dayjs().diff(cache[IP]?.[path]?.time, 'hour');
+  // remote path from cache after 1 hour
+  if (hourDiff >= 1) {
+    // delete path from obj
+    log('LOG: delete user path after:', hourDiff);
+    return delete cache[IP]?.[path];
+  }
+  return false;
+}
 // quality and customFormat are querys - blank by default
 function showImage(req, res) {
-  try {    
+  try {
     // IP is client IP or undefined
     const IP = availableIP(req);
 
@@ -86,20 +103,20 @@ function showImage(req, res) {
     }
     // extract img w/h
     const [width, height] = extractDims(req.params.dimensions);
-    // only access cache if same user
-    resetCacheInterval()
+    // check reset interval
+    resetCacheInterval();
+    // cache off flag for testing
     if (process.env.CACHE !== 'OFF') {
-      const cachedIPContent = handleCache(
-        IP,
-         req.originalUrl ?? req.path
-      );
-      // if in cache serve cache
+      // get cached data by IP and path
+      const cachedIPContent = getCache(IP, req.originalUrl ?? req.path);
+      // if cache, serve cache
+      console.log('cachedIPContent', cachedIPContent);
       if (cachedIPContent) {
         var stream = new Stream.PassThrough();
         stream.end(
           new Buffer.from(
-            cachedIPContent?.[req.originalUrl]?.data ?? 
-            cachedIPContent?.[req.path]?.data
+            cachedIPContent?.[req.originalUrl]?.data ??
+              cachedIPContent?.[req.path]?.data
           )
         );
         log('LOG: Serving from: cache');
@@ -113,25 +130,34 @@ function showImage(req, res) {
     if (preSetImages.includes(dimensions)) {
       for (let i = 0; i < images.length; i++) {
         if (images[i].path === dimensions) {
+           //copy obj, no alter original data
           img = { ...images[i] };
+          console.log('IMG', img)
+          console.log('img', images[i])
           break;
         }
       }
     } else {
       // else get one at random
-      img = images[Math.floor(Math.random() * 20)];
+    //copy obj, no alter original data
+      img = {...images[Math.floor(Math.random() * 20)]}
     }
+    console.log('img', images)
+    console.log('IMG', img)
     let imgFormatType = imageFormat(img.contentType);
     // set custom format from query
     if (req?.customFormat) {
       let newSrc = replaceUrlExt(img?.src, req.customFormat);
       img.src = newSrc;
+      console.log('customFormat', img.src)
     }
     // set custom quality from query
     if (req?.quality) {
       let newSrc = setImageQuality(img?.src, req?.quality);
       img.src = newSrc;
+      console.log('quality', img.src)
     }
+    console.log('HERE', img.src)
     img.src = embedDimensionsIntoLink(img.src, width, height);
     // set type
     res.type(`image/${imgFormatType ?? 'jpg'}`);
@@ -139,15 +165,15 @@ function showImage(req, res) {
       .then((transform) => {
         // read data with.read()
         const parsedBuffer = transform.read();
-        // Initiate the source
-        // CACHE- add to cache if possible
-        if (IP) {
-          // add to cache
-          if(req.invalidUrlForm){
-            console.log('invalid url form')
-            addToCache(IP, req?.path, parsedBuffer);
+        // CACHE- add to cache if IP is valid
+        if (IP && process.env.CACHE !== 'OFF') {
+          // if invalid query params cache the correct path - req?.path
+          if (req.invalidUrlForm) {
+            console.log('invalid url form');
+            setCache(IP, req?.path, parsedBuffer);
           } else {
-            addToCache(IP, req?.originalUrl ?? req?.path, parsedBuffer);
+            // if no url err then cache actual if exists - req?.originalUrl
+            setCache(IP, req?.originalUrl ?? req?.path, parsedBuffer);
           }
         }
         //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
@@ -176,12 +202,13 @@ function embedDimensionsIntoLink(src, width, height) {
   // find upload in arr
   const uploadIndex = strsArr.indexOf('upload');
   strsArr.splice(uploadIndex + 1, 0, `${w},${h},c_fill`);
+  console.log('LINK',strsArr )
   return strsArr.join('/');
 }
 function httpCall(src) {
   return new Promise((resolve, reject) => {
     let format = imageFormat(src);
-    log('LOG: Calling: ', src);
+    log('LOG: httpCall: ', src);
     https.get(src, (response) => {
       if (response.statusCode === 200) {
         const transform = new streamTransform();
@@ -249,10 +276,6 @@ function replaceUrlExt(imgUrl, newExt) {
   let fileNoExt = imgUrl.split('.').slice(0, -1).join('.');
   return `${fileNoExt}.${newExt} `;
 }
-const setCache = ({ path, buffer }) => {
-  log('LOG: Set cache', path);
-  cache[path] = buffer;
-};
 
 module.exports = {
   imageFormat: imageFormat,
