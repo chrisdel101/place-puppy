@@ -165,6 +165,7 @@ function showImage(req, res) {
             // if no url err then cache actual if exists - req?.originalUrl
             setCache(IP, req?.originalUrl ?? req?.path, parsedBuffer);
           }
+          imagesCached++;
         }
         //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
         var stream = new Stream.PassThrough();
@@ -172,7 +173,6 @@ function showImage(req, res) {
         stream.end(new Buffer.from(parsedBuffer));
         // track nums for fun
         imageRequests++;
-        imagesCached++;
         return stream.pipe(res);
       })
       .catch((err) => {
