@@ -139,8 +139,8 @@ function showImage(req, res) {
       img = {...images[Math.floor(Math.random() * 20)]}
     }
     let imgFormatType = imageFormat(img.contentType);
-    // set custom format from query
-    if (req?.customFormat) {
+    // set custom format from query - skip if jpg
+    if (req?.customFormat && req?.customFormat != 'jpg') {
       let newSrc = replaceUrlExt(img?.src, req.customFormat);
       img.src = newSrc;
     }
@@ -150,7 +150,7 @@ function showImage(req, res) {
       img.src = newSrc;
     }
     img.src = embedDimensionsIntoLink(img.src, width, height);
-    // set type
+    // set type using format
     res.type(`image/${imgFormatType ?? 'jpg'}`);
     httpCall(img.src, dimensions)
       .then((transform) => {
@@ -216,6 +216,10 @@ function httpCall(src) {
   });
 }
 function setImageQuality(urlStr, quality) {
+  // log('HERE', urlStr)
+  if(typeof urlStr !== 'string'){
+    throw TypeError("ERROR: invalid input to setImageQuality")
+  }
   try {
     switch (quality) {
       case 'best':
@@ -236,7 +240,7 @@ function setImageQuality(urlStr, quality) {
     const splitArr = urlStr.split('/');
     const index = splitArr.indexOf('q_auto:eco');
     splitArr[index] = quality;
-    return splitArr.join('/');
+    return splitArr.join('/').trim();
   } catch (e) {
     console.error('An error in setImageQuality', e);
   }
@@ -263,7 +267,7 @@ function imageFormat(imgSrc) {
 }
 function replaceUrlExt(imgUrl, newExt) {
   let fileNoExt = imgUrl.split('.').slice(0, -1).join('.');
-  return `${fileNoExt}.${newExt} `;
+  return `${fileNoExt}.${newExt} `.trim();
 }
 
 module.exports = {

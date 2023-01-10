@@ -6,7 +6,6 @@ const mock = require('mock-fs')
 const sinon = require('sinon')
 const rewire = require('rewire')
 const rwSUT = rewire('../logic/utils')
-const cloudinary = require('cloudinary')
 
 describe('utils', function() {
     describe('filterImages()', function() {
@@ -91,47 +90,6 @@ describe('utils', function() {
             expect(function() {
                 SUT.extractDims(400)
             }).to.throw(TypeError, 'Incorrect input: Needs to be a string')
-        })
-    })
-    describe.skip('cloudinaryUploaer()', function(){
-        let stub
-        beforeEach(function() {
-            stub = sinon.stub(cloudinary.v2.uploader, 'upload').resolves('hello')
-            // use mock data
-            mock({
-                'path/to/fake/dir': {
-                    'some-file.txt': 'file content here',
-                    'empty-dir': {/** empty directory */
-                    }
-                },
-                'path/to/some.png': Buffer.from([
-                    8,
-                    6,
-                    7,
-                    5,
-                    3,
-                    0,
-                    9
-                ]),
-                'some/other/path': {/** another empty directory */
-                }
-            })
-        })
-        afterEach(function() {
-            mock.restore()
-            stub.restore()
-        })
-        it('returns a promise because it has a .then function', function(){
-            console.log(stub.resolves('hello'))
-            let result = SUT.cloudinaryUploader('./path/to/some.png')
-            return result.then(res => console.log(res))
-            assert.typeOf(result.then, 'function')
-        })
-        it('returns a promise because it has a .then function', function(){
-            let result = SUT.cloudinaryUploader('./path/to/some.png')
-            return result.then(res => {
-                console.log(res)
-            })
         })
     })
 })
