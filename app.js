@@ -10,12 +10,14 @@ const expressWinston = require('express-winston')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
+const helmet = require('helmet')
 const ENV =
-  process.env?.NODE_ENV === 'development' ? 'development' : ' production'
+process.env?.NODE_ENV === 'development' ? 'development' : ' production'
 
 const index = require('./routes/index')
 
 const app = express()
+app.use(helmet())
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))

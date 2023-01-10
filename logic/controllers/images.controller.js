@@ -36,7 +36,7 @@ function setCache(IP, path, data) {
   }
   // adding to cache
   log('LOG: adding to cache');
-  log('LOG: current cache', cache);
+  log('LOG: current cache', cache[IP]);
   if (cache[IP]) {
     log('LOG: add path to existing IP');
     cache[IP][path] = {
