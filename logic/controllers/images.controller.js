@@ -36,7 +36,7 @@ function setCache(IP, path, data) {
   }
   // adding to cache
   log('LOG: adding to cache');
-  log('LOG: current cache', cache[IP]);
+  log('LOG: current user cache', cache[IP]);
   if (cache[IP]) {
     log('LOG: add path to existing IP');
     cache[IP][path] = {
@@ -58,8 +58,7 @@ function getCache(IP, path) {
     error('ERROR: no IP or localhost in getCache');
     return;
   }
-  log('LOG: checking cache', path);
-  log('LOG: current cache', cache);
+  log('LOG: checking cache path', path);
   if (cache[IP]) {
     if (cache[IP]?.[path]) {
       // if item was removed no cache
