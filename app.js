@@ -17,7 +17,6 @@ process.env?.NODE_ENV === 'development' ? 'development' : ' production'
 const index = require('./routes/index')
 
 const app = express()
-app.use(helmet())
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))

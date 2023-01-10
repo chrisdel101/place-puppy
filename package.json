@@ -20,7 +20,6 @@
     "dotenv": "^6.2.0",
     "express": "^4.17.1",
     "express-winston": "^4.2.0",
-    "helmet": "^6.0.1",
     "morgan": "^1.9.1",
     "pug": "~3.0.1",
     "winston": "^3.7.2"
