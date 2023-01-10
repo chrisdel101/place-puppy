@@ -10,7 +10,6 @@ const expressWinston = require('express-winston')
 const debug = require('debug')
 const log = debug('app:log')
 const error = debug('app:error')
-const helmet = require('helmet')
 const ENV =
 process.env?.NODE_ENV === 'development' ? 'development' : ' production'
 
