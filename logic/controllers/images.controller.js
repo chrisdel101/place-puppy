@@ -76,7 +76,7 @@ function resetUserCachePath(IP, path) {
   // remote path from cache after 1 hour
   if (hourDiff >= 1) {
     // delete path from obj
-    log('LOG: delete user path after:', hourDiff);
+    log(`LOG: delete user path ${path} after ${hourDiff} hour`);
     return delete cache[IP]?.[path];
   }
   return false;
