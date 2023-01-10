@@ -47,9 +47,14 @@ footer {
   display: flex;
   justify-content: center;
 }
-.maintenance {
-  background-color: whitesmoke;
-}
+#maintenance {
+  background-color: #ADD8E6;
+  width: 100%;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ }
 .puppy-container {
   display: grid;
   /* min-max on each col is repsponsive */
