@@ -19,7 +19,7 @@ let cacheResetTime = dayjs();
 // reset cache after iterval - free memory reset any err
 function resetCacheInterval() {
   const hourDiff = dayjs().diff(cacheResetTime, 'hours');
-
+  log('LOG (temp): Last Reset', cacheResetTime.format())
   if (hourDiff >= 12) {
     log('LOG: reset full cache timer');
     // empty cache
