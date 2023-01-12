@@ -109,6 +109,8 @@ function showImage(req, res) {
       const cachedIPContent = getCache(IP, req.originalUrl ?? req.path);
       // if cache, serve cache
       if (cachedIPContent) {
+        if(!res.get('Content-type')) 
+          res.type(`image/jpg`);
         var stream = new Stream.PassThrough();
         stream.end(
           new Buffer.from(
