@@ -11,6 +11,7 @@ router.get(
   '^/:dimensions([0-9]+[x][0-9]+)',
   imageMiddleware.qualityMiddleware,
   imageMiddleware.returnImageFormat,
+  imageMiddleware.stripInvalidQueryParams,
   (req, res) => {
     imageController.showImage(req, res)
   }

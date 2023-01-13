@@ -53,3 +53,15 @@ exports.returnImageFormat = (req, _, next) => {
   }
   next()
 }
+exports.stripInvalidQueryParams = (req, _, next) => {
+  if (req.query) {
+    // strip out all query invalid params
+    req.query = Object.fromEntries(
+      Object.entries(req.query).filter(([key, val]) => {
+        // only valid params stay
+        if (key === 'q' || key === 'f') return [key, val]
+      })
+    )
+  }
+  next()
+}
