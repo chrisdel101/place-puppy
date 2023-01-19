@@ -16,6 +16,8 @@ process.env?.NODE_ENV === 'development' ? 'development' : ' production'
 const index = require('./routes/index')
 const helmet = require("helmet");
 const app = express()
+const maintenance = process.env.MAINTENANCE
+
 
 app.use(helmet());
 // view engine setup
@@ -27,6 +29,7 @@ app.set('trust proxy', 'loopback')
 app.locals = {
   title: 'placepuppy',
   ENV,
+  maintenance
 }
 
 app.use(morgan('dev'))
