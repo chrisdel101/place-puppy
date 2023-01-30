@@ -19,9 +19,12 @@ const app = express()
 const maintenance = process.env.MAINTENANCE
 
 
-app.use(helmet(helmet({
+crossOriginEmbedderPolicy: false,
+app.use(helmet({
+    crossOriginResourcePolicy: false,
     crossOriginEmbedderPolicy: false,
-  })));
+
+  }));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
