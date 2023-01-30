@@ -19,7 +19,6 @@ const app = express()
 const maintenance = process.env.MAINTENANCE
 
 
-crossOriginEmbedderPolicy: false,
 app.use(helmet({
     crossOriginResourcePolicy: false,
     crossOriginEmbedderPolicy: false,
