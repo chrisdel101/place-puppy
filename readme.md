@@ -1,21 +1,41 @@
-## Placepuppy
-
- ****
-**Maintenance Notice**
-There is currently on-going maintenance happening to try and get the site optimized and working reliably. Temporary outages may occur.
-
-If an outage persists for more than a few hours, please create an issue.
-****
-
-
-
-### An image placeholder api
+# Placepuppy
 
 [place-puppy.com](https://place-puppy.com)
 
-Use the placepuppy url to deliver placeholder images of puppies to your projects.
+## **An Image Placeholder App**
 
-Use the url to call images of any size by switching out the dimensions:
+### How it works
+Use a placepuppy url to deliver placeholder images of puppies to your projects.
+
+Add required image to dimensions to the URL:
 
 [place-puppy.com/300x300](https://place-puppy.com/300x300)
 
+
+*****
+
+### Options
+
+**Image Format** 
+
+- Request specific image format param `jpg` (default), `png`, `gif` or `bmp`.
+
+- [https://place-puppy.com/300x300?f=png](https://place-puppy.com/300x300?f=png)
+
+**Image Quality** 
+
+- Set image quality param `best`, `good` or `low`. Works with jpg & png only.
+
+- [https://place-puppy.com/300x300?q=best&f=jpg](https://place-puppy.com/300x300?q=best&f=jpg )
+- [https://place-puppy.com/300x300?q=low](https://place-puppy.com/300x300?q=low)
+
+
+
+*****
+ 
+**Found a Problem?**
+
+If you encounter any issues, please create an issue. It will be addressed. 
+****
+
+This project is based on [Place Kitten](https://placekitten.com/)
