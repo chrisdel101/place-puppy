@@ -13,7 +13,6 @@ let imageRequests = 0;
 let imagesCached = 0;
 let imagesRetrievedCache = 0;
 const dayjs = require('dayjs');
-const Item = require('mock-fs/lib/item');
 let cacheResetTime = dayjs();
 
 // reset cache after iterval - free memory reset any err
