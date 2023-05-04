@@ -31,6 +31,9 @@ pre {
 footer {
   text-align: center;
 }
+footer .inpspiration ul li {
+  list-style: none;
+}
 
 .links a {
   color: #c9e2b1;

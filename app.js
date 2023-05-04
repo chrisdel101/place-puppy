@@ -20,9 +20,10 @@ const maintenance = process.env.MAINTENANCE
 
 
 app.use(helmet({
+    contentSecurityPolicy: false,
     crossOriginResourcePolicy: false,
     crossOriginEmbedderPolicy: false,
-
+    crossOriginOpenerPolicy: false,
   }));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
