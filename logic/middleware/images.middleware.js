@@ -6,50 +6,46 @@ exports.qualityMiddleware = (req, _, next) => {
   if (req.query.q) {
     switch (req.query.q) {
       case 'best':
-        req.quality = 'best'
+        req.customeQuality = 100
         break
       case 'good':
-        req.quality = 'good'
+        req.customeQuality = 75
         break
       case 'low':
-        req.quality = 'low'
+        req.customeQuality = 25
         break
       default:
-        log(
-          `Qualituy Params: Invalid query string ${req.query.q} qualityMiddleware: Default to eco`
-        )
-        req.invalidUrlForm = true
-        req.quality = 'eco'
+        req.customeQuality = 50
     }
+  } else {
+    req.customeQuality = 50
   }
   next()
 }
-exports.returnImageFormat = (req, _, next) => {
+exports.returnImageType = (req, _, next) => {
   if (req.query.f) {
     switch (req.query.f) {
       case 'jpg':
-        req.customFormat = req.query.f
+        req.customType = "jpeg"
         break
       case 'png':
-        req.customFormat = req.query.f
+        req.customType = req.query.f
         break
       case 'gif':
-        req.customFormat = req.query.f
+        req.customType = req.query.f
         break
       case 'bmp':
-        req.customFormat = req.query.f
+        req.customType = req.query.f
         break
       case 'jpeg':
-        req.customFormat = 'jpg'
+        req.customType = req.query.f
         break
       default:
-        log(
-          `customFormat Params: Invalid query string ${req.query.q} qualityMiddleware: Default to jpg`
-        )
-        req.invalidUrlForm = true
-        req.customFormat = 'jpg'
+        req.customType = 'jpeg'
         break
     }
+  } else {
+    req.customType = 'jpeg'
   }
   next()
 }

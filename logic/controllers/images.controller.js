@@ -15,6 +15,7 @@ let imageRequests = 0
 let imagesCached = 0
 let imagesRetrievedCache = 0
 const dayjs = require('dayjs')
+const { request } = require('http')
 let cacheResetTime = dayjs()
 
 // reset cache after iterval - free memory reset any err
@@ -82,7 +83,7 @@ function resetUserCachePath(IP, path) {
   }
   return false
 }
-// quality and customFormat are querys - blank by default
+
 function showImage(req, res) {
   try {
     // IP is client IP or undefined
@@ -93,8 +94,6 @@ function showImage(req, res) {
     stats('STATS: imagesRetrievedCache', imagesRetrievedCache)
     log('LOG: Path', req.originalUrl)
 
-    if (req.quality) log('LOG: Quality', req.quality)
-    if (req.customFormat) log('LOG: Format', req.customFormat)
     const dimensions = req.params.dimensions
     if (!dimensions) {
       console.error('Error with page dimensions:')
@@ -136,125 +135,38 @@ function showImage(req, res) {
       }
     } else {
       // else get one at random
-      //copy obj, no alter original data
+      //copy obj, no aalter original data
       img = { ...images[Math.floor(Math.random() * 20)] }
     }
-    let imgFormatType = imageFormat(img.contentType)
-    // set custom format from query - skip if jpg
-    if (req?.customFormat && req?.customFormat != 'jpg') {
-      let newSrc = replaceUrlExt(img?.src, req.customFormat)
-      img.src = newSrc
-    }
-    // set custom quality from query
-    if (req?.quality) {
-      let newSrc = setImageQuality(img?.src, req?.quality)
-      img.src = newSrc
-    }
-    // img.src = embedDimensionsIntoLink(img.src, width, height);
-    img.src = './public/public-images/imgs/an8hnpkgnfw9cmnn2ogu.jpg'
-    // set type using format
-    res.type(`image/${imgFormatType ?? 'jpg'}`)
-    sharp(img.src)
-      .rotate()
-      .resize(400,400)
-      .jpeg({ mozjpeg: true })
+    // set type and quality in middleware
+    sharp(`.${img.src}`)
+      .toFormat(req.customType ?? 'jpeg', { quality: req.customeQuality ?? 50 })
+      .resize(width, height)
       .toBuffer()
-      .then( data => { 
+      .then((data) => {
+        log('LOG: Quality', req.customeQuality)
+        log('LOG: Type', req.customType)
         var stream = new Stream.PassThrough()
         // Write your buffer
         stream.end(new Buffer.from(data))
         // track nums for fun
+        imagesCached++
+        // set mime type
+        res.type(`image/${req.customType} ?? 'jpg'}`)
         return stream.pipe(res)
-       })
-      .catch( err => { 
-        console.log(err)
-       });
-    return
-    // fs.readFile(img.src, function(err, data) {
-    //   if (err) throw err // Fail if the file can't be read.
-
-
-    //   res.end(data) // Send the file data to the browser.
-    // })
-    // let reader = fs.createReadStream(img.src, {
-    //   encoding: 'UTF-8',
-    // })
-    // // Read and display the file data on console
-    // // Read and display the file data on console
-    // reader.on('data', function (chunk) {
-    //   // console.log(chunk.toString())
-    // })
-    var stream = new Stream.PassThrough()
-    // Write your buffer
-    // stream.end(new Buffer.from(reader))
-    // track nums for fun
-    // imageRequests++
-    return stream.pipe(res)
-    // httpCall(img.src, dimensions)
-    //   .then((transform) => {
-    //     // read data with.read()
-    //     const parsedBuffer = transform.read()
-    //     // CACHE- add to cache if IP is valid
-    //     if (IP && process.env.CACHE !== 'OFF') {
-    //       // if invalid query params cache the correct path - req?.path
-    //       if (req.invalidUrlForm) {
-    //         setCache(IP, req?.path, parsedBuffer)
-    //       } else {
-    //         // if no url err then cache actual if exists - req?.originalUrl
-    //         setCache(IP, req?.originalUrl ?? req?.path, parsedBuffer)
-    //       }
-    //       imagesCached++
-    //     }
-    //     //stackoverflow.com/questions/16038705/how-to-wrap-a-buffer-as-a-stream2-readable-stream
-    //     var stream = new Stream.PassThrough()
-    //     // Write your buffer
-    //     stream.end(new Buffer.from(parsedBuffer))
-    //     // track nums for fun
-    //     imageRequests++
-    //     return stream.pipe(res)
-    //   })
-    //   .catch((err) => {
-    //     error('An error in the promise ending show', err)
-    //     res.status(500).send(err)
-    //   })
+      })
+      .catch((err) => {
+        console.log(`Sharp error: ${err}`)
+      })
   } catch (e) {
     console.error('Error in showImage:', e)
     errorController.showErrorPage(req, res, e)
   }
 }
-// format is /w_400,h_400,c_fill/
-function embedDimensionsIntoLink(src, width, height) {
-  let strsArr = src.split('/')
-  const w = `w_${width}`
-  const h = `h_${height}`
-  // find upload in arr
-  const uploadIndex = strsArr.indexOf('upload')
-  strsArr.splice(uploadIndex + 1, 0, `${w},${h},c_fill`)
-  return strsArr.join('/')
-}
-// function fileStream(src) {
-//   return new Promise((resolve, reject) => {
-//     let format = imageFormat(src);
-//     log('LOG: httpCall: ', src);
 
-//         const transform = new streamTransform();
-//         response.on('data', (chunk) => {
-//           transform.push(chunk);
-//         });
-//         response.on('end', () => {
-//           log('LOG: serving from: cloud');
-//           resolve(transform);
-//         });
-//       } else {
-//         error(`An http error occured`, response.statusCode);
-//         reject('promise in http.get rejected');
-//       }
-//     });
-//   });
-// }
 function httpCall(src) {
   return new Promise((resolve, reject) => {
-    let format = imageFormat(src)
+    let format = setImageType(src)
     log('LOG: httpCall: ', src)
     https.get(src, (response) => {
       if (response.statusCode === 200) {
@@ -273,54 +185,23 @@ function httpCall(src) {
     })
   })
 }
-function setImageQuality(urlStr, quality) {
-  // log('HERE', urlStr)
-  if (typeof urlStr !== 'string') {
-    throw TypeError('ERROR: invalid input to setImageQuality')
-  }
-  try {
-    switch (quality) {
-      case 'best':
-        quality = `q_auto:best`
-        break
-      case 'good':
-        quality = `q_auto:good`
-        break
-      case 'eco':
-        quality = `q_auto:eco`
-        break
-      case 'low':
-        quality = `q_auto:low`
-        break
-      default:
-        quality = 'q_auto'
-    }
-    const splitArr = urlStr.split('/')
-    const index = splitArr.indexOf('q_auto:eco')
-    splitArr[index] = quality
-    return splitArr.join('/').trim()
-  } catch (e) {
-    console.error('An error in setImageQuality', e)
-  }
-}
 
-function imageFormat(imgSrc) {
+// set type by query params- default jpeg
+function setImageType(path) {
+  // console.log('path', path)
   // convert to lower
-  if (typeof imgSrc !== 'string') {
-    error('imageFormat error: imgSrc must be a string')
-    throw TypeError('imageFormat error: imgSrc must be a string')
+  if (typeof path !== 'string') {
+    error('setImageType error: path must be a string')
+    throw TypeError('setImageType error: path must be a string')
   } else {
-    imgSrc = imgSrc.toLowerCase()
-
-    if (imgSrc.includes('jpeg') || imgSrc.includes('jpg')) {
-      return 'jpg'
-    } else if (imgSrc.includes('png')) {
-      return 'png'
-    } else if (imgSrc.includes('gif')) {
-      return 'gif'
-    } else {
-      return false
-    }
+    path = path.toLowerCase()
+  }
+  if (path.includes('png')) {
+    return 'png'
+  } else if (path.includes('gif')) {
+    return 'gif'
+  } else {
+    return 'jpeg'
   }
 }
 function replaceUrlExt(imgUrl, newExt) {
@@ -329,9 +210,8 @@ function replaceUrlExt(imgUrl, newExt) {
 }
 
 module.exports = {
-  imageFormat: imageFormat,
+  setImageType: setImageType,
   showImage: showImage,
-  setImageQuality: setImageQuality,
   replaceUrlExt: replaceUrlExt,
   httpCall: httpCall,
 }
