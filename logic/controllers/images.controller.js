@@ -1,8 +1,5 @@
 const { extractDims, preSetImages, availableIP } = require('../utils')
 let images = require('../../images.json')
-const https = require('https')
-const fs = require('fs')
-const streamTransform = require('stream').Transform
 const Stream = require('stream')
 const sharp = require('sharp')
 const debug = require('debug')
@@ -15,7 +12,6 @@ let imageRequests = 0
 let imagesCached = 0
 let imagesRetrievedCache = 0
 const dayjs = require('dayjs')
-const { request } = require('http')
 let cacheResetTime = dayjs()
 
 // reset cache after iterval - free memory reset any err
@@ -164,54 +160,6 @@ function showImage(req, res) {
   }
 }
 
-function httpCall(src) {
-  return new Promise((resolve, reject) => {
-    let format = setImageType(src)
-    log('LOG: httpCall: ', src)
-    https.get(src, (response) => {
-      if (response.statusCode === 200) {
-        const transform = new streamTransform()
-        response.on('data', (chunk) => {
-          transform.push(chunk)
-        })
-        response.on('end', () => {
-          log('LOG: serving from: cloud')
-          resolve(transform)
-        })
-      } else {
-        error(`An http error occured`, response.statusCode)
-        reject('promise in http.get rejected')
-      }
-    })
-  })
-}
-
-// set type by query params- default jpeg
-function setImageType(path) {
-  // console.log('path', path)
-  // convert to lower
-  if (typeof path !== 'string') {
-    error('setImageType error: path must be a string')
-    throw TypeError('setImageType error: path must be a string')
-  } else {
-    path = path.toLowerCase()
-  }
-  if (path.includes('png')) {
-    return 'png'
-  } else if (path.includes('gif')) {
-    return 'gif'
-  } else {
-    return 'jpeg'
-  }
-}
-function replaceUrlExt(imgUrl, newExt) {
-  let fileNoExt = imgUrl.split('.').slice(0, -1).join('.')
-  return `${fileNoExt}.${newExt} `.trim()
-}
-
 module.exports = {
-  setImageType: setImageType,
   showImage: showImage,
-  replaceUrlExt: replaceUrlExt,
-  httpCall: httpCall,
 }
