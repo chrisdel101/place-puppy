@@ -27,7 +27,7 @@ function resetCacheInterval() {
   }
 }
 // based on IP - add to cache after fetch
-function setCache(IP, path, data) {
+function setCache(IP, path, data, type) {
   if (!IP) {
     error('ERROR: no IP or localhost in getCache')
     return
@@ -40,6 +40,7 @@ function setCache(IP, path, data) {
     cache[IP][path] = {
       data: data,
       time: dayjs(),
+      type: type,
     }
   } else {
     log('LOG: add new IP')
@@ -47,6 +48,7 @@ function setCache(IP, path, data) {
       [path]: {
         data: data,
         time: dayjs(),
+        type: type,
       },
     }
   }
@@ -56,7 +58,7 @@ function getCache(IP, path) {
     error('ERROR: no IP or localhost in getCache')
     return
   }
-  log('LOG: checking cache path', path)
+  log('LOG: checking getCache()', path)
   if (cache[IP]) {
     if (cache[IP]?.[path]) {
       // if item was removed no cache
@@ -80,7 +82,7 @@ function resetUserCachePath(IP, path) {
   return false
 }
 
-function showImage(req, res) {
+exports.showImage = (req, res) => {
   try {
     // IP is client IP or undefined
     const IP = availableIP(req)
@@ -89,6 +91,7 @@ function showImage(req, res) {
     stats('STATS: imagesCached', imagesCached)
     stats('STATS: imagesRetrievedCache', imagesRetrievedCache)
     log('LOG: Path', req.originalUrl)
+    log('LOG: stripped params flag', req.invalidParams)
 
     const dimensions = req.params.dimensions
     if (!dimensions) {
@@ -101,11 +104,23 @@ function showImage(req, res) {
     resetCacheInterval()
     // cache off flag for testing
     if (process.env.CACHE !== 'OFF') {
+      // if invalid query params were stripped, cache .path only
+      let cachePath
+      if (req.invalidParams) {
+        cachePath = req.path
+      } else {
+        // for valid query params only
+        cachePath = req.originalUrl
+      }
       // get cached data by IP and path
-      const cachedIPContent = getCache(IP, req.originalUrl ?? req.path)
+      const cachedIPContent = getCache(IP, cachePath)
       // if cache, serve cache
       if (cachedIPContent) {
-        if (!res.get('Content-type')) res.type(`image/jpg`)
+        // set res type from cache, or defaul to jpg
+        if (!res.get('Content-type'))  res.type
+        (cachedIPContent?.[req.originalUrl]?.type ||
+         cachedIPContent?.[req.path]?.type ?
+          `${cachedIPContent?.[req.originalUrl]?.type || cachedIPContent?.[req.path]?.type}` : 'image/jpg')
         var stream = new Stream.PassThrough()
         stream.end(
           new Buffer.from(
@@ -113,8 +128,8 @@ function showImage(req, res) {
               cachedIPContent?.[req.path]?.data
           )
         )
-        log('LOG: Serving from: cache')
         imageRequests++
+        log('LOG: Serving from: cache')
         imagesRetrievedCache++
         return stream.pipe(res)
       }
@@ -131,35 +146,51 @@ function showImage(req, res) {
       }
     } else {
       // else get one at random
-      //copy obj, no aalter original data
+      //copy obj, no alter original data
       img = { ...images[Math.floor(Math.random() * 20)] }
     }
-    // set type and quality in middleware
+    // set type and quality in middleware - default jpeg, 50
     sharp(`.${img.src}`)
-      .toFormat(req.customType ?? 'jpeg', { quality: req.customeQuality ?? 50 })
+      .toFormat(req.customType ?? 'jpeg', { quality: req.customQuality ?? 50 })
       .resize(width, height)
       .toBuffer()
       .then((data) => {
-        log('LOG: Quality', req.customeQuality)
+        if (IP && process.env.CACHE !== 'OFF') {
+          // if invalid query params were stripped, cache .path only
+          if (req.invalidParams) {
+            // if any invalid params then ALL params are stripped
+            setCache(
+              IP,
+              req?.path,
+              data,
+              `image/${req.customType}` ?? 'image/jpg'
+            )
+          } else {
+            setCache(
+              IP,
+              req?.originalUrl ?? req?.path,
+              data,
+              `image/${req.customType}` ?? 'image/jpg'
+            )
+          }
+        }
+        log('LOG: CACHE', cache[IP])
+        log('LOG: Quality', req.customQuality)
         log('LOG: Type', req.customType)
         var stream = new Stream.PassThrough()
         // Write your buffer
         stream.end(new Buffer.from(data))
-        // track nums for fun
+        // track nums - just for fun
         imagesCached++
         // set mime type
-        res.type(`image/${req.customType} ?? 'jpg'}`)
+        res.type(`image/${req?.customType}` ?? 'image/jpg')
         return stream.pipe(res)
       })
       .catch((err) => {
-        console.log(`Sharp error: ${err}`)
+        console.error(`Sharp error: ${err}`)
       })
   } catch (e) {
     console.error('Error in showImage:', e)
     errorController.showErrorPage(req, res, e)
   }
-}
-
-module.exports = {
-  showImage: showImage,
 }

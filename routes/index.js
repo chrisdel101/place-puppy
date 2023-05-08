@@ -9,9 +9,10 @@ router.get('/', indexController.showIndex)
 // show img- use middleware when returning img dims
 router.get(
   '^/:dimensions([0-9]+[x][0-9]+)',
+  // run strip first; if strip occurs other two don't run
+  imageMiddleware.stripInvalidQueryParams,
   imageMiddleware.qualityMiddleware,
   imageMiddleware.returnImageType,
-  imageMiddleware.stripInvalidQueryParams,
   (req, res) => {
     imageController.showImage(req, res)
   }
