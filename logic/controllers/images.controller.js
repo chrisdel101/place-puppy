@@ -14,7 +14,10 @@ let imagesRetrievedCache = 0
 const dayjs = require('dayjs')
 let cacheResetTime = dayjs()
 
-// reset cache after iterval - free memory reset any err
+/**
+ * Resets cache after time interval - 12 hours
+ * used to free memory
+ */
 function resetCacheInterval() {
   const hourDiff = dayjs().diff(cacheResetTime, 'hours')
   log('LOG (temp): Last Reset', cacheResetTime.format())
@@ -26,6 +29,14 @@ function resetCacheInterval() {
     cacheResetTime = dayjs()
   }
 }
+/**
+ * Add image + meta data to cache based on IP
+ * @param {string} IP
+ * @param {string} path - with or w.o query params
+ * @param {Buffer} data - image data
+ * @param {string} type - image/type form
+ * @returns {object} cache 
+ */
 // based on IP - add to cache after fetch
 function setCache(IP, path, data, type) {
   if (!IP) {
@@ -53,6 +64,12 @@ function setCache(IP, path, data, type) {
     }
   }
 }
+/**
+ * Fetch data from cache based on IP
+ * @param {string} IP 
+ * @param {string} path - with or w.o query params
+ * @returns {object} - cache
+ */
 function getCache(IP, path) {
   if (!IP) {
     error('ERROR: no IP or localhost in getCache')
@@ -70,7 +87,13 @@ function getCache(IP, path) {
     }
   }
 }
-// return true if path deleted
+/**
+ * Reset users cache after interval - 1 hour
+ * @param {string} IP 
+ * @param {string} path - with or w.o query params
+ * @returns {boolean} - return true if path deleted
+
+ */
 function resetUserCachePath(IP, path) {
   const hourDiff = dayjs().diff(cache[IP]?.[path]?.time, 'hour')
   // remote path from cache after 1 hour
@@ -81,6 +104,12 @@ function resetUserCachePath(IP, path) {
   }
   return false
 }
+/**
+ * Shows image based on dimensions
+ * @param {object} req 
+ * @param {object} res 
+ * @returns {Stream} - image stream
+ */
 
 exports.showImage = (req, res) => {
   try {
