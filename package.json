@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "start:m": "DEBUG=app:* NODE_ENV=development MAINTENANCE=true nodemon ./bin/www",
+    "start:s": "DEBUG=app:* NODE_ENV=development SUNSET=true nodemon ./bin/www",
     "start": "DEBUG=app:* NODE_ENV=development nodemon ./bin/www",
     "start:no-cache": "DEBUG=app:* NODE_ENV=development CACHE=OFF nodemon ./bin/www",
     "start:nolog": "NODE_ENV=development nodemon ./bin/www",
     "prod": "NODE_ENV=production DEBUG=app:* node ./bin/www",
     "prod:m": "NODE_ENV=production MAINTENANCE=true DEBUG=app:* node ./bin/www",
+    "prod:s": "NODE_ENV=production SUNSET=true DEBUG=app:* node ./bin/www",
     "test": "mocha",
     "test:watch": "DEBUG=app:* mocha -w",
     "test:watch:nolog": "mocha -w"

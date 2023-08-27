@@ -58,6 +58,18 @@ footer .inpspiration ul li {
   align-items: center;
   justify-content: center;
  }
+#sunset {
+  border: #ADD8E6 5px solid; 
+  width: 100%;
+  border-radius: 5px;
+  text-align: center;
+  padding: 0 10px;
+  margin-bottom: 10px;
+ }
+#sunset p{
+  font-size: 1.2em;
+  
+ }
 .puppy-container {
   display: grid;
   /* min-max on each col is repsponsive */

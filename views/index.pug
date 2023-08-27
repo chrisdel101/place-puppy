@@ -4,6 +4,12 @@ block content
     .index-page
         if maintenance
             h3#maintenance Site undergoing maintenance. Outages may occur. Sorry for any disruption.   
+        if sunset
+            div#sunset
+                h1 NOTICE: End of Life for Place-Puppy.com  
+                h3 Place Puppy will shut down on September 27 2023
+                p Place-Puppy.com has always been entirely self-funded. Sadly, this is just no longer feasible.
+                p Thank you to everyone that used our puppies. Hopefully we made your prototypes just a little bit cuter.
         div.index-container
             div.puppy-container
                 div.puppy-box
@@ -39,6 +45,7 @@ block content
                 |
         hr
         footer.footer
+
             div.inpspiration
                 | Delivered by 
                 a(href='https://github.com/chrisdel101') Chris Del —  
@@ -49,7 +56,8 @@ block content
                 | Inspired by 
                 a(href='http://placekitten.com') placekitten
                 | 
-                a(href="https://www.buymeacoffee.com/chrisdel101" target="_blank")  
+                a(href="https://www.buymeacoffee.com/chrisdel101" target="_blank")
+                | | Est. 2018   
             div.donations
                 a(href="https://www.buymeacoffee.com/chrisdel101" target="_blank")
                     img(src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;")

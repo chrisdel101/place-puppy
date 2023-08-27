@@ -1,6 +1,21 @@
-# Placepuppy
+## NOTICE: End of Life for Place-Puppy.com
+### Place Puppy will shut down on September 27, 2023 
+
+
+Place Puppy will cease service on September 27, 2023 at 12:00am EST.
+
+
+Place-Puppy came online in 2018 and has always been entirely self-funded. Sadly in today's market, this is just no longer feasible.
+
+If you use place-puppy.com consistently in your work, please switch over to another service before the shutdown date, i.e. the OG [Place Kitten](https://placekitten.com/).
+
+Thank you to everyone that used one of our puppies over the years. Hopefully we made your prototypes just a little bit cuter.
+
+
+# Place Puppy
 
 [place-puppy.com](https://place-puppy.com)
+
 
 ## **An Image Placeholder App**
 

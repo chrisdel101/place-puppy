@@ -17,6 +17,7 @@ const index = require('./routes/index')
 const helmet = require("helmet");
 const app = express()
 const maintenance = process.env.MAINTENANCE
+const sunset = process.env.SUNSET
 
 
 app.use(helmet({
@@ -34,7 +35,8 @@ app.set('trust proxy', 'loopback')
 app.locals = {
   title: 'placepuppy',
   ENV,
-  maintenance
+  maintenance,
+  sunset
 }
 
 app.use(morgan('dev'))
